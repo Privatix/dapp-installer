@@ -2,26 +2,49 @@ package command
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/privatix/dapp-installer/util"
 	"github.com/spf13/cobra"
 )
 
-type config struct {
+// Config has a configuration params for installer
+type Config struct {
 	DB  string
 	Log string
 }
 
-var (
-	conf = newConfig()
+func initialize() *cobra.Command {
+	var configFile string // config file location
+	var showVers bool     // whether to print version info or not
+	config := newConfig()
 
-	fconfig  string // config file location
-	showVers bool   // whether to print version info or not
+	readConfig := func(ccmd *cobra.Command, args []string) error {
+		// if --config is passed, attempt to parse the config file
+		if configFile != "" {
+			err := util.ReadJSONFile(configFile, &config)
+			if err != nil {
+				log.Fatalln(err)
+				return fmt.Errorf(
+					"Failed to read config file - %s",
+					err,
+				)
+			}
+		}
 
-	version string = "0.0.0.0" //todo
+		return nil
+	}
 
-	// RootCmd ...
-	RootCmd = &cobra.Command{
+	preRun := func(ccmd *cobra.Command, args []string) error {
+		// if --version is passed print the version info
+		if showVers {
+			fmt.Printf("dapp-installer %s \n", util.Version())
+			return fmt.Errorf("")
+		}
+		return nil
+	}
+
+	rootCmd := &cobra.Command{
 		Use:               "dapp-installer",
 		Short:             "dapp-installer - installer for dapp core",
 		Long:              "dapp-installer - installer for dapp core",
@@ -31,51 +54,49 @@ var (
 		PreRunE:           preRun,
 		RunE:              run,
 	}
-)
 
-func newConfig() *config {
-	return &config{
+	// cli-only flags
+	rootCmd.Flags().BoolVarP(&showVers, "version", "v", false,
+		"Display the current version of this CLI")
+
+	installCmd := createInstallCmd()
+
+	installCmd.Flags().StringVarP(&configFile, "config", "c", "",
+		"Path to config file (with extension)")
+	rootCmd.AddCommand(installCmd)
+
+	updateCmd := createUpdateCmd()
+	updateCmd.Flags().StringVarP(&configFile, "config", "c", "",
+		"Path to config file (with extension)")
+	rootCmd.AddCommand(updateCmd)
+
+	removeCmd := createRemoveCmd()
+	removeCmd.Flags().StringVarP(&configFile, "config", "c", "",
+		"Path to config file (with extension)")
+	rootCmd.AddCommand(removeCmd)
+
+	return rootCmd
+}
+
+// NewConfig is create new config object
+func newConfig() *Config {
+	return &Config{
 		DB:  "db config",
 		Log: "logger",
 	}
 }
 
-func readConfig(ccmd *cobra.Command, args []string) error {
-	// if --config is passed, attempt to parse the config file
-	if fconfig != "" {
-		if err := util.ReadJSONFile(fconfig, &conf); err != nil {
-			return fmt.Errorf("Failed to read config file - %s", err)
-		}
-	}
-
-	return nil
-}
-
-func preRun(ccmd *cobra.Command, args []string) error {
-	// if --version is passed print the version info
-	if showVers {
-		fmt.Printf("dapp-installer %s \n", version)
-		return fmt.Errorf("")
-	}
-	return nil
-}
-
-func init() {
-	// cli-only flags
-	RootCmd.Flags().BoolVarP(&showVers, "version", "v", false, "Display the current version of this CLI")
-
-	// commands flags
-	installCmd.Flags().StringVarP(&fconfig, "config", "c", "", "Path to config file (with extension)")
-	updateCmd.Flags().StringVarP(&fconfig, "config", "c", "", "Path to config file (with extension)")
-	removeCmd.Flags().StringVarP(&fconfig, "config", "c", "", "Path to config file (with extension)")
-
-	// commands
-	RootCmd.AddCommand(installCmd)
-	RootCmd.AddCommand(updateCmd)
-	RootCmd.AddCommand(removeCmd)
-}
-
 func run(ccmd *cobra.Command, args []string) error {
 	ccmd.HelpFunc()(ccmd, args)
 	return nil
+}
+
+// Execute command
+func Execute() {
+	rootCmd := initialize()
+
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatalln(err)
+		return
+	}
 }

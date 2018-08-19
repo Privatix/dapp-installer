@@ -22,20 +22,28 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	"github.com/privatix/dapp-installer/command"
 )
 
+const logFile = "dapp-installer.log"
+
 func main() {
+	logFile, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	//first implementation for win platform
 	// if platform.Version() != "windows" {
 	// 	panic("Software install only to Windows platform")
 	// }
 
-	if err := command.RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		return
-	}
-
+	log.Println("Begin program")
+	command.Execute()
+	log.Println("End program")
 }

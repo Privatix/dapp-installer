@@ -3,19 +3,12 @@ package util
 import (
 	"encoding/json"
 	"os"
-	"path/filepath"
 )
 
 // Recursivly remove all data from directory
-func ClearDirectory(dir string) {
-	files, err := filepath.Glob(dir)
-	if err != nil {
+func ClearDirectory(path string) {
+	if err := os.RemoveAll(path); err != nil {
 		panic(err)
-	}
-	for _, f := range files {
-		if err := os.RemoveAll(f); err != nil {
-			panic(err)
-		}
 	}
 }
 
@@ -28,4 +21,9 @@ func ReadJSONFile(name string, data interface{}) error {
 	defer file.Close()
 
 	return json.NewDecoder(file).Decode(data)
+}
+
+// Version get installer versions
+func Version() string {
+	return "0.0.0.0"
 }

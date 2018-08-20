@@ -1,4 +1,4 @@
-[![Go report](https://goreportcard.com/badge/github.com/Privatix/dapp-installer)](https://goreportcard.com/badge/github.com/Privatix/dapp-installer)
+[![Go Report Card](http://goreportcard.com/badge/github.com/Privatix/dapp-installer)](https://goreportcard.com/report/github.com/Privatix/dapp-installer)
 [![Maintainability](https://api.codeclimate.com/v1/badges/603af7ec449bf3ae153c/maintainability)](https://codeclimate.com/github/Privatix/dapp-installer/maintainability)
 [![GoDoc](https://godoc.org/github.com/Privatix/dapp-installer?status.svg)](https://godoc.org/github.com/Privatix/dapp-installer)
 

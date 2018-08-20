@@ -55,3 +55,20 @@ Flags:
 Use "dapp-installer [command] --help" for more information about a command.
 ```
 
+# Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/Privatix/dappctrl/tags).
+
+## Authors
+
+* [ubozov](https://github.com/ubozov)
+
+See also the list of [contributors](https://github.com/Privatix/dapp-installer/contributors) who participated in this project.
+
+# License
+
+This project is licensed under the **GPL-3.0 License** - see the [COPYING](COPYING) file for details.

@@ -19,6 +19,8 @@
 //
 //  Use "dapp-installer [command] --help" for more information about a command.
 //
+
+//go:generate goversioninfo
 package main
 
 import (

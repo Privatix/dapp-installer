@@ -26,34 +26,39 @@ Build `dapp-installer` package:
 git clone https://github.com/Privatix/dapp-installer.git
 cd dapp-installer
 
-go get github.com/spf13/cobra
+go get -d github.com/Privatix/dapp-installer
+
 ```
+
+#### Windows platform
+
+```bash
+go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+
+go generate
+``` 
 
 # Usage
 
 Simply run `dapp-installer <COMMAND>`
 
-`dapp-installer` or `dapp-installer -h` will show usage and a list of commands:
+`dapp-installer` or `dapp-installer --help` will show usage and a list of commands:
 
 ```
-dapp-installer - installer for dapp core
-
 Usage:
-  dapp-installer [flags]
-  dapp-installer [command]
+   dapp-installer [command] [flags]
 
-Available Commands:
-  help        Help about any command
-  install     Install dapp core to host
-  remove      Remove dapp core to host
-  update      Update dapp core to host
-
-Flags:
-  -h, --help      help for dapp-installer
-  -v, --version   Display the current version of this CLI
-
-Use "dapp-installer [command] --help" for more information about a command.
-```
+ Available Commands:
+   install     Install dapp core
+   update      Update dapp core
+   remove      Remove dapp core
+ 
+ Flags:
+   --help      Display help information
+   --version   Display the current version of this CLI
+   
+ Use "dapp-installer [command] --help" for more information about a command.
+ ```
 
 # Contributing
 

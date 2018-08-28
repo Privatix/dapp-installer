@@ -1,24 +1,48 @@
 package command
 
 import (
+	"flag"
 	"fmt"
-	"log"
+	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/Privatix/dapp-installer/util"
+	"github.com/Privatix/dappctrl/util/log"
 )
 
-func createInstallCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "install",
-		Short: "Install dapp core to host",
-		Long:  "Run installation process of dapp core to localhost",
-
-		Run: install,
+func getInstallCmd() *Command {
+	return &Command{
+		Name:    "install",
+		execute: install,
 	}
 }
 
-func install(ccmd *cobra.Command, args []string) {
-	log.Println("Start install process")
-	fmt.Println("I will be runnning installation process", args)
-	log.Println("Finish install process")
+func install(log log.Logger) {
+	h := flag.Bool("help", false, "Display dapp-installer help")
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if *h {
+		installHelp()
+		return
+	}
+
+	log.Info("start install process")
+	defer log.Info("finish install process")
+
+	fmt.Println("I will be running installation process")
+
+	if !util.CheckSystemPrerequisites(log) {
+		log.Warn("installation process was interrupted")
+		return
+	}
+	log.Info("check the system prerequisites was successful")
+}
+
+func installHelp() {
+	fmt.Print(`
+Usage:
+	dapp-installer install [flags]
+
+Flags:
+	--help      Display help information`)
 }

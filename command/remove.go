@@ -1,24 +1,40 @@
 package command
 
 import (
+	"flag"
 	"fmt"
-	"log"
+	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/Privatix/dappctrl/util/log"
 )
 
-func createRemoveCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "remove",
-		Short: "Remove dapp core to host",
-		Long:  "Run deinstallation process of dapp core to localhost",
-
-		Run: remove,
+func getRemoveCmd() *Command {
+	return &Command{
+		Name:    "remove",
+		execute: remove,
 	}
 }
 
-func remove(ccmd *cobra.Command, args []string) {
-	log.Println("Start remove process")
-	fmt.Println("I will be running uninstallation process", args)
-	log.Println("Finish remove process")
+func remove(log log.Logger) {
+	h := flag.Bool("help", false, "Display dapp-installer help")
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if *h {
+		removeHelp()
+		return
+	}
+
+	log.Info("start remove process")
+	fmt.Println("I will be running uninstallation process")
+	log.Info("finish remove process")
+}
+
+func removeHelp() {
+	fmt.Print(`
+Usage:
+	dapp-installer remove [flags]
+
+Flags:
+	--help      Display help information`)
 }

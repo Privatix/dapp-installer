@@ -1,0 +1,26 @@
+{
+    "DBEngine": {
+         "Download" : "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
+         "ServiceName": "postgres",
+         "DataDir": "C:\\Program Files\\PostgreSQL\\10\\data",
+         "InstallDir": "C:\\Program Files\\PostgreSQL\\10",
+         "Copy" : [
+             {
+                 "From" : "https://privatix.io/ico/images/logo_easysoft.png",
+                 "To" : "C:\\Program Files\\PostgreSQL\\10\\data"
+             },
+             {
+                 "From" : "https://privatix.io/ico/images/whitepaper_cover.png",
+                 "To" : "C:\\Program Files\\PostgreSQL\\10\\data"
+             }
+         ],
+         "DB" : {
+            "DBName": "dappctrl",
+            "User": "postgres",
+            "Password": "postgres",
+            "Port": "5433"
+         }
+     },
+     "DappGui": "",
+     "DappCtrl": ""
+ }

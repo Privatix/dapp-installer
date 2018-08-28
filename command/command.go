@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Privatix/dapp-installer/data"
+
+	"github.com/Privatix/dapp-installer/util"
 	"github.com/Privatix/dappctrl/util/log"
 )
 
@@ -28,7 +31,23 @@ type Command struct {
 	// Name of command
 	Name string
 	// execute has a pointer to execute func
-	execute func(logger log.Logger)
+	execute func(conf *config, logger log.Logger)
+}
+
+type config struct {
+	DBEngine *util.DBEngine
+}
+
+func newConfig() *config {
+	return &config{
+		DBEngine: &util.DBEngine{
+			Download:    "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
+			ServiceName: "postrges",
+			DB: &data.DB{
+				DBName: "dappctrl",
+			},
+		},
+	}
 }
 
 // Execute has a command execute
@@ -53,7 +72,8 @@ func Execute(logger log.Logger, printVersion func(), args []string) {
 		return
 	}
 
-	cmd.execute(logger.Add("command", cmd.Name))
+	conf := newConfig()
+	cmd.execute(conf, logger.Add("command", cmd.Name))
 }
 
 func processedFlags(printVersion func()) bool {

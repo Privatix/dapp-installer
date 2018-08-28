@@ -19,16 +19,6 @@ var (
 
 const logFile = "dapp-installer.log"
 
-type config struct {
-	DB string
-}
-
-func newConfig() *config {
-	return &config{
-		DB: "db config",
-	}
-}
-
 func printVersion() {
 	fmt.Printf("dapp-installer %s %s", Version, Commit)
 }

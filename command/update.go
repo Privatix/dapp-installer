@@ -16,7 +16,7 @@ func getUpdateCmd() *Command {
 	}
 }
 
-func update(log log.Logger) {
+func update(conf *config, log log.Logger) {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 
 	flag.CommandLine.Parse(os.Args[2:])

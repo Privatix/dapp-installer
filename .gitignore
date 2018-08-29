@@ -8,6 +8,7 @@
 dapp-installer
 dapp-installer.log
 logFile
+statik.go
 # Test binary, build with `go test -c`
 *.test
 

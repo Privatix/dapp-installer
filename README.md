@@ -35,7 +35,7 @@ go get -d github.com/Privatix/dapp-installer
 ```bash
 go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 
-go generate
+go generate ./...
 ``` 
 
 # Usage

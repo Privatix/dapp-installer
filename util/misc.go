@@ -1,31 +1,158 @@
 package util
 
 import (
-	"encoding/json"
+	"fmt"
+	"io"
+	"math"
+	"net/http"
 	"os"
-	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/Privatix/dapp-installer/data"
 )
 
-// Recursivly remove all data from directory
-func ClearDirectory(dir string) {
-	files, err := filepath.Glob(dir)
+const (
+	// MinAvailableDiskSize - available min 500MB
+	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
+	// MinMemorySize  - min RAM 2 GB
+	MinMemorySize uint64 = 2 * 1000 * 1024 * 1024
+)
+
+// WriteCounter type is used for download process.
+type WriteCounter struct {
+	Processed uint64
+	Total     uint64
+}
+
+// DBEngine has a db engine configuration.
+type DBEngine struct {
+	Download    string
+	ServiceName string
+	DataDir     string
+	InstallDir  string
+	Copy        []Copy
+	DB          *data.DB
+}
+
+// Copy has a file copies parameters.
+type Copy struct {
+	From string
+	To   string
+}
+
+func (wc *WriteCounter) Write(p []byte) (int, error) {
+	n := len(p)
+	wc.Processed += uint64(n)
+	wc.printProgress()
+	return n, nil
+}
+
+func (wc WriteCounter) printProgress() {
+	fmt.Printf("\r%s", strings.Repeat(" ", 35))
+	fmt.Printf("\rDownloading... %s from %s",
+		humanateBytes(wc.Processed), humanateBytes(wc.Total))
+}
+
+func downloadFile(filePath, url string) error {
+	out, err := os.Create(filePath + ".tmp")
 	if err != nil {
-		panic(err)
+		return err
 	}
-	for _, f := range files {
-		if err := os.RemoveAll(f); err != nil {
-			panic(err)
+	defer out.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	length, err := strconv.Atoi(resp.Header.Get("Content-Length"))
+	if err != nil {
+		return err
+	}
+
+	counter := &WriteCounter{Total: uint64(length)}
+
+	_, err = io.Copy(out, io.TeeReader(resp.Body, counter))
+	if err != nil {
+		return err
+	}
+
+	fmt.Print("\n")
+
+	out.Close()
+
+	return os.Rename(filePath+".tmp", filePath)
+}
+
+func logn(n, b float64) float64 {
+	return math.Log(n) / math.Log(b)
+}
+
+func humanateBytes(s uint64) string {
+	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB"}
+	var base float64 = 1024
+	if s < 10 {
+		return fmt.Sprintf("%d B", s)
+	}
+	e := math.Floor(logn(float64(s), base))
+	suffix := sizes[int(e)]
+	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
+	f := "%.0f %s"
+	if val < 10 {
+		f = "%.1f %s"
+	}
+
+	return fmt.Sprintf(f, val, suffix)
+}
+
+func generateDBEngineInstallParams(dbConf *DBEngine) []string {
+	args := []string{"--mode", "unattended", "--unattendedmodeui", "none"}
+
+	if len(dbConf.ServiceName) > 0 {
+		args = append(args, "--servicename", dbConf.ServiceName)
+	}
+	if len(dbConf.DB.Port) > 0 {
+		args = append(args, "--serverport", dbConf.DB.Port)
+	}
+	if len(dbConf.DB.User) > 0 {
+		args = append(args, "--superaccount", dbConf.DB.User)
+	}
+	if len(dbConf.DB.Password) > 0 {
+		args = append(args, "--superpassword", dbConf.DB.Password)
+	}
+	if len(dbConf.InstallDir) > 0 {
+		args = append(args, "--prefix", dbConf.InstallDir)
+	}
+	if len(dbConf.DataDir) > 0 {
+		args = append(args, "--datadir", dbConf.DataDir)
+	}
+	return args
+}
+
+func interactiveWorker(s string, quit chan bool) {
+	i := 0
+	for {
+		select {
+		case <-quit:
+			return
+		default:
+			i++
+			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
+			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
+			if i >= 10 {
+				i = 0
+			}
+			time.Sleep(time.Millisecond * 250)
 		}
 	}
 }
 
-// ReadJSONFile reads and parses a JSON file filling a given data instance.
-func ReadJSONFile(name string, data interface{}) error {
-	file, err := os.Open(name)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return json.NewDecoder(file).Decode(data)
+// GetConnectionString is generate connection string.
+func GetConnectionString(db, user, pwd, port string) string {
+	connStr := "host=localhost sslmode=disable"
+	return fmt.Sprintf("%s dbname=%s user=%s password=%s port=%s",
+		connStr, db, user, pwd, port)
 }

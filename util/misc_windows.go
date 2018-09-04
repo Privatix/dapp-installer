@@ -79,9 +79,21 @@ func checkMemory() bool {
 }
 
 // DBEngineExists is checking to install DB engine.
-func DBEngineExists(log log.Logger) bool {
-	return checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine64) ||
-		checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine32)
+func DBEngineExists(log log.Logger) (int, bool) {
+	path, ok := checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine64)
+	if ok {
+		s := strings.Replace(WinRegDBEngine64, "Installations", "Services", 1)
+		path = s + path
+		return getServicePort(registry.LOCAL_MACHINE, path), true
+	}
+
+	path, ok = checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine32)
+	if ok {
+		s := strings.Replace(WinRegDBEngine32, "Installations", "Services", 1)
+		path = s + path
+		return getServicePort(registry.LOCAL_MACHINE, path), true
+	}
+	return 0, false
 }
 
 // InstallDBEngine is installing DB engine.

@@ -1,7 +1,7 @@
 {
     "DBEngine": {
          "Download" : "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
-         "ServiceName": "postgres",
+         "ServiceName": "postgresdapp",
          "DataDir": "C:\\Program Files\\PostgreSQL\\10\\data",
          "InstallDir": "C:\\Program Files\\PostgreSQL\\10",
          "Copy" : [
@@ -18,7 +18,7 @@
             "DBName": "dappctrl",
             "User": "postgres",
             "Password": "postgres",
-            "Port": "5433"
+            "Port": "5432"
          }
      },
      "DappGui": "",

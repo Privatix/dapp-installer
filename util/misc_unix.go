@@ -17,9 +17,9 @@ func CheckSystemPrerequisites(log log.Logger) bool {
 }
 
 // DBEngineExists is checking to install DB engine.
-func DBEngineExists(log log.Logger) bool {
+func DBEngineExists(log log.Logger) (int, bool) {
 	log.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
-	return false
+	return 0, false
 }
 
 // InstallDBEngine is installing DB engine.

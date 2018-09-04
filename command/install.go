@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/Privatix/dapp-installer/data"
 	"github.com/Privatix/dapp-installer/util"
@@ -54,22 +55,26 @@ func install(conf *config, log log.Logger) {
 	}
 	log.Info("check the system prerequisites was successful")
 
-	connStr := util.GetConnectionString("postgres", conf.DBEngine.DB.User,
-		conf.DBEngine.DB.Password, conf.DBEngine.DB.Port)
-
-	if !util.DBEngineExists(log) {
+	p, exist := util.DBEngineExists(log)
+	if !exist {
 		log.Warn("db engine is not exists")
 		if err := util.InstallDBEngine(conf.DBEngine, log); err != nil {
 			log.Warn(
 				fmt.Sprintf("ocurred error while installing dbengine %v", err))
 			return
 		}
-		// check to access db engine service
-		if err := data.Ping(connStr); err != nil {
-			log.Warn(fmt.Sprintf(
-				"ocurred error when check to access dbengine service %v", err))
-			return
-		}
+		p, _ = util.DBEngineExists(log)
+	}
+
+	conf.DBEngine.DB.Port = strconv.Itoa(p)
+
+	// check to access db engine service
+	connStr := util.GetConnectionString("postgres", conf.DBEngine.DB.User,
+		conf.DBEngine.DB.Password, conf.DBEngine.DB.Port)
+	if err := data.Ping(connStr); err != nil {
+		log.Warn(fmt.Sprintf(
+			"ocurred error when check to access dbengine service %v", err))
+		return
 	}
 
 	dappConnStr := util.GetConnectionString(conf.DBEngine.DB.DBName,

@@ -114,9 +114,6 @@ func generateDBEngineInstallParams(dbConf *DBEngine) []string {
 	if len(dbConf.ServiceName) > 0 {
 		args = append(args, "--servicename", dbConf.ServiceName)
 	}
-	if len(dbConf.DB.Port) > 0 {
-		args = append(args, "--serverport", dbConf.DB.Port)
-	}
 	if len(dbConf.DB.User) > 0 {
 		args = append(args, "--superaccount", dbConf.DB.User)
 	}

@@ -19,27 +19,37 @@ func getRegistryKeyByPath(key registry.Key, p string) (*registry.Key, error) {
 	return &k, nil
 }
 
-func checkDBEngineVersion(key registry.Key, path string) bool {
+func getServicePort(key registry.Key, path string) int {
 	k, err := getRegistryKeyByPath(key, path)
 	if err != nil {
-		return false
+		return 0
+	}
+	defer k.Close()
+	v, _, _ := k.GetIntegerValue("Port")
+	return int(v)
+}
+
+func checkDBEngineVersion(key registry.Key, path string) (string, bool) {
+	k, err := getRegistryKeyByPath(key, path)
+	if err != nil {
+		return "", false
 	}
 	defer k.Close()
 	s, _, _ := k.GetStringValue("Version")
 	if len(s) > 0 {
 		major, _ := strconv.Atoi(s[0:strings.Index(s, ".")])
 		if major >= MinDBEngineVersion {
-			return true
+			return path, true
 		}
 	}
 	subNames, err := k.ReadSubKeyNames(-1)
 	if err != nil {
-		return false
+		return "", false
 	}
 	for _, each := range subNames {
-		if checkDBEngineVersion(*k, each) {
-			return true
+		if p, ok := checkDBEngineVersion(*k, each); ok {
+			return p, true
 		}
 	}
-	return false
+	return "", false
 }

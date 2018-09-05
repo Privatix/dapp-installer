@@ -36,6 +36,11 @@ type Command struct {
 
 type config struct {
 	DBEngine *util.DBEngine
+	DappCtrl *dappCtrlConfig
+}
+
+type dappCtrlConfig struct {
+	File string
 }
 
 func newConfig() *config {
@@ -44,7 +49,10 @@ func newConfig() *config {
 			Download:    "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
 			ServiceName: "postrges",
 			DB: &data.DB{
-				DBName: "dappctrl",
+				DBName:   "dappctrl",
+				User:     "postgres",
+				Password: "postgres",
+				Port:     "5432",
 			},
 		},
 	}

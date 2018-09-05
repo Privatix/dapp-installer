@@ -31,24 +31,24 @@ const WinRegDBEngine64 string = `SOFTWARE\PostgreSQL\Installations\`
 const WinRegDBEngine32 string = `SOFTWARE\WOW6432Node\PostgreSQL\Installations\`
 
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(log log.Logger) bool {
+func CheckSystemPrerequisites(logger log.Logger) bool {
 	if runtime.GOOS != "windows" {
-		log.Warn("software install only to Windows platform")
+		logger.Warn("software install only to Windows platform")
 		return false
 	}
 
 	if !checkWindowsVersion() {
-		log.Warn("Windows version does not meet the requirements")
+		logger.Warn("Windows version does not meet the requirements")
 		return false
 	}
 
 	if !checkMemory() {
-		log.Warn("RAM does not meet the requirements")
+		logger.Warn("RAM does not meet the requirements")
 		return false
 	}
 
 	if !checkStorage() {
-		log.Warn("available size of disk does not meet the requirements")
+		logger.Warn("available size of disk does not meet the requirements")
 		return false
 	}
 
@@ -78,18 +78,18 @@ func checkMemory() bool {
 	return totalMemoryInKilobytes*1024 > MinMemorySize
 }
 
-// DBEngineExists is checking to install DB engine.
-func DBEngineExists(log log.Logger) (int, bool) {
-	path, ok := checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine64)
-	if ok {
-		s := strings.Replace(WinRegDBEngine64, "Installations", "Services", 1)
-		path = s + path
-		return getServicePort(registry.LOCAL_MACHINE, path), true
+// ExistingDBEnginePort returns existing db engine port number.
+func ExistingDBEnginePort(logger log.Logger) (int, bool) {
+	if p, ok := getDBEngineServicePort(WinRegDBEngine64); ok {
+		return p, ok
 	}
+	return getDBEngineServicePort(WinRegDBEngine32)
+}
 
-	path, ok = checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine32)
+func getDBEngineServicePort(keyPath string) (int, bool) {
+	path, ok := checkDBEngineVersion(registry.LOCAL_MACHINE, keyPath)
 	if ok {
-		s := strings.Replace(WinRegDBEngine32, "Installations", "Services", 1)
+		s := strings.Replace(keyPath, "Installations", "Services", 1)
 		path = s + path
 		return getServicePort(registry.LOCAL_MACHINE, path), true
 	}
@@ -97,13 +97,13 @@ func DBEngineExists(log log.Logger) (int, bool) {
 }
 
 // InstallDBEngine is installing DB engine.
-func InstallDBEngine(conf *DBEngine, log log.Logger) error {
+func InstallDBEngine(conf *DBEngine, logger log.Logger) error {
 	fileName := path.Base(conf.Download)
 	if err := downloadFile(fileName, conf.Download); err != nil {
-		log.Warn("ocurred error when downloded file from " + conf.Download)
+		logger.Warn("ocurred error when downloded file from " + conf.Download)
 		return err
 	}
-	log.Info("file successfully downloaded")
+	logger.Info("file successfully downloaded")
 
 	// install db engine
 	ch := make(chan bool)
@@ -114,10 +114,10 @@ func InstallDBEngine(conf *DBEngine, log log.Logger) error {
 		generateDBEngineInstallParams(conf)...).Run(); err != nil {
 		ch <- true
 		fmt.Printf("\r%s\n", "Ocurred error when install DB Engine")
-		log.Warn("ocurred error when install dbengine")
+		logger.Warn("ocurred error when install dbengine")
 		return err
 	}
-	log.Info("dbengine successfully installed")
+	logger.Info("dbengine successfully installed")
 
 	ch <- true
 	fmt.Printf("\r%s\n", "DB Engine successfully installed")
@@ -126,18 +126,18 @@ func InstallDBEngine(conf *DBEngine, log log.Logger) error {
 		fmt.Println(c.From, c.To)
 		fileName := path.Base(c.From)
 		if err := downloadFile(c.To+"\\"+fileName, c.From); err != nil {
-			log.Warn("ocurred error when downloded file from " + c.From)
+			logger.Warn("ocurred error when downloded file from " + c.From)
 			return err
 		}
 	}
 
 	// start db engine service
 	if err := startService(conf.ServiceName); err != nil {
-		log.Warn("ocurred error when start dbengine service")
+		logger.Warn("ocurred error when start dbengine service")
 		return err
 	}
 
-	log.Info("dbengine service successfully started")
+	logger.Info("dbengine service successfully started")
 	return nil
 }
 
@@ -158,4 +158,11 @@ func startService(service string) error {
 
 	// trying start service
 	return exec.Command("net", "start", service).Run()
+}
+
+// ExecuteCommand does executing file.
+func ExecuteCommand(filename string, args []string) error {
+	cmd := exec.Command(filename, args...)
+
+	return cmd.Run()
 }

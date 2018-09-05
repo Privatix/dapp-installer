@@ -21,6 +21,8 @@
             "Port": "5432"
          }
      },
-     "DappGui": "",
-     "DappCtrl": ""
+    "DappGui": "",
+    "DappCtrl": {
+        "File" : "dappctrl.exe"
+    }
  }

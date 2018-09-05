@@ -146,10 +146,3 @@ func interactiveWorker(s string, quit chan bool) {
 		}
 	}
 }
-
-// GetConnectionString is generate connection string.
-func GetConnectionString(db, user, pwd, port string) string {
-	connStr := "host=localhost sslmode=disable"
-	return fmt.Sprintf("%s dbname=%s user=%s password=%s port=%s",
-		connStr, db, user, pwd, port)
-}

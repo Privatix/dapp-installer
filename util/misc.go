@@ -114,9 +114,6 @@ func generateDBEngineInstallParams(dbConf *DBEngine) []string {
 	if len(dbConf.ServiceName) > 0 {
 		args = append(args, "--servicename", dbConf.ServiceName)
 	}
-	if len(dbConf.DB.Port) > 0 {
-		args = append(args, "--serverport", dbConf.DB.Port)
-	}
 	if len(dbConf.DB.User) > 0 {
 		args = append(args, "--superaccount", dbConf.DB.User)
 	}
@@ -148,11 +145,4 @@ func interactiveWorker(s string, quit chan bool) {
 			time.Sleep(time.Millisecond * 250)
 		}
 	}
-}
-
-// GetConnectionString is generate connection string.
-func GetConnectionString(db, user, pwd, port string) string {
-	connStr := "host=localhost sslmode=disable"
-	return fmt.Sprintf("%s dbname=%s user=%s password=%s port=%s",
-		connStr, db, user, pwd, port)
 }

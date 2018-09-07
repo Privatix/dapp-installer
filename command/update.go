@@ -16,7 +16,7 @@ func getUpdateCmd() *Command {
 	}
 }
 
-func update(conf *config, log log.Logger) {
+func update(conf *config, logger log.Logger) {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 
 	flag.CommandLine.Parse(os.Args[2:])
@@ -26,16 +26,16 @@ func update(conf *config, log log.Logger) {
 		return
 	}
 
-	log.Info("start update process")
-	defer log.Info("finish update process")
+	logger.Info("start update process")
+	defer logger.Info("finish update process")
 
 	fmt.Println("I will be running upgrading process")
 
-	if !util.CheckSystemPrerequisites(log) {
-		log.Warn("upgrading process was interrupted")
+	if !util.CheckSystemPrerequisites(logger) {
+		logger.Warn("upgrading process was interrupted")
 		return
 	}
-	log.Info("check the system prerequisites was successful")
+	logger.Info("check the system prerequisites was successful")
 }
 
 func updateHelp() {

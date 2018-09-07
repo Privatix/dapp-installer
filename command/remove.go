@@ -15,7 +15,7 @@ func getRemoveCmd() *Command {
 	}
 }
 
-func remove(conf *config, log log.Logger) {
+func remove(conf *config, logger log.Logger) {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 
 	flag.CommandLine.Parse(os.Args[2:])
@@ -25,9 +25,9 @@ func remove(conf *config, log log.Logger) {
 		return
 	}
 
-	log.Info("start remove process")
+	logger.Info("start remove process")
 	fmt.Println("I will be running uninstallation process")
-	log.Info("finish remove process")
+	logger.Info("finish remove process")
 }
 
 func removeHelp() {

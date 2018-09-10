@@ -27,3 +27,9 @@ func InstallDBEngine(dbConf *DBEngine, logger log.Logger) error {
 	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
 	return errors.New("is not supported for this feature")
 }
+
+// ExistingDappCtrlVersion returns existing dappctrl version.
+func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
+	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
+	return "", false
+}

@@ -5,25 +5,33 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Privatix/dapp-installer/util"
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/util"
+	"github.com/privatix/dappctrl/util/log"
 )
 
-func getUpdateCmd() *Command {
-	return &Command{
-		Name:    "update",
-		execute: update,
+type updateCmd struct {
+	name          string
+	rollbackFuncs []func(conf *config, logger log.Logger)
+}
+
+func getUpdateCmd() *updateCmd {
+	return &updateCmd{name: "update"}
+}
+
+func (cmd *updateCmd) rollback(conf *config, logger log.Logger) {
+	for i := len(cmd.rollbackFuncs) - 1; i >= 0; i-- {
+		cmd.rollbackFuncs[i](conf, logger)
 	}
 }
 
-func update(conf *config, logger log.Logger) {
+func (cmd *updateCmd) execute(conf *config, logger log.Logger) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
 	if *h {
 		updateHelp()
-		return
+		return nil
 	}
 
 	logger.Info("start update process")
@@ -33,9 +41,10 @@ func update(conf *config, logger log.Logger) {
 
 	if !util.CheckSystemPrerequisites(logger) {
 		logger.Warn("upgrading process was interrupted")
-		return
+		return nil
 	}
 	logger.Info("check the system prerequisites was successful")
+	return nil
 }
 
 func updateHelp() {

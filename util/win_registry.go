@@ -19,8 +19,8 @@ type Key struct {
 
 // Registry is a windows registry path with contains keys.
 type Registry struct {
-	Path string
-	Keys []Key
+	Install   []Key
+	Uninstall []Key
 }
 
 func getRegistryKeyByPath(key registry.Key, p string) (*registry.Key, error) {
@@ -70,14 +70,21 @@ func checkDBEngineVersion(key registry.Key, path string) (string, bool) {
 
 // CreateRegistryKey creates new registry key in windows registry.
 func CreateRegistryKey(reg *Registry) error {
-	key, _, err := registry.CreateKey(registry.LOCAL_MACHINE, reg.Path,
+	if err := createRegistryKey(WinRegInstalledDapp, reg.Install); err != nil {
+		return err
+	}
+	return createRegistryKey(WinRegUninstallDapp, reg.Uninstall)
+}
+
+func createRegistryKey(path string, keys []Key) error {
+	key, _, err := registry.CreateKey(registry.LOCAL_MACHINE, path,
 		registry.ALL_ACCESS)
 	if err != nil {
 		return err
 	}
 	defer key.Close()
 
-	for _, k := range reg.Keys {
+	for _, k := range keys {
 		switch k.Type {
 		case "string":
 			if err := key.SetStringValue(k.Name, k.Value); err != nil {
@@ -97,7 +104,11 @@ func CreateRegistryKey(reg *Registry) error {
 
 // RemoveRegistryKey removes registry key from windows registry.
 func RemoveRegistryKey(reg *Registry) error {
-	return registry.DeleteKey(registry.LOCAL_MACHINE, reg.Path)
+	err := registry.DeleteKey(registry.LOCAL_MACHINE, WinRegInstalledDapp)
+	if err != nil {
+		return err
+	}
+	return registry.DeleteKey(registry.LOCAL_MACHINE, WinRegUninstallDapp)
 }
 
 func getInstalledDappVersion() (string, error) {

@@ -6,17 +6,19 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Privatix/dapp-installer/data"
-	"github.com/Privatix/dapp-installer/util"
-	dapputil "github.com/Privatix/dappctrl/util"
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/data"
+	"github.com/privatix/dapp-installer/util"
+	dapputil "github.com/privatix/dappctrl/util"
+	"github.com/privatix/dappctrl/util/log"
 )
 
-func getInstallCmd() *Command {
-	return &Command{
-		Name:    "install",
-		execute: install,
-	}
+type installCmd struct {
+	name          string
+	rollbackFuncs []func(conf *config, logger log.Logger)
+}
+
+func getInstallCmd() *installCmd {
+	return &installCmd{name: "install"}
 }
 
 func installProcessedFlags(conf *config, logger log.Logger) bool {
@@ -39,33 +41,75 @@ func installProcessedFlags(conf *config, logger log.Logger) bool {
 	return false
 }
 
-func install(conf *config, logger log.Logger) {
+func (cmd *installCmd) execute(conf *config, log log.Logger) error {
+	logger := log.Add("command", cmd.name)
 	if installProcessedFlags(conf, logger) {
-		return
+		return nil
 	}
 
 	logger.Info("start install process")
 	defer logger.Info("finish install process")
 
-	fmt.Println("I will be running installation process")
-
 	if !util.CheckSystemPrerequisites(logger) {
 		logger.Warn("installation process was interrupted")
-		return
+		return nil
 	}
 	logger.Info("check the system prerequisites was successful")
 
+	if err := checkDatabase(cmd, conf, logger); err != nil {
+		return err
+	}
+
+	if err := checkController(cmd, conf, logger); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func checkController(cmd *installCmd, conf *config, logger log.Logger) error {
+	newVer := util.GetDappCtrlVersion(conf.DappCtrl.File)
+	existVer, ok := util.ExistingDappCtrlVersion(logger)
+	if !ok || newVer > existVer {
+		if ok {
+
+		}
+		// stop wrapper if ok
+		// copy dappctrl
+		// copy wrapper
+		// config wrapper
+		// start wrapper
+		if err := util.CreateRegistryKey(conf.Registry); err != nil {
+			logger.Warn(fmt.Sprintf(
+				"ocurred error when create registry key %v", err))
+			return nil
+		}
+		cmd.rollbackFuncs = append(cmd.rollbackFuncs, removeRegistry)
+	}
+	return nil
+}
+
+func removeRegistry(conf *config, logger log.Logger) {
+	if err := util.RemoveRegistryKey(conf.Registry); err != nil {
+		logger.Warn(fmt.Sprintf(
+			"ocurred error when remove registry key %v", err))
+		return
+	}
+	logger.Info("windows registry successfully cleared")
+}
+
+func checkDatabase(cmd *installCmd, conf *config, logger log.Logger) error {
 	p, ok := util.ExistingDBEnginePort(logger)
 	if !ok {
 		logger.Warn("db engine is not exists")
 		if err := util.InstallDBEngine(conf.DBEngine, logger); err != nil {
 			logger.Warn(
 				fmt.Sprintf("ocurred error while installing dbengine %v", err))
-			return
+			return err
 		}
 		p, _ = util.ExistingDBEnginePort(logger)
 	}
-
+	logger.Info("checking the dbengine exists was successful")
 	// update the default port number
 	// by the correct port number of the existing db engine
 	conf.DBEngine.DB.Port = strconv.Itoa(p)
@@ -75,20 +119,27 @@ func install(conf *config, logger log.Logger) {
 		if err := createDatabase(conf); err != nil {
 			logger.Warn(fmt.Sprintf(
 				"ocurred error when create database %v", err))
-			return
+			return err
 		}
 		logger.Info("database successfully created")
+		cmd.rollbackFuncs = append(cmd.rollbackFuncs, dropDatabase)
 	}
+	return nil
+}
 
-	for _, r := range conf.Registry {
-		if err := util.CreateRegistryKey(&r); err != nil {
-			logger.Warn(fmt.Sprintf(
-				"ocurred error when create registry %v", err))
-			return
-		}
+func (cmd *installCmd) rollback(conf *config, logger log.Logger) {
+	for i := len(cmd.rollbackFuncs) - 1; i >= 0; i-- {
+		cmd.rollbackFuncs[i](conf, logger)
 	}
+}
 
-	logger.Info("checking the dbengine exists was successful")
+func dropDatabase(conf *config, logger log.Logger) {
+	if err := data.DropDatabase(conf.DBEngine.DB); err != nil {
+		logger.Warn(fmt.Sprintf(
+			"ocurred error when drop database %v", err))
+		return
+	}
+	logger.Info("database successfully dropped")
 }
 
 func createDatabase(conf *config) error {
@@ -106,7 +157,6 @@ func createDatabase(conf *config) error {
 	if err := util.ExecuteCommand(conf.DappCtrl.File, args); err != nil {
 		return err
 	}
-
 	args = []string{"db-init-data", "-conn", conn}
 	return util.ExecuteCommand(conf.DappCtrl.File, args)
 }

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Privatix/dapp-installer/command"
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/command"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 // Values for versioning.

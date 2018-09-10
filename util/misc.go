@@ -1,16 +1,18 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Privatix/dapp-installer/data"
+	"github.com/privatix/dapp-installer/data"
 )
 
 const (
@@ -145,4 +147,15 @@ func interactiveWorker(s string, quit chan bool) {
 			time.Sleep(time.Millisecond * 250)
 		}
 	}
+}
+
+// GetDappCtrlVersion returns dappctrl version.
+func GetDappCtrlVersion(filename string) string {
+	cmd := exec.Command(filename, "-version")
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	if err := cmd.Run(); err != nil {
+		return ""
+	}
+	return output.String()
 }

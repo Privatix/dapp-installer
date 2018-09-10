@@ -13,8 +13,8 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
-	"github.com/Privatix/dappctrl/util/log"
 	"github.com/lxn/win"
+	"github.com/privatix/dappctrl/util/log"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -169,6 +169,14 @@ func startService(service string) error {
 // ExecuteCommand does executing file.
 func ExecuteCommand(filename string, args []string) error {
 	cmd := exec.Command(filename, args...)
-
 	return cmd.Run()
+}
+
+// ExistingDappCtrlVersion returns existing dappctrl version.
+func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
+	v, err := getInstalledDappVersion()
+	if err != nil {
+		return "", false
+	}
+	return v, true
 }

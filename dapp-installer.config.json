@@ -21,120 +21,116 @@
            "Port": "5432"
         }
     },
-    "Registry" : [
-        {
-            "Path": "SOFTWARE\\Privatix\\Dapp\\",
-            "Keys" :[
-               {
-                   "Name" : "BaseDirectory",
-                   "Type":"string",
-                   "Value":"path"
-               },
-               {
-                    "Name" : "Branding",
-                    "Type":"string",
-                    "Value":"Privatix"
-                },
-                {
-                    "Name" : "ServiceID",
-                    "Type":"string",
-                    "Value":"dappservice"
-                },
-                {
-                    "Name" : "Version",
-                    "Type":"string",
-                    "Value":"version"
-                },
-                {
-                    "Name" : "Controller",
-                    "Type":"string",
-                    "Value":"controller path"
-                },
-                {
-                    "Name" : "Gui",
-                    "Type":"string",
-                    "Value":"gui path"
-                }
-            ]
-        },
-        {
-            "Path": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Privatix Dapp\\",
-            "Keys" :[
-               {
-                   "Name" : "Comment",
-                   "Type":"string",
-                   "Value":"The Privatix Dapp, version _, packaged by Privatix"
-               },
-               {
-                    "Name" : "DisplayName",
-                    "Type":"string",
-                    "Value":"Privatix Dap"
-                },
-                {
-                    "Name" : "DisplayVersion",
-                    "Type":"string",
-                    "Value":"version"
-                },
-                {
-                    "Name" : "EstimatedSize",
-                    "Type":"dword",
-                    "Value":"10000"
-                },
-                {
-                    "Name" : "HelpLink",
-                    "Type":"string",
-                    "Value":"https://privatix.io"
-                },
-                {
-                    "Name" : "InstalDate",
-                    "Type":"dword",
-                    "Value":""
-                },
-                {
-                    "Name" : "InstallLocation",
-                    "Type":"string",
-                    "Value":"install path"
-                },
-                {
-                    "Name" : "NoModify",
-                    "Type":"string",
-                    "Value":"1"
-                },
-                {
-                    "Name" : "NoRepair",
-                    "Type":"string",
-                    "Value":"1"
-                },
-                {
-                    "Name" : "Publisher",
-                    "Type":"string",
-                    "Value":"Privatix (c)"
-                },
-                {
-                    "Name" : "UninstallString",
-                    "Type":"string",
-                    "Value":"dapp-installer.exe remove"
-                },
-                {
-                    "Name" : "UrlInfoAbout",
-                    "Type":"string",
-                    "Value":"https://privatix.io"
-                },
-                {
-                    "Name" : "VersionMajor",
-                    "Type":"dword",
-                    "Value":"1"
-                },
-                {
-                    "Name" : "VersionMinor",
-                    "Type":"dword",
-                    "Value":"0"
-                }
-            ]
-        }
-    ],
-    "Service" :[
-        {
+    "Registry" : {
+        "Install": [
+            {
+                "Name" : "BaseDirectory",
+                "Type":"string",
+                "Value":"path"
+            },
+            {
+                 "Name" : "Branding",
+                 "Type":"string",
+                 "Value":"Privatix"
+            },
+            {
+                "Name" : "ServiceID",
+                "Type":"string",
+                "Value":"dappservice"
+            },
+            {
+                "Name" : "Version",
+                "Type":"string",
+                "Value":"version"
+            },
+            {
+                "Name" : "Controller",
+                "Type":"string",
+                "Value":"controller path"
+            },
+            {
+                "Name" : "Gui",
+                "Type":"string",
+                "Value":"gui path"
+            }
+        ],
+        "Uninstall" : [
+            {
+                "Name" : "Comment",
+                "Type":"string",
+                "Value":"The Privatix Dapp, version _, packaged by Privatix"
+            },
+            {
+                "Name" : "DisplayName",
+                "Type":"string",
+                "Value":"Privatix Dap"
+            },
+            {
+                "Name" : "DisplayVersion",
+                "Type":"string",
+                "Value":"version"
+            },
+            {
+                "Name" : "EstimatedSize",
+                "Type":"dword",
+                "Value":"10000"
+            },
+            {
+                "Name" : "HelpLink",
+                "Type":"string",
+                "Value":"https://privatix.io"
+            },
+            {
+                "Name" : "InstalDate",
+                "Type":"dword",
+                "Value":""
+            },
+            {
+                "Name" : "InstallLocation",
+                "Type":"string",
+                "Value":"install path"
+            },
+            {
+                "Name" : "NoModify",
+                "Type":"string",
+                "Value":"1"
+            },
+            {
+                "Name" : "NoRepair",
+                "Type":"string",
+                "Value":"1"
+            },
+            {
+                "Name" : "Publisher",
+                "Type":"string",
+                "Value":"Privatix (c)"
+            },
+            {
+                "Name" : "UninstallString",
+                "Type":"string",
+                "Value":"dapp-installer.exe remove"
+            },
+            {
+                "Name" : "UrlInfoAbout",
+                "Type":"string",
+                "Value":"https://privatix.io"
+            },
+            {
+                "Name" : "VersionMajor",
+                "Type":"dword",
+                "Value":"1"
+            },
+            {
+                "Name" : "VersionMinor",
+                "Type":"dword",
+                "Value":"0"
+            }
+        ]
+    },
+    "DappCtrl": {
+        "Download" : "https://privatix.io/ico/images/logo_easysoft.png",
+        "File" : "dappctrl.exe",
+        "Service" : {
             "ID": "dappservice",
             "Name":  "dapp service name",
             "Description" : "service description",
@@ -142,9 +138,5 @@
             "Args":        ["-config", "dappctrl.config.json"],
             "AutoStart" : true
         }
-    ],
-    "DappGui": "",
-    "DappCtrl": {
-        "File" : "dappctrl.exe"
     }
  }

@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Privatix/dapp-installer/data"
-
-	"github.com/Privatix/dapp-installer/util"
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/data"
+	"github.com/privatix/dapp-installer/util"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 const mainHelpMsg = `
@@ -26,17 +25,14 @@ Flags:
   
 Use "dapp-installer [command] --help" for more information about a command.`
 
-// Command has a commands parameters
-type Command struct {
-	// Name of command
-	Name string
-	// execute has a pointer to execute func
-	execute func(conf *config, logger log.Logger)
+type command interface {
+	execute(conf *config, logger log.Logger) error
+	rollback(conf *config, logger log.Logger)
 }
 
 type config struct {
 	DBEngine *util.DBEngine
-	Registry []util.Registry
+	Registry *util.Registry
 	DappCtrl *dappCtrlConfig
 }
 
@@ -66,7 +62,7 @@ func Execute(logger log.Logger, printVersion func(), args []string) {
 		return
 	}
 
-	commands := map[string]*(Command){
+	commands := map[string]command{
 		"install": getInstallCmd(),
 		"update":  getUpdateCmd(),
 		"remove":  getRemoveCmd(),
@@ -82,7 +78,10 @@ func Execute(logger log.Logger, printVersion func(), args []string) {
 	}
 
 	conf := newConfig()
-	cmd.execute(conf, logger.Add("command", cmd.Name))
+	if err := cmd.execute(conf, logger); err != nil {
+		cmd.rollback(conf, logger)
+		//todo msg rollbacked
+	}
 }
 
 func processedFlags(printVersion func()) bool {

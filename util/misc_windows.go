@@ -30,6 +30,12 @@ const WinRegDBEngine64 string = `SOFTWARE\PostgreSQL\Installations\`
 // WinRegDBEngine32 is a registry path to 32 bit DBEngine installations
 const WinRegDBEngine32 string = `SOFTWARE\WOW6432Node\PostgreSQL\Installations\`
 
+// WinRegInstalledDapp is a registry path to dapp installations
+const WinRegInstalledDapp string = `SOFTWARE\Privatix\Dapp\`
+
+// WinRegUninstallDapp is a registry path to dapp uninstallations
+const WinRegUninstallDapp string = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Privatix Dapp\`
+
 // CheckSystemPrerequisites does checked system to prerequisites.
 func CheckSystemPrerequisites(logger log.Logger) bool {
 	if runtime.GOOS != "windows" {

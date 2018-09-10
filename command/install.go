@@ -79,6 +79,15 @@ func install(conf *config, logger log.Logger) {
 		}
 		logger.Info("database successfully created")
 	}
+
+	for _, r := range conf.Registry {
+		if err := util.CreateRegistryKey(&r); err != nil {
+			logger.Warn(fmt.Sprintf(
+				"ocurred error when create registry %v", err))
+			return
+		}
+	}
+
 	logger.Info("checking the dbengine exists was successful")
 }
 

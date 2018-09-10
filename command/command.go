@@ -36,6 +36,7 @@ type Command struct {
 
 type config struct {
 	DBEngine *util.DBEngine
+	Registry []util.Registry
 	DappCtrl *dappCtrlConfig
 }
 

@@ -16,6 +16,7 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
+	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/statik"
 
 	"github.com/lxn/win"
@@ -58,6 +59,7 @@ func CheckSystemPrerequisites(logger log.Logger) bool {
 		return false
 	}
 
+	// TODO(ubozov) check the drive specified for installation
 	if !checkStorage() {
 		logger.Warn("available size of disk does not meet the requirements")
 		return false
@@ -187,7 +189,7 @@ func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
 }
 
 // InstallDappCtrl installs a dappctrl.
-func InstallDappCtrl(installPath string, conf *DappCtrlConfig,
+func InstallDappCtrl(installPath string, conf *DappCtrlConfig, dbConf *data.DB,
 	logger log.Logger, ok bool) error {
 	serviceName := installPath + "\\" + conf.Service.ID
 	if ok {
@@ -201,25 +203,73 @@ func InstallDappCtrl(installPath string, conf *DappCtrlConfig,
 		return err
 	}
 	logger.Info("download dappctrl")
-	fileName := path.Base(conf.Download)
-	err := downloadFile(installPath+"\\"+fileName, conf.Download)
-	if err != nil {
-		logger.Warn("ocurred error when downloded file from " + conf.Download)
+	if err := downloadController(installPath, conf, dbConf); err != nil {
+		logger.Warn("ocurred error when downloaded files")
 		return err
 	}
 	logger.Info("install service")
-	err = installServiceWrapper(serviceName)
-	if err != nil {
+	if err := installServiceWrapper(serviceName); err != nil {
 		logger.Warn("ocurred error when install service " + conf.Service.ID)
 		return err
 	}
 	logger.Info("start service")
-	err = startServiceWrapper(serviceName)
-	if err != nil {
+	if err := startServiceWrapper(serviceName); err != nil {
 		logger.Warn("ocurred error when start service " + conf.Service.ID)
 		return err
 	}
 	return nil
+}
+
+// RemoveDappCtrl removes installed dappctrl.
+func RemoveDappCtrl(installPath string, conf *DappCtrlConfig) error {
+	serviceName := installPath + "\\" + conf.Service.ID
+	stopServiceWrapper(serviceName)
+	removeServiceWrapper(serviceName)
+	return os.RemoveAll(installPath)
+}
+
+func downloadController(installPath string, dappConf *DappCtrlConfig, dbConf *data.DB) error {
+	fileName := path.Base(dappConf.DownloadDapp)
+	err := downloadFile(installPath+"\\"+fileName, dappConf.DownloadDapp)
+	if err != nil {
+		return err
+	}
+
+	configFile := path.Base(dappConf.DownloadConfig)
+	err = downloadFile(installPath+"\\"+configFile, dappConf.DownloadConfig)
+	if err != nil {
+		return err
+	}
+	return modifyDappConfig(installPath+"\\"+configFile, dbConf)
+}
+
+func modifyDappConfig(configFile string, dbConf *data.DB) error {
+	read, err := os.Open(configFile)
+	if err != nil {
+		return err
+	}
+	defer read.Close()
+
+	jsonMap := make(map[string]interface{})
+
+	json.NewDecoder(read).Decode(&jsonMap)
+
+	if db, ok := jsonMap["DB"].(map[string]interface{}); ok {
+		if conn, ok := db["Conn"].(map[string]interface{}); ok {
+			conn["user"] = dbConf.User
+			conn["password"] = dbConf.Password
+			conn["port"] = dbConf.Port
+			conn["dbname"] = dbConf.DBName
+		}
+	}
+
+	write, err := os.Create(configFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer write.Close()
+
+	return json.NewEncoder(write).Encode(jsonMap)
 }
 
 func createServiceWrapper(path string, service *serviceConfig) error {

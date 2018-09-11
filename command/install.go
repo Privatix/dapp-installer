@@ -69,22 +69,54 @@ func (cmd *installCmd) execute(conf *config, log log.Logger) error {
 }
 
 func checkController(cmd *installCmd, conf *config, logger log.Logger) error {
-	newVer := conf.DappCtrl.Version
+	tempDappCtrl, err := util.TemporaryDownload(conf.DappCtrl.DownloadDapp)
+	if err != nil {
+		return err
+	}
+	defer util.RemoveFile(tempDappCtrl)
+	newVer := util.GetDappCtrlVersion(tempDappCtrl)
 	existVer, ok := util.ExistingDappCtrlVersion(logger)
 	if !ok || newVer > existVer {
-		if err := util.InstallDappCtrl(conf.InstallPath, conf.DappCtrl, logger, ok); err != nil {
+		if err := util.InstallDappCtrl(conf.InstallPath, conf.DappCtrl,
+			conf.DBEngine.DB, logger, ok); err != nil {
 			logger.Warn(fmt.Sprintf(
 				"ocurred error when install dappctrl %v", err))
-			return nil
+			return err
 		}
+		cmd.addRollbackFuncs(uninstallDappCtrl)
+		err := util.DatabaseMigrate(conf.InstallPath,
+			conf.DappCtrl.DownloadDapp, conf.DBEngine.DB)
+		if err != nil {
+			return err
+		}
+		cmd.addRollbackFuncs(revertDatabaseMigrate)
 		if err := util.CreateRegistryKey(conf.Registry); err != nil {
 			logger.Warn(fmt.Sprintf(
 				"ocurred error when create registry key %v", err))
-			return nil
+			return err
 		}
-		cmd.rollbackFuncs = append(cmd.rollbackFuncs, removeRegistry)
+		cmd.addRollbackFuncs(removeRegistry)
 	}
 	return nil
+}
+
+func (cmd *installCmd) addRollbackFuncs(f func(c *config, l log.Logger)) {
+	cmd.rollbackFuncs = append(cmd.rollbackFuncs, f)
+}
+
+func uninstallDappCtrl(conf *config, logger log.Logger) {
+	err := util.RemoveDappCtrl(conf.InstallPath, conf.DappCtrl)
+	if err != nil {
+		logger.Warn(fmt.Sprintf(
+			"ocurred error when remove dappctrl %v", err))
+		return
+	}
+	logger.Info("dappctrl successfully removed")
+}
+
+// TODO(ubozov) implementation down database migration in dappctrl
+func revertDatabaseMigrate(conf *config, logger log.Logger) {
+	logger.Info("TODO(ubozov) implementation down migration in dappctrl")
 }
 
 func removeRegistry(conf *config, logger log.Logger) {
@@ -120,7 +152,7 @@ func checkDatabase(cmd *installCmd, conf *config, logger log.Logger) error {
 			return err
 		}
 		logger.Info("database successfully created")
-		cmd.rollbackFuncs = append(cmd.rollbackFuncs, dropDatabase)
+		cmd.addRollbackFuncs(dropDatabase)
 	}
 	return nil
 }
@@ -144,19 +176,7 @@ func createDatabase(conf *config) error {
 	if err := data.CreateDatabase(conf.DBEngine.DB); err != nil {
 		return err
 	}
-	if err := data.ConfigurateDatabase(conf.DBEngine.DB); err != nil {
-		return err
-	}
-	conn := data.GetConnectionString(conf.DBEngine.DB.DBName,
-		conf.DBEngine.DB.User, conf.DBEngine.DB.Password,
-		conf.DBEngine.DB.Port)
-
-	args := []string{"db-migrate", "-conn", conn}
-	if err := util.ExecuteCommand(conf.DappCtrl.File, args); err != nil {
-		return err
-	}
-	args = []string{"db-init-data", "-conn", conn}
-	return util.ExecuteCommand(conf.DappCtrl.File, args)
+	return data.ConfigurateDatabase(conf.DBEngine.DB)
 }
 
 func installHelp() {

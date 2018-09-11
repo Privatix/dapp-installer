@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/data"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 // CheckSystemPrerequisites does checked system to prerequisites.
@@ -35,8 +36,8 @@ func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
 }
 
 // InstallDappCtrl installs a dappctrl.
-func InstallDappCtrl(path string, conf *DappCtrlConfig, logger log.Logger,
-	ok bool) error {
+func InstallDappCtrl(path string, conf *DappCtrlConfig, dbConf *data.DB,
+	logger log.Logger, ok bool) error {
 	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
 	return errors.New("is not supported for this feature")
 }

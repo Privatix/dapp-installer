@@ -129,9 +129,8 @@
         ]
     },
     "DappCtrl": {
-        "Download" : "https://privatix.io/ico/images/logo_easysoft.png",
-        "File" : "dappctrl.exe",
-        "Version":"0.1.0",
+        "DownloadDapp" : "https://privatix.io/ico/images/logo_easysoft.png",
+        "DownloadConfig" : "https://privatix.io/ico/images/logo_easysoft.png",
         "Service" : {
             "ID": "dappservice",
             "Name":  "dapp service name",

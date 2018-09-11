@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -46,10 +47,9 @@ type Copy struct {
 
 // DappCtrlConfig has a config for dappctrl.
 type DappCtrlConfig struct {
-	Download string
-	File     string
-	Version  string
-	Service  *serviceConfig
+	DownloadDapp   string
+	DownloadConfig string
+	Service        *serviceConfig
 }
 
 type serviceConfig struct {
@@ -175,4 +175,28 @@ func GetDappCtrlVersion(filename string) string {
 		return ""
 	}
 	return output.String()
+}
+
+// RemoveFile removes file.
+func RemoveFile(filename string) error {
+	return os.Remove(filename)
+}
+
+// TemporaryDownload downloads file to the temp directory.
+func TemporaryDownload(downloadPath string) (string, error) {
+	fileName := path.Base(downloadPath)
+	return fileName, downloadFile(fileName, downloadPath)
+}
+
+// DatabaseMigrate executes migration scripts and init data.
+func DatabaseMigrate(installPath, downloadPath string, db *data.DB) error {
+	fileName := installPath + "\\" + path.Base(downloadPath)
+	conn := data.GetConnectionString(db.DBName, db.User, db.Password, db.Port)
+
+	args := []string{"db-migrate", "-conn", conn}
+	if err := ExecuteCommand(fileName, args); err != nil {
+		return err
+	}
+	args = []string{"db-init-data", "-conn", conn}
+	return ExecuteCommand(fileName, args)
 }

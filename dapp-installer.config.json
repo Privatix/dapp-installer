@@ -1,4 +1,5 @@
 {
+    "InstallPath" : "C:\\Program Files\\Privatix\\Dapp",
     "DBEngine": {
         "Download" : "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
         "ServiceName": "postgresdapp",
@@ -41,7 +42,7 @@
             {
                 "Name" : "Version",
                 "Type":"string",
-                "Value":"version"
+                "Value":"0.1.0"
             },
             {
                 "Name" : "Controller",
@@ -130,11 +131,12 @@
     "DappCtrl": {
         "Download" : "https://privatix.io/ico/images/logo_easysoft.png",
         "File" : "dappctrl.exe",
+        "Version":"0.1.0",
         "Service" : {
             "ID": "dappservice",
             "Name":  "dapp service name",
             "Description" : "service description",
-            "Command" :    "dappctrl",
+            "Command" :    "dappctrl.exe",
             "Args":        ["-config", "dappctrl.config.json"],
             "AutoStart" : true
         }

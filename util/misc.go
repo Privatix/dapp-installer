@@ -44,6 +44,23 @@ type Copy struct {
 	To   string
 }
 
+// DappCtrlConfig has a config for dappctrl.
+type DappCtrlConfig struct {
+	Download string
+	File     string
+	Version  string
+	Service  *serviceConfig
+}
+
+type serviceConfig struct {
+	ID          string
+	Name        string
+	Description string
+	Command     string
+	Args        []string
+	AutoStart   bool
+}
+
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.Processed += uint64(n)

@@ -33,3 +33,10 @@ func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
 	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
 	return "", false
 }
+
+// InstallDappCtrl installs a dappctrl.
+func InstallDappCtrl(path string, conf *DappCtrlConfig, logger log.Logger,
+	ok bool) error {
+	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
+	return errors.New("is not supported for this feature")
+}

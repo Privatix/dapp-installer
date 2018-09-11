@@ -60,6 +60,7 @@ func (cmd *installCmd) execute(conf *config, log log.Logger) error {
 		return err
 	}
 
+	logger.Info("checkController")
 	if err := checkController(cmd, conf, logger); err != nil {
 		return err
 	}
@@ -68,17 +69,14 @@ func (cmd *installCmd) execute(conf *config, log log.Logger) error {
 }
 
 func checkController(cmd *installCmd, conf *config, logger log.Logger) error {
-	newVer := util.GetDappCtrlVersion(conf.DappCtrl.File)
+	newVer := conf.DappCtrl.Version
 	existVer, ok := util.ExistingDappCtrlVersion(logger)
 	if !ok || newVer > existVer {
-		if ok {
-
+		if err := util.InstallDappCtrl(conf.InstallPath, conf.DappCtrl, logger, ok); err != nil {
+			logger.Warn(fmt.Sprintf(
+				"ocurred error when install dappctrl %v", err))
+			return nil
 		}
-		// stop wrapper if ok
-		// copy dappctrl
-		// copy wrapper
-		// config wrapper
-		// start wrapper
 		if err := util.CreateRegistryKey(conf.Registry); err != nil {
 			logger.Warn(fmt.Sprintf(
 				"ocurred error when create registry key %v", err))

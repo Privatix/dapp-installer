@@ -31,13 +31,10 @@ type command interface {
 }
 
 type config struct {
-	DBEngine *util.DBEngine
-	Registry *util.Registry
-	DappCtrl *dappCtrlConfig
-}
-
-type dappCtrlConfig struct {
-	File string
+	InstallPath string
+	DBEngine    *util.DBEngine
+	Registry    *util.Registry
+	DappCtrl    *util.DappCtrlConfig
 }
 
 func newConfig() *config {

@@ -4,7 +4,10 @@ package util
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"runtime"
@@ -12,6 +15,8 @@ import (
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
+
+	"github.com/privatix/dapp-installer/statik"
 
 	"github.com/lxn/win"
 	"github.com/privatix/dappctrl/util/log"
@@ -179,4 +184,85 @@ func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
 		return "", false
 	}
 	return v, true
+}
+
+// InstallDappCtrl installs a dappctrl.
+func InstallDappCtrl(installPath string, conf *DappCtrlConfig,
+	logger log.Logger, ok bool) error {
+	serviceName := installPath + "\\" + conf.Service.ID
+	if ok {
+		stopServiceWrapper(serviceName)
+		removeServiceWrapper(serviceName)
+	}
+	logger.Info("createservicewrapper")
+	if err := createServiceWrapper(installPath, conf.Service); err != nil {
+		logger.Warn("ocurred error when create service wrapper:" +
+			conf.Service.ID)
+		return err
+	}
+	logger.Info("download dappctrl")
+	fileName := path.Base(conf.Download)
+	err := downloadFile(installPath+"\\"+fileName, conf.Download)
+	if err != nil {
+		logger.Warn("ocurred error when downloded file from " + conf.Download)
+		return err
+	}
+	logger.Info("install service")
+	err = installServiceWrapper(serviceName)
+	if err != nil {
+		logger.Warn("ocurred error when install service " + conf.Service.ID)
+		return err
+	}
+	logger.Info("start service")
+	err = startServiceWrapper(serviceName)
+	if err != nil {
+		logger.Warn("ocurred error when start service " + conf.Service.ID)
+		return err
+	}
+	return nil
+}
+
+func createServiceWrapper(path string, service *serviceConfig) error {
+	// create winservice wrapper file
+	bytes, err := statik.ReadFile("/wrapper/winsvc.exe")
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.MkdirAll(path, 0644)
+	}
+
+	err = ioutil.WriteFile(path+"\\"+service.ID+".exe", bytes, 0644)
+	if err != nil {
+		return err
+	}
+	// create winservice wrapper config file
+	service.Command = path + "\\" + service.Command
+	for i, arg := range service.Args {
+		if strings.HasSuffix(arg, ".json") {
+			service.Args[i] = path + "\\" + arg
+		}
+	}
+	bytes, err = json.Marshal(service)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	return ioutil.WriteFile(path+"\\"+service.ID+".config.json", bytes, 0644)
+}
+
+func installServiceWrapper(wrapperName string) error {
+	return ExecuteCommand(wrapperName, []string{"install"})
+}
+
+func startServiceWrapper(wrapperName string) error {
+	return ExecuteCommand(wrapperName, []string{"start"})
+}
+
+func stopServiceWrapper(wrapperName string) error {
+	return ExecuteCommand(wrapperName, []string{"stop"})
+}
+
+func removeServiceWrapper(wrapperName string) error {
+	return ExecuteCommand(wrapperName, []string{"remove"})
 }

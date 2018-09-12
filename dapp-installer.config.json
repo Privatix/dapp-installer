@@ -1,5 +1,5 @@
 {
-    "InstallPath" : "C:\\Program Files\\Privatix\\Dapp",
+    "InstallPath" : "C:\\Program Files\\Privatix\\Dapp\\",
     "DBEngine": {
         "Download" : "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
         "ServiceName": "postgresdapp",
@@ -25,51 +25,16 @@
     "Registry" : {
         "Install": [
             {
-                "Name" : "BaseDirectory",
-                "Type":"string",
-                "Value":"path"
-            },
-            {
                  "Name" : "Branding",
                  "Type":"string",
                  "Value":"Privatix"
-            },
-            {
-                "Name" : "ServiceID",
-                "Type":"string",
-                "Value":"dappservice"
-            },
-            {
-                "Name" : "Version",
-                "Type":"string",
-                "Value":"0.1.0"
-            },
-            {
-                "Name" : "Controller",
-                "Type":"string",
-                "Value":"controller path"
-            },
-            {
-                "Name" : "Gui",
-                "Type":"string",
-                "Value":"gui path"
             }
         ],
         "Uninstall" : [
             {
                 "Name" : "Comment",
                 "Type":"string",
-                "Value":"The Privatix Dapp, version _, packaged by Privatix"
-            },
-            {
-                "Name" : "DisplayName",
-                "Type":"string",
-                "Value":"Privatix Dap"
-            },
-            {
-                "Name" : "DisplayVersion",
-                "Type":"string",
-                "Value":"version"
+                "Value":"The Privatix Dapp, packaged by Privatix"
             },
             {
                 "Name" : "EstimatedSize",
@@ -80,16 +45,6 @@
                 "Name" : "HelpLink",
                 "Type":"string",
                 "Value":"https://privatix.io"
-            },
-            {
-                "Name" : "InstalDate",
-                "Type":"dword",
-                "Value":""
-            },
-            {
-                "Name" : "InstallLocation",
-                "Type":"string",
-                "Value":"install path"
             },
             {
                 "Name" : "NoModify",
@@ -128,9 +83,11 @@
             }
         ]
     },
-    "DappCtrl": {
-        "DownloadDapp" : "https://privatix.io/ico/images/logo_easysoft.png",
-        "DownloadConfig" : "https://privatix.io/ico/images/logo_easysoft.png",
+    "Dapp": {
+        "UserRole" : "agent",
+        "DownloadCtrl" : "http://localhost/dapp/dappctrl.exe",
+        "DownloadConfig" : "http://localhost/dapp/dappctrl.config.json",
+        "DownloadGui" : "http://localhost/dapp/dappgui.exe",
         "Service" : {
             "ID": "dappservice",
             "Name":  "dapp service name",

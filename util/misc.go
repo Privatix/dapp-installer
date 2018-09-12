@@ -11,9 +11,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/privatix/dapp-installer/data"
 )
 
 const (
@@ -29,38 +26,6 @@ type WriteCounter struct {
 	Total     uint64
 }
 
-// DBEngine has a db engine configuration.
-type DBEngine struct {
-	Download    string
-	ServiceName string
-	DataDir     string
-	InstallDir  string
-	Copy        []Copy
-	DB          *data.DB
-}
-
-// Copy has a file copies parameters.
-type Copy struct {
-	From string
-	To   string
-}
-
-// DappCtrlConfig has a config for dappctrl.
-type DappCtrlConfig struct {
-	DownloadDapp   string
-	DownloadConfig string
-	Service        *serviceConfig
-}
-
-type serviceConfig struct {
-	ID          string
-	Name        string
-	Description string
-	Command     string
-	Args        []string
-	AutoStart   bool
-}
-
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.Processed += uint64(n)
@@ -74,7 +39,8 @@ func (wc WriteCounter) printProgress() {
 		humanateBytes(wc.Processed), humanateBytes(wc.Total))
 }
 
-func downloadFile(filePath, url string) error {
+// DownloadFile downloads the file.
+func DownloadFile(filePath, url string) error {
 	out, err := os.Create(filePath + ".tmp")
 	if err != nil {
 		return err
@@ -127,52 +93,17 @@ func humanateBytes(s uint64) string {
 	return fmt.Sprintf(f, val, suffix)
 }
 
-func generateDBEngineInstallParams(dbConf *DBEngine) []string {
-	args := []string{"--mode", "unattended", "--unattendedmodeui", "none"}
-
-	if len(dbConf.ServiceName) > 0 {
-		args = append(args, "--servicename", dbConf.ServiceName)
-	}
-	if len(dbConf.DB.User) > 0 {
-		args = append(args, "--superaccount", dbConf.DB.User)
-	}
-	if len(dbConf.DB.Password) > 0 {
-		args = append(args, "--superpassword", dbConf.DB.Password)
-	}
-	if len(dbConf.InstallDir) > 0 {
-		args = append(args, "--prefix", dbConf.InstallDir)
-	}
-	if len(dbConf.DataDir) > 0 {
-		args = append(args, "--datadir", dbConf.DataDir)
-	}
-	return args
-}
-
-func interactiveWorker(s string, quit chan bool) {
-	i := 0
-	for {
-		select {
-		case <-quit:
-			return
-		default:
-			i++
-			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
-			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
-			if i >= 10 {
-				i = 0
-			}
-			time.Sleep(time.Millisecond * 250)
-		}
-	}
-}
-
-// GetDappCtrlVersion returns dappctrl version.
-func GetDappCtrlVersion(filename string) string {
+// DappCtrlVersion returns dappctrl version.
+func DappCtrlVersion(filename string) string {
 	cmd := exec.Command(filename, "-version")
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	if err := cmd.Run(); err != nil {
 		return ""
+	}
+
+	if strings.Contains(output.String(), "undefined (undefined)") {
+		return "0.0.0"
 	}
 	return output.String()
 }
@@ -182,21 +113,11 @@ func RemoveFile(filename string) error {
 	return os.Remove(filename)
 }
 
-// TemporaryDownload downloads file to the temp directory.
-func TemporaryDownload(downloadPath string) (string, error) {
-	fileName := path.Base(downloadPath)
-	return fileName, downloadFile(fileName, downloadPath)
-}
-
-// DatabaseMigrate executes migration scripts and init data.
-func DatabaseMigrate(installPath, downloadPath string, db *data.DB) error {
-	fileName := installPath + "\\" + path.Base(downloadPath)
-	conn := data.GetConnectionString(db.DBName, db.User, db.Password, db.Port)
-
-	args := []string{"db-migrate", "-conn", conn}
-	if err := ExecuteCommand(fileName, args); err != nil {
-		return err
+// TemporaryDownload downloads file to the temp installation directory.
+func TemporaryDownload(installPath, downloadPath string) (string, error) {
+	if _, err := os.Stat(installPath); os.IsNotExist(err) {
+		os.MkdirAll(installPath, 0644)
 	}
-	args = []string{"db-init-data", "-conn", conn}
-	return ExecuteCommand(fileName, args)
+	fileName := installPath + "temporary." + path.Base(downloadPath)
+	return fileName, DownloadFile(fileName, downloadPath)
 }

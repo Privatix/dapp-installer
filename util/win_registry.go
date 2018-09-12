@@ -69,11 +69,12 @@ func checkDBEngineVersion(key registry.Key, path string) (string, bool) {
 }
 
 // CreateRegistryKey creates new registry key in windows registry.
-func CreateRegistryKey(reg *Registry) error {
-	if err := createRegistryKey(WinRegInstalledDapp, reg.Install); err != nil {
+func CreateRegistryKey(reg *Registry, role string) error {
+	err := createRegistryKey(WinRegInstalledDapp+role, reg.Install)
+	if err != nil {
 		return err
 	}
-	return createRegistryKey(WinRegUninstallDapp, reg.Uninstall)
+	return createRegistryKey(WinRegUninstallDapp+"("+role+")", reg.Uninstall)
 }
 
 func createRegistryKey(path string, keys []Key) error {
@@ -103,20 +104,74 @@ func createRegistryKey(path string, keys []Key) error {
 }
 
 // RemoveRegistryKey removes registry key from windows registry.
-func RemoveRegistryKey(reg *Registry) error {
-	err := registry.DeleteKey(registry.LOCAL_MACHINE, WinRegInstalledDapp)
+func RemoveRegistryKey(reg *Registry, version string) error {
+	err := registry.DeleteKey(registry.LOCAL_MACHINE,
+		WinRegInstalledDapp+version)
 	if err != nil {
 		return err
 	}
-	return registry.DeleteKey(registry.LOCAL_MACHINE, WinRegUninstallDapp)
+	return registry.DeleteKey(registry.LOCAL_MACHINE,
+		WinRegUninstallDapp+version)
 }
 
-func getInstalledDappVersion() (string, error) {
-	k, err := getRegistryKeyByPath(registry.LOCAL_MACHINE, WinRegInstalledDapp)
+func getInstalledDappVersion(role string) (map[string]string, error) {
+	root, err := getRegistryKeyByPath(registry.LOCAL_MACHINE, WinRegInstalledDapp)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	defer k.Close()
-	v, _, _ := k.GetStringValue("Version")
-	return v, nil
+	defer root.Close()
+
+	subNames, err := root.ReadSubKeyNames(-1)
+	if err != nil {
+		return nil, err
+	}
+	for _, each := range subNames {
+		if strings.EqualFold(role, each) {
+			k, err := getRegistryKeyByPath(*root, each)
+			if err != nil {
+				return nil, err
+			}
+			defer k.Close()
+
+			v, _, _ := k.GetStringValue("Version")
+			s, _, _ := k.GetStringValue("ServiceID")
+			p, _, _ := k.GetStringValue("BaseDirectory")
+			d, _, _ := k.GetStringValue("Database")
+
+			maps := make(map[string]string)
+			maps["Version"] = v
+			maps["ServiceID"] = s
+			maps["BaseDirectory"] = p
+			maps["Database"] = d
+			return maps, nil
+		}
+	}
+
+	return nil, nil
+}
+
+// DesktopPath returns windows desktop path.
+func DesktopPath() string {
+	key, err := getRegistryKeyByPath(registry.LOCAL_MACHINE,
+		`Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders`)
+	if err != nil {
+		return ""
+	}
+	defer key.Close()
+
+	val, _, _ := key.GetStringValue("Common Desktop")
+	return val
+}
+
+// ProgramFilesPath returns windows program files path.
+func ProgramFilesPath() string {
+	key, err := getRegistryKeyByPath(registry.LOCAL_MACHINE,
+		`SOFTWARE\Microsoft\Windows\CurrentVersion`)
+	if err != nil {
+		return ""
+	}
+	defer key.Close()
+
+	val, _, _ := key.GetStringValue("ProgramFilesDir")
+	return val
 }

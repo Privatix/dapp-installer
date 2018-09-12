@@ -20,6 +20,16 @@ type DB struct {
 	Port     string
 }
 
+// NewConfig creates a default DB configuration.
+func NewConfig() *DB {
+	return &DB{
+		DBName:   "dappctrl",
+		User:     "postgres",
+		Password: "postgres",
+		Port:     "5432",
+	}
+}
+
 // ping tests connection to database.
 func ping(connStr string) error {
 	conn, err := sql.Open("postgres", connStr)

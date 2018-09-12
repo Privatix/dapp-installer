@@ -60,38 +60,13 @@ func installService(svcConf *serviceConfig) error {
 	if err != nil {
 		return err
 	}
-	m, err := mgr.Connect()
-	if err != nil {
-		return err
-	}
-	defer m.Disconnect()
-	s, err := m.OpenService(svcConf.ID)
-	if err == nil {
-		s.Close()
+
+	ok := existService(svcConf.ID)
+	if ok {
 		return fmt.Errorf("service %s already exists", svcConf.ID)
 	}
 
-	var startType uint32 = mgr.StartManual
-	if svcConf.AutoStart {
-		startType = mgr.StartAutomatic
-	}
-	s, err = m.CreateService(svcConf.ID, exepath,
-		mgr.Config{
-			DisplayName: svcConf.Name,
-			StartType:   startType,
-			Description: svcConf.Description,
-		})
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-	err = eventlog.InstallAsEventCreate(svcConf.ID,
-		eventlog.Error|eventlog.Warning|eventlog.Info)
-	if err != nil {
-		s.Delete()
-		return fmt.Errorf("SetupEventLogSource() failed: %s", err)
-	}
-	return nil
+	return registerService(svcConf, exepath)
 }
 
 func runService(name string, s *service) {
@@ -112,16 +87,13 @@ func runService(name string, s *service) {
 }
 
 func removeService(name string) error {
-	m, err := mgr.Connect()
+	m, s, err := getService(name)
 	if err != nil {
-		return err
+		return fmt.Errorf("service %s is not installed: %v", name, err)
 	}
 	defer m.Disconnect()
-	s, err := m.OpenService(name)
-	if err != nil {
-		return fmt.Errorf("service %s is not installed", name)
-	}
 	defer s.Close()
+
 	err = s.Delete()
 	if err != nil {
 		return err
@@ -133,34 +105,83 @@ func removeService(name string) error {
 	return nil
 }
 
-func startService(name string) error {
+func registerService(svcConf *serviceConfig, exepath string) error {
+	var startType uint32 = mgr.StartManual
+	if svcConf.AutoStart {
+		startType = mgr.StartAutomatic
+	}
+
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
 	}
 	defer m.Disconnect()
+
+	s, err := m.CreateService(svcConf.ID, exepath,
+		mgr.Config{
+			DisplayName: svcConf.Name,
+			StartType:   startType,
+			Description: svcConf.Description,
+		})
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+	err = eventlog.InstallAsEventCreate(svcConf.ID,
+		eventlog.Error|eventlog.Warning|eventlog.Info)
+	if err != nil {
+		s.Delete()
+		return fmt.Errorf("SetupEventLogSource() failed: %s", err)
+	}
+	return nil
+}
+
+func getService(name string) (*mgr.Mgr, *mgr.Service, error) {
+	m, err := mgr.Connect()
+	if err != nil {
+		return nil, nil, err
+	}
 	s, err := m.OpenService(name)
+	if err != nil {
+		m.Disconnect()
+		return nil, nil, err
+	}
+	return m, s, nil
+}
+
+func existService(name string) bool {
+	m, err := mgr.Connect()
+	if err != nil {
+		return false
+	}
+	defer m.Disconnect()
+	s, err := m.OpenService(name)
+	if err != nil {
+		return false
+	}
+	defer s.Close()
+	return true
+}
+
+func startService(name string) error {
+	m, s, err := getService(name)
 	if err != nil {
 		return fmt.Errorf("could not access to service: %v", err)
 	}
+	defer m.Disconnect()
 	defer s.Close()
-	err = s.Start()
-	if err != nil {
+	if err := s.Start(); err != nil {
 		return fmt.Errorf("could not start service: %v", err)
 	}
 	return nil
 }
 
 func stopService(name string) error {
-	m, err := mgr.Connect()
-	if err != nil {
-		return err
-	}
-	defer m.Disconnect()
-	s, err := m.OpenService(name)
+	m, s, err := getService(name)
 	if err != nil {
 		return fmt.Errorf("could not access to service: %v", err)
 	}
+	defer m.Disconnect()
 	defer s.Close()
 	status, err := s.Control(svc.Stop)
 	if err != nil {

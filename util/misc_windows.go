@@ -3,21 +3,12 @@
 package util
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
 	"os/exec"
-	"path"
 	"runtime"
 	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
-
-	"github.com/privatix/dapp-installer/data"
-	"github.com/privatix/dapp-installer/statik"
 
 	"github.com/lxn/win"
 	"github.com/privatix/dappctrl/util/log"
@@ -40,10 +31,10 @@ const WinRegDBEngine32 string = `SOFTWARE\WOW6432Node\PostgreSQL\Installations\`
 const WinRegInstalledDapp string = `SOFTWARE\Privatix\Dapp\`
 
 // WinRegUninstallDapp is a registry path to dapp uninstallations
-const WinRegUninstallDapp string = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Privatix Dapp\`
+const WinRegUninstallDapp string = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Privatix Dapp `
 
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(logger log.Logger) bool {
+func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
 	if runtime.GOOS != "windows" {
 		logger.Warn("software install only to Windows platform")
 		return false
@@ -59,8 +50,7 @@ func CheckSystemPrerequisites(logger log.Logger) bool {
 		return false
 	}
 
-	// TODO(ubozov) check the drive specified for installation
-	if !checkStorage() {
+	if !checkStorage(volume) {
 		logger.Warn("available size of disk does not meet the requirements")
 		return false
 	}
@@ -74,14 +64,13 @@ func checkWindowsVersion() bool {
 	return major >= MinWindowsVersion
 }
 
-func checkStorage() bool {
+func checkStorage(volume string) bool {
 	h := syscall.MustLoadDLL("kernel32.dll")
 	c := h.MustFindProc("GetDiskFreeSpaceExW")
 	lpFreeBytesAvailable := uint64(0)
-	u := utf16.Encode([]rune("\\"))
+	u := utf16.Encode([]rune(volume))
 	c.Call(uintptr(unsafe.Pointer(&u[0])),
 		uintptr(unsafe.Pointer(&lpFreeBytesAvailable)))
-
 	return lpFreeBytesAvailable >= MinAvailableDiskSize
 }
 
@@ -109,210 +98,25 @@ func getDBEngineServicePort(keyPath string) (int, bool) {
 	return 0, false
 }
 
-// InstallDBEngine is installing DB engine.
-func InstallDBEngine(conf *DBEngine, logger log.Logger) error {
-	fileName := path.Base(conf.Download)
-	if err := downloadFile(fileName, conf.Download); err != nil {
-		logger.Warn("ocurred error when downloded file from " + conf.Download)
-		return err
-	}
-	logger.Info("file successfully downloaded")
-
-	// install db engine
-	ch := make(chan bool)
-	defer close(ch)
-	go interactiveWorker("Installation DB Engine", ch)
-
-	if err := exec.Command(fileName,
-		generateDBEngineInstallParams(conf)...).Run(); err != nil {
-		ch <- true
-		fmt.Printf("\r%s\n", "Ocurred error when install DB Engine")
-		logger.Warn("ocurred error when install dbengine")
-		return err
-	}
-	logger.Info("dbengine successfully installed")
-
-	ch <- true
-	fmt.Printf("\r%s\n", "DB Engine successfully installed")
-
-	for _, c := range conf.Copy {
-		fmt.Println(c.From, c.To)
-		fileName := path.Base(c.From)
-		if err := downloadFile(c.To+"\\"+fileName, c.From); err != nil {
-			logger.Warn("ocurred error when downloded file from " + c.From)
-			return err
-		}
-	}
-
-	// start db engine service
-	if err := startService(conf.ServiceName); err != nil {
-		logger.Warn("ocurred error when start dbengine service")
-		return err
-	}
-
-	logger.Info("dbengine service successfully started")
-	return nil
-}
-
-func startService(service string) error {
-	checkServiceCmd := exec.Command("sc", "queryex", service)
-
-	var checkServiceStdOut bytes.Buffer
-	checkServiceCmd.Stdout = &checkServiceStdOut
-
-	if err := checkServiceCmd.Run(); err != nil {
-		return err
-	}
-
-	// service is running
-	if strings.Contains(checkServiceStdOut.String(), "RUNNING") {
-		return nil
-	}
-
-	// trying start service
-	return exec.Command("net", "start", service).Run()
-}
-
 // ExecuteCommand does executing file.
 func ExecuteCommand(filename string, args []string) error {
 	cmd := exec.Command(filename, args...)
 	return cmd.Run()
 }
 
-// ExistingDappCtrlVersion returns existing dappctrl version.
-func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
-	v, err := getInstalledDappVersion()
+// ExistingDapp returns info about existing dappctrl.
+func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
+	maps, err := getInstalledDappVersion(role)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
-	return v, true
+	return maps, len(maps) > 0
 }
 
-// InstallDappCtrl installs a dappctrl.
-func InstallDappCtrl(installPath string, conf *DappCtrlConfig, dbConf *data.DB,
-	logger log.Logger, ok bool) error {
-	serviceName := installPath + "\\" + conf.Service.ID
-	if ok {
-		stopServiceWrapper(serviceName)
-		removeServiceWrapper(serviceName)
-	}
-	logger.Info("createservicewrapper")
-	if err := createServiceWrapper(installPath, conf.Service); err != nil {
-		logger.Warn("ocurred error when create service wrapper:" +
-			conf.Service.ID)
-		return err
-	}
-	logger.Info("download dappctrl")
-	if err := downloadController(installPath, conf, dbConf); err != nil {
-		logger.Warn("ocurred error when downloaded files")
-		return err
-	}
-	logger.Info("install service")
-	if err := installServiceWrapper(serviceName); err != nil {
-		logger.Warn("ocurred error when install service " + conf.Service.ID)
-		return err
-	}
-	logger.Info("start service")
-	if err := startServiceWrapper(serviceName); err != nil {
-		logger.Warn("ocurred error when start service " + conf.Service.ID)
-		return err
-	}
-	return nil
-}
+// RenamePath changes folder name and returns it
+func RenamePath(path, folder string) string {
+	path = strings.TrimSuffix(path, "\\")
+	path = path[:strings.LastIndex(path, "\\")]
 
-// RemoveDappCtrl removes installed dappctrl.
-func RemoveDappCtrl(installPath string, conf *DappCtrlConfig) error {
-	serviceName := installPath + "\\" + conf.Service.ID
-	stopServiceWrapper(serviceName)
-	removeServiceWrapper(serviceName)
-	return os.RemoveAll(installPath)
-}
-
-func downloadController(installPath string, dappConf *DappCtrlConfig, dbConf *data.DB) error {
-	fileName := path.Base(dappConf.DownloadDapp)
-	err := downloadFile(installPath+"\\"+fileName, dappConf.DownloadDapp)
-	if err != nil {
-		return err
-	}
-
-	configFile := path.Base(dappConf.DownloadConfig)
-	err = downloadFile(installPath+"\\"+configFile, dappConf.DownloadConfig)
-	if err != nil {
-		return err
-	}
-	return modifyDappConfig(installPath+"\\"+configFile, dbConf)
-}
-
-func modifyDappConfig(configFile string, dbConf *data.DB) error {
-	read, err := os.Open(configFile)
-	if err != nil {
-		return err
-	}
-	defer read.Close()
-
-	jsonMap := make(map[string]interface{})
-
-	json.NewDecoder(read).Decode(&jsonMap)
-
-	if db, ok := jsonMap["DB"].(map[string]interface{}); ok {
-		if conn, ok := db["Conn"].(map[string]interface{}); ok {
-			conn["user"] = dbConf.User
-			conn["password"] = dbConf.Password
-			conn["port"] = dbConf.Port
-			conn["dbname"] = dbConf.DBName
-		}
-	}
-
-	write, err := os.Create(configFile)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer write.Close()
-
-	return json.NewEncoder(write).Encode(jsonMap)
-}
-
-func createServiceWrapper(path string, service *serviceConfig) error {
-	// create winservice wrapper file
-	bytes, err := statik.ReadFile("/wrapper/winsvc.exe")
-	if err != nil {
-		return err
-	}
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(path, 0644)
-	}
-
-	err = ioutil.WriteFile(path+"\\"+service.ID+".exe", bytes, 0644)
-	if err != nil {
-		return err
-	}
-	// create winservice wrapper config file
-	service.Command = path + "\\" + service.Command
-	for i, arg := range service.Args {
-		if strings.HasSuffix(arg, ".json") {
-			service.Args[i] = path + "\\" + arg
-		}
-	}
-	bytes, err = json.Marshal(service)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	return ioutil.WriteFile(path+"\\"+service.ID+".config.json", bytes, 0644)
-}
-
-func installServiceWrapper(wrapperName string) error {
-	return ExecuteCommand(wrapperName, []string{"install"})
-}
-
-func startServiceWrapper(wrapperName string) error {
-	return ExecuteCommand(wrapperName, []string{"start"})
-}
-
-func stopServiceWrapper(wrapperName string) error {
-	return ExecuteCommand(wrapperName, []string{"stop"})
-}
-
-func removeServiceWrapper(wrapperName string) error {
-	return ExecuteCommand(wrapperName, []string{"remove"})
+	return path + "\\" + folder + "\\"
 }

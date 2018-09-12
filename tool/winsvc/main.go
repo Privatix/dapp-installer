@@ -11,7 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/privatix/dappctrl/util"
+	"github.com/privatix/dapp-installer/util"
+	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 	"golang.org/x/sys/windows/svc"
 )
@@ -44,32 +45,16 @@ func readFlags(conf *serviceConfig) {
 
 	flag.Parse()
 
-	if err := util.ReadJSONFile(*fconfig, &conf); err != nil {
+	if err := dapputil.ReadJSONFile(*fconfig, &conf); err != nil {
 		panic(fmt.Sprintf("failed to read configuration file: %s", err))
 	}
-}
-
-func createLogger() (*os.File, log.Logger, error) {
-	file, err := os.OpenFile(
-		logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	logger, err := log.NewFileLogger(log.NewFileConfig(), file)
-	if err != nil {
-		file.Close()
-		return nil, nil, err
-	}
-
-	return file, logger, nil
 }
 
 func main() {
 	conf := newServiceConfig()
 	readFlags(conf)
 
-	file, logger, err := createLogger()
+	file, logger, err := util.CreateLogger(logFile)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create logger: %s", err))
 	}

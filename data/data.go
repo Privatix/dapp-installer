@@ -2,18 +2,15 @@ package data
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"strings"
 
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/statik"
+	"github.com/privatix/dappctrl/util/log"
+
 	// Load Go Postgres driver.
 	_ "github.com/lib/pq"
-	"github.com/rakyll/statik/fs"
 )
-
-//go:generate statik -p data -f -src=. -dest=..
 
 // DB has a configuration for database connect.
 type DB struct {
@@ -21,6 +18,16 @@ type DB struct {
 	Password string
 	DBName   string
 	Port     string
+}
+
+// NewConfig creates a default DB configuration.
+func NewConfig() *DB {
+	return &DB{
+		DBName:   "dappctrl",
+		User:     "postgres",
+		Password: "postgres",
+		Port:     "5432",
+	}
 }
 
 // ping tests connection to database.
@@ -55,7 +62,7 @@ func DBExists(conf *DB, logger log.Logger) bool {
 
 // CreateDatabase creates a new database.
 func CreateDatabase(conf *DB) error {
-	file, err := readStatikFile("/scripts/create_database.sql")
+	file, err := statik.ReadFile("/scripts/create_database.sql")
 	if err != nil {
 		return err
 	}
@@ -80,9 +87,27 @@ func CreateDatabase(conf *DB) error {
 	return nil
 }
 
+// DropDatabase removes the database.
+func DropDatabase(conf *DB) error {
+	connStr := GetConnectionString("postgres", conf.User, conf.Password,
+		conf.Port)
+
+	conn, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	query := fmt.Sprintf("DROP DATABASE %s;", conf.DBName)
+	if _, err := conn.Exec(query); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ConfigurateDatabase does configurate new database.
 func ConfigurateDatabase(conf *DB) error {
-	file, err := readStatikFile("/scripts/config_database.sql")
+	file, err := statik.ReadFile("/scripts/config_database.sql")
 	if err != nil {
 		return err
 	}
@@ -105,26 +130,6 @@ func ConfigurateDatabase(conf *DB) error {
 	}
 
 	return nil
-}
-
-func readStatikFile(name string) ([]byte, error) {
-	fs, err := fs.New()
-	if err != nil {
-		return nil, errors.New("failed to open statik filesystem")
-	}
-
-	file, err := fs.Open(name)
-	if err != nil {
-		return nil, errors.New("failed to open statik file")
-	}
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, errors.New("failed to read statik file")
-	}
-
-	return data, nil
 }
 
 // GetConnectionString is generate connection string.

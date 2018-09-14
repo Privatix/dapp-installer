@@ -1,0 +1,8 @@
+{
+    "ID": "dappservice",
+	"Name":  "dapp service name",
+	"Description" : "service description",
+	"Command" :    "dappctrl.exe",
+	"Args":        ["-config", "dappctrl.config.json"],
+	"AutoStart" : true
+}

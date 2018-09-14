@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Privatix/dapp-installer/command"
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dapp-installer/command"
+	"github.com/privatix/dapp-installer/util"
 )
 
 // Values for versioning.
@@ -23,34 +23,18 @@ func printVersion() {
 	fmt.Printf("dapp-installer %s %s", Version, Commit)
 }
 
-func createLogger() (*os.File, log.Logger, error) {
-	file, err := os.OpenFile(
-		logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	logger, err := log.NewFileLogger(log.NewFileConfig(), file)
-	if err != nil {
-		file.Close()
-		return nil, nil, err
-	}
-
-	return file, logger, nil
-}
-
 func main() {
-	file, logger, err := createLogger()
+	file, logger, err := util.CreateLogger(logFile)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create logger: %s", err))
 	}
 
 	defer file.Close()
 
+	logger.Info("============================================================")
 	logger.Info("begin program")
 	command.Execute(logger, printVersion, os.Args[1:])
 	logger.Info("end program")
-	fmt.Println("Successfully finished")
 	fmt.Println("Press the Enter Key to close the console screen!")
 	fmt.Scanln()
 }

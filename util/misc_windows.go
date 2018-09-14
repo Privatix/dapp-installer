@@ -3,18 +3,15 @@
 package util
 
 import (
-	"bytes"
-	"fmt"
 	"os/exec"
-	"path"
 	"runtime"
 	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
 
-	"github.com/Privatix/dappctrl/util/log"
 	"github.com/lxn/win"
+	"github.com/privatix/dappctrl/util/log"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -30,8 +27,14 @@ const WinRegDBEngine64 string = `SOFTWARE\PostgreSQL\Installations\`
 // WinRegDBEngine32 is a registry path to 32 bit DBEngine installations
 const WinRegDBEngine32 string = `SOFTWARE\WOW6432Node\PostgreSQL\Installations\`
 
+// WinRegInstalledDapp is a registry path to dapp installations
+const WinRegInstalledDapp string = `SOFTWARE\Privatix\Dapp\`
+
+// WinRegUninstallDapp is a registry path to dapp uninstallations
+const WinRegUninstallDapp string = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Privatix Dapp `
+
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(logger log.Logger) bool {
+func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
 	if runtime.GOOS != "windows" {
 		logger.Warn("software install only to Windows platform")
 		return false
@@ -47,7 +50,7 @@ func CheckSystemPrerequisites(logger log.Logger) bool {
 		return false
 	}
 
-	if !checkStorage() {
+	if !checkStorage(volume) {
 		logger.Warn("available size of disk does not meet the requirements")
 		return false
 	}
@@ -61,14 +64,13 @@ func checkWindowsVersion() bool {
 	return major >= MinWindowsVersion
 }
 
-func checkStorage() bool {
+func checkStorage(volume string) bool {
 	h := syscall.MustLoadDLL("kernel32.dll")
 	c := h.MustFindProc("GetDiskFreeSpaceExW")
 	lpFreeBytesAvailable := uint64(0)
-	u := utf16.Encode([]rune("\\"))
+	u := utf16.Encode([]rune(volume))
 	c.Call(uintptr(unsafe.Pointer(&u[0])),
 		uintptr(unsafe.Pointer(&lpFreeBytesAvailable)))
-
 	return lpFreeBytesAvailable >= MinAvailableDiskSize
 }
 
@@ -96,73 +98,25 @@ func getDBEngineServicePort(keyPath string) (int, bool) {
 	return 0, false
 }
 
-// InstallDBEngine is installing DB engine.
-func InstallDBEngine(conf *DBEngine, logger log.Logger) error {
-	fileName := path.Base(conf.Download)
-	if err := downloadFile(fileName, conf.Download); err != nil {
-		logger.Warn("ocurred error when downloded file from " + conf.Download)
-		return err
-	}
-	logger.Info("file successfully downloaded")
-
-	// install db engine
-	ch := make(chan bool)
-	defer close(ch)
-	go interactiveWorker("Installation DB Engine", ch)
-
-	if err := exec.Command(fileName,
-		generateDBEngineInstallParams(conf)...).Run(); err != nil {
-		ch <- true
-		fmt.Printf("\r%s\n", "Ocurred error when install DB Engine")
-		logger.Warn("ocurred error when install dbengine")
-		return err
-	}
-	logger.Info("dbengine successfully installed")
-
-	ch <- true
-	fmt.Printf("\r%s\n", "DB Engine successfully installed")
-
-	for _, c := range conf.Copy {
-		fmt.Println(c.From, c.To)
-		fileName := path.Base(c.From)
-		if err := downloadFile(c.To+"\\"+fileName, c.From); err != nil {
-			logger.Warn("ocurred error when downloded file from " + c.From)
-			return err
-		}
-	}
-
-	// start db engine service
-	if err := startService(conf.ServiceName); err != nil {
-		logger.Warn("ocurred error when start dbengine service")
-		return err
-	}
-
-	logger.Info("dbengine service successfully started")
-	return nil
-}
-
-func startService(service string) error {
-	checkServiceCmd := exec.Command("sc", "queryex", service)
-
-	var checkServiceStdOut bytes.Buffer
-	checkServiceCmd.Stdout = &checkServiceStdOut
-
-	if err := checkServiceCmd.Run(); err != nil {
-		return err
-	}
-
-	// service is running
-	if strings.Contains(checkServiceStdOut.String(), "RUNNING") {
-		return nil
-	}
-
-	// trying start service
-	return exec.Command("net", "start", service).Run()
-}
-
 // ExecuteCommand does executing file.
 func ExecuteCommand(filename string, args []string) error {
 	cmd := exec.Command(filename, args...)
-
 	return cmd.Run()
+}
+
+// ExistingDapp returns info about existing dappctrl.
+func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
+	maps, err := getInstalledDappVersion(role)
+	if err != nil {
+		return nil, false
+	}
+	return maps, len(maps) > 0
+}
+
+// RenamePath changes folder name and returns it
+func RenamePath(path, folder string) string {
+	path = strings.TrimSuffix(path, "\\")
+	path = path[:strings.LastIndex(path, "\\")]
+
+	return path + "\\" + folder + "\\"
 }

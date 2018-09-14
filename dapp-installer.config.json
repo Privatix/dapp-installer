@@ -85,6 +85,7 @@
     },
     "Dapp": {
         "UserRole" : "agent",
+        "Shortcuts" : true,
         "DownloadCtrl" : "http://localhost/dapp/dappctrl.exe",
         "DownloadConfig" : "http://localhost/dapp/dappctrl.config.json",
         "DownloadGui" : "http://localhost/dapp/dappgui.exe",

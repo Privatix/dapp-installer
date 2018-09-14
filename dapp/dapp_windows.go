@@ -3,9 +3,12 @@
 package dapp
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 
@@ -59,6 +62,14 @@ func downloadAndConfigurateFiles(dapp *Dapp, db *data.DB) error {
 	if err != nil {
 		return err
 	}
+	_, dapp.Gui = filepath.Split(dapp.DownloadGui)
+	err = util.DownloadFile(dapp.InstallPath+dapp.Gui, dapp.DownloadGui)
+	if err != nil {
+		return err
+	}
+	if dapp.Shortcuts {
+		dapp.createShortcut()
+	}
 	configFile := dapp.InstallPath + path.Base(dapp.DownloadConfig)
 	err = util.DownloadFile(configFile, dapp.DownloadConfig)
 	if err != nil {
@@ -94,4 +105,41 @@ func modifyDappConfig(configFile string, dbConf *data.DB) error {
 	defer write.Close()
 
 	return json.NewEncoder(write).Encode(jsonMap)
+}
+
+func (d *Dapp) createShortcut() {
+	fileName := path.Base(d.DownloadGui)
+	path := d.InstallPath
+	target := path + fileName
+	extension := filepath.Ext(fileName)
+	linkName := fileName[0 : len(fileName)-len(extension)]
+	destination := util.DesktopPath()
+	arguments := ""
+
+	var scriptTxt bytes.Buffer
+	scriptTxt.WriteString(fmt.Sprintf(`
+	option explicit
+
+	sub CreateShortCut()
+		dim objShell, objLink
+		set objShell = CreateObject("WScript.Shell")
+		set objLink = objShell.CreateShortcut("%s\%s.lnk")
+		objLink.Arguments = "%s"
+		objLink.Description = "Privatix Dapp"
+		objLink.TargetPath = "%s"
+		objLink.WindowStyle = 1
+		objLink.WorkingDirectory = "%s"
+		objLink.Save
+	end sub
+
+	call CreateShortCut()`, destination, linkName, arguments, target, path))
+
+	scriptFile := fmt.Sprintf("lnkTo%s.vbs", linkName)
+	ioutil.WriteFile(scriptFile, scriptTxt.Bytes(), 0777)
+	cmd := exec.Command("wscript", scriptFile)
+	if err := cmd.Run(); err != nil {
+		fmt.Println(err)
+	}
+	os.Remove(scriptFile)
+	return
 }

@@ -136,13 +136,13 @@ func getInstalledDappVersion(role string) (map[string]string, error) {
 			v, _, _ := k.GetStringValue("Version")
 			s, _, _ := k.GetStringValue("ServiceID")
 			p, _, _ := k.GetStringValue("BaseDirectory")
-			d, _, _ := k.GetStringValue("Database")
+			c, _, _ := k.GetStringValue("Configuration")
 
 			maps := make(map[string]string)
 			maps["Version"] = v
 			maps["ServiceID"] = s
 			maps["BaseDirectory"] = p
-			maps["Database"] = d
+			maps["Configuration"] = c
 			return maps, nil
 		}
 	}

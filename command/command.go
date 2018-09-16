@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
+	"github.com/privatix/dapp-installer/windows"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -99,38 +101,39 @@ func processedFlags(printVersion func()) bool {
 }
 
 func createRegistryKey(conf *config) error {
-	conf.Registry.Install = append(conf.Registry.Install, util.Key{
-		Name: "BaseDirectory", Type: "string", Value: conf.Dapp.InstallPath,
-	})
-	conf.Registry.Install = append(conf.Registry.Install, util.Key{
-		Name: "Version", Type: "string", Value: conf.Dapp.Version,
-	})
-	conf.Registry.Install = append(conf.Registry.Install, util.Key{
-		Name: "Database", Type: "string", Value: conf.DBEngine.DB.DBName,
-	})
-	conf.Registry.Install = append(conf.Registry.Install, util.Key{
-		Name: "ServiceID", Type: "string", Value: conf.Dapp.Service.GUID,
-	})
-	conf.Registry.Install = append(conf.Registry.Install, util.Key{
-		Name: "Controller", Type: "string", Value: conf.Dapp.Controller,
-	})
+	d := conf.Dapp
+	db := conf.DBEngine.DB
+	shortcuts := strconv.FormatBool(d.Shortcuts)
+	conf.Registry.Install = append(conf.Registry.Install,
+		util.Key{Name: "Shotrcuts", Type: "string", Value: shortcuts},
+		util.Key{Name: "BaseDirectory", Type: "string", Value: d.InstallPath},
+		util.Key{Name: "Version", Type: "string", Value: d.Version},
+		util.Key{Name: "ServiceID", Type: "string", Value: d.Service.GUID},
+		util.Key{Name: "Controller", Type: "string", Value: d.Controller},
+		util.Key{Name: "Gui", Type: "string", Value: conf.Dapp.Gui},
+		util.Key{Name: "Database", Type: "string", Value: db.DBName},
+		util.Key{Name: "Configuration", Type: "string", Value: d.Configuration},
+	)
 
-	conf.Registry.Uninstall = append(conf.Registry.Uninstall, util.Key{
-		Name: "InstallLocation", Type: "string", Value: conf.Dapp.InstallPath,
-	})
 	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
 		time.Now().Month(), time.Now().Day())
-	conf.Registry.Uninstall = append(conf.Registry.Uninstall, util.Key{
-		Name: "InstallDate", Type: "string", Value: current,
-	})
-	conf.Registry.Uninstall = append(conf.Registry.Uninstall, util.Key{
-		Name: "DisplayVersion", Type: "string", Value: conf.Dapp.Version,
-	})
-	conf.Registry.Uninstall = append(conf.Registry.Uninstall, util.Key{
-		Name: "DisplayName", Type: "string",
-		Value: "Privatix Dapp " + conf.Dapp.UserRole,
-	})
-	return util.CreateRegistryKey(conf.Registry, conf.Dapp.UserRole)
+
+	uninstallCmd := fmt.Sprintf("%s remove -role %s", d.Installer, d.UserRole)
+	size, err := util.DirSize(d.InstallPath)
+	if err != nil {
+		return err
+	}
+	conf.Registry.Uninstall = append(conf.Registry.Uninstall,
+		util.Key{Name: "InstallLocation", Type: "string", Value: d.InstallPath},
+		util.Key{Name: "InstallDate", Type: "string", Value: current},
+		util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
+		util.Key{Name: "DisplayName", Type: "string",
+			Value: "Privatix Dapp " + d.UserRole},
+		util.Key{Name: "UninstallString", Type: "string", Value: uninstallCmd},
+		util.Key{Name: "EstimatedSize", Type: "dword",
+			Value: strconv.FormatInt(size, 10)},
+	)
+	return util.CreateRegistryKey(conf.Registry, d.UserRole)
 }
 
 func removeRegistry(conf *config, logger log.Logger) {
@@ -181,4 +184,23 @@ func uninstallDapp(conf *config, logger log.Logger) {
 	conf.Dapp.Service.Start()
 
 	logger.Info("dappctrl successfully removed")
+}
+
+func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
+	maps, ok := util.ExistingDapp(role, logger)
+
+	if !ok {
+		return nil, false
+	}
+
+	d := &dapp.Dapp{
+		UserRole:      role,
+		Version:       maps["Version"],
+		InstallPath:   maps["BaseDirectory"],
+		Configuration: maps["Configuration"],
+		Service: &windows.Service{
+			GUID: maps["ServiceID"],
+		},
+	}
+	return d, true
 }

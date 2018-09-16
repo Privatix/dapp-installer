@@ -9,11 +9,15 @@ import (
 type Dapp struct {
 	DownloadCtrl   string
 	Controller     string
+	Gui            string
 	DownloadConfig string
+	Configuration  string
 	DownloadGui    string
+	Installer      string
 	InstallPath    string
 	BackupPath     string
 	Service        *windows.Service
+	Shortcuts      bool
 	UserRole       string
 	Version        string
 }

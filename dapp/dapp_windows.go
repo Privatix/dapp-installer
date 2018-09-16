@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/data"
@@ -59,15 +58,23 @@ func downloadAndConfigurateFiles(dapp *Dapp, db *data.DB) error {
 	if err != nil {
 		return err
 	}
-	configFile := dapp.InstallPath + path.Base(dapp.DownloadConfig)
+
+	_, dapp.Installer = filepath.Split(os.Args[0])
+	err = util.CopyFile(os.Args[0], dapp.InstallPath+dapp.Installer)
+	if err != nil {
+		return err
+	}
+
+	_, dapp.Configuration = filepath.Split(dapp.DownloadConfig)
+	configFile := dapp.InstallPath + dapp.Configuration
 	err = util.DownloadFile(configFile, dapp.DownloadConfig)
 	if err != nil {
 		return err
 	}
-	return modifyDappConfig(configFile, db)
+	return modifyDappConfig(configFile, db, dapp.UserRole)
 }
 
-func modifyDappConfig(configFile string, dbConf *data.DB) error {
+func modifyDappConfig(configFile string, dbConf *data.DB, role string) error {
 	read, err := os.Open(configFile)
 	if err != nil {
 		return err
@@ -85,6 +92,10 @@ func modifyDappConfig(configFile string, dbConf *data.DB) error {
 			conn["port"] = dbConf.Port
 			conn["dbname"] = dbConf.DBName
 		}
+	}
+
+	if _, ok := jsonMap["Role"]; ok {
+		jsonMap["Role"] = role
 	}
 
 	write, err := os.Create(configFile)

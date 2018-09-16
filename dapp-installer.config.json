@@ -37,11 +37,6 @@
                 "Value":"The Privatix Dapp, packaged by Privatix"
             },
             {
-                "Name" : "EstimatedSize",
-                "Type":"dword",
-                "Value":"10000"
-            },
-            {
                 "Name" : "HelpLink",
                 "Type":"string",
                 "Value":"https://privatix.io"
@@ -62,11 +57,6 @@
                 "Value":"Privatix (c)"
             },
             {
-                "Name" : "UninstallString",
-                "Type":"string",
-                "Value":"dapp-installer.exe remove"
-            },
-            {
                 "Name" : "UrlInfoAbout",
                 "Type":"string",
                 "Value":"https://privatix.io"
@@ -85,6 +75,7 @@
     },
     "Dapp": {
         "UserRole" : "agent",
+        "Shortcuts" : true,
         "DownloadCtrl" : "http://localhost/dapp/dappctrl.exe",
         "DownloadConfig" : "http://localhost/dapp/dappctrl.config.json",
         "DownloadGui" : "http://localhost/dapp/dappgui.exe",

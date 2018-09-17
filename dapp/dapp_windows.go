@@ -10,6 +10,7 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
+	"github.com/privatix/dapp-installer/windows"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -58,6 +59,14 @@ func downloadAndConfigurateFiles(dapp *Dapp, db *data.DB) error {
 	if err != nil {
 		return err
 	}
+	_, dapp.Gui = filepath.Split(dapp.DownloadGui)
+	err = util.DownloadFile(dapp.InstallPath+dapp.Gui, dapp.DownloadGui)
+	if err != nil {
+		return err
+	}
+	if dapp.Shortcuts {
+		dapp.createShortcut()
+	}
 
 	_, dapp.Installer = filepath.Split(os.Args[0])
 	err = util.CopyFile(os.Args[0], dapp.InstallPath+dapp.Installer)
@@ -105,4 +114,13 @@ func modifyDappConfig(configFile string, dbConf *data.DB, role string) error {
 	defer write.Close()
 
 	return json.NewEncoder(write).Encode(jsonMap)
+}
+
+func (d *Dapp) createShortcut() {
+	target := d.InstallPath + d.Gui
+	extension := filepath.Ext(d.Gui)
+	linkName := d.Gui[0 : len(d.Gui)-len(extension)]
+	link := util.DesktopPath() + "\\" + linkName + ".lnk"
+
+	windows.CreateShortcut(target, "Privatix Dapp", "", link)
 }

@@ -3,18 +3,15 @@
 package util
 
 import (
-	"bytes"
-	"fmt"
 	"os/exec"
-	"path"
 	"runtime"
 	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
 
-	"github.com/Privatix/dappctrl/util/log"
 	"github.com/lxn/win"
+	"github.com/privatix/dappctrl/util/log"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -30,25 +27,31 @@ const WinRegDBEngine64 string = `SOFTWARE\PostgreSQL\Installations\`
 // WinRegDBEngine32 is a registry path to 32 bit DBEngine installations
 const WinRegDBEngine32 string = `SOFTWARE\WOW6432Node\PostgreSQL\Installations\`
 
+// WinRegInstalledDapp is a registry path to dapp installations
+const WinRegInstalledDapp string = `SOFTWARE\Privatix\Dapp\`
+
+// WinRegUninstallDapp is a registry path to dapp uninstallations
+const WinRegUninstallDapp string = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Privatix Dapp `
+
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(log log.Logger) bool {
+func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
 	if runtime.GOOS != "windows" {
-		log.Warn("software install only to Windows platform")
+		logger.Warn("software install only to Windows platform")
 		return false
 	}
 
 	if !checkWindowsVersion() {
-		log.Warn("Windows version does not meet the requirements")
+		logger.Warn("Windows version does not meet the requirements")
 		return false
 	}
 
 	if !checkMemory() {
-		log.Warn("RAM does not meet the requirements")
+		logger.Warn("RAM does not meet the requirements")
 		return false
 	}
 
-	if !checkStorage() {
-		log.Warn("available size of disk does not meet the requirements")
+	if !checkStorage(volume) {
+		logger.Warn("available size of disk does not meet the requirements")
 		return false
 	}
 
@@ -61,14 +64,13 @@ func checkWindowsVersion() bool {
 	return major >= MinWindowsVersion
 }
 
-func checkStorage() bool {
+func checkStorage(volume string) bool {
 	h := syscall.MustLoadDLL("kernel32.dll")
 	c := h.MustFindProc("GetDiskFreeSpaceExW")
 	lpFreeBytesAvailable := uint64(0)
-	u := utf16.Encode([]rune("\\"))
+	u := utf16.Encode([]rune(volume))
 	c.Call(uintptr(unsafe.Pointer(&u[0])),
 		uintptr(unsafe.Pointer(&lpFreeBytesAvailable)))
-
 	return lpFreeBytesAvailable >= MinAvailableDiskSize
 }
 
@@ -78,72 +80,43 @@ func checkMemory() bool {
 	return totalMemoryInKilobytes*1024 > MinMemorySize
 }
 
-// DBEngineExists is checking to install DB engine.
-func DBEngineExists(log log.Logger) bool {
-	return checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine64) ||
-		checkDBEngineVersion(registry.LOCAL_MACHINE, WinRegDBEngine32)
+// ExistingDBEnginePort returns existing db engine port number.
+func ExistingDBEnginePort(logger log.Logger) (int, bool) {
+	if p, ok := getDBEngineServicePort(WinRegDBEngine64); ok {
+		return p, ok
+	}
+	return getDBEngineServicePort(WinRegDBEngine32)
 }
 
-// InstallDBEngine is installing DB engine.
-func InstallDBEngine(conf *DBEngine, log log.Logger) error {
-	fileName := path.Base(conf.Download)
-	if err := downloadFile(fileName, conf.Download); err != nil {
-		log.Warn("ocurred error when downloded file from " + conf.Download)
-		return err
+func getDBEngineServicePort(keyPath string) (int, bool) {
+	path, ok := checkDBEngineVersion(registry.LOCAL_MACHINE, keyPath)
+	if ok {
+		s := strings.Replace(keyPath, "Installations", "Services", 1)
+		path = s + path
+		return getServicePort(registry.LOCAL_MACHINE, path), true
 	}
-	log.Info("file successfully downloaded")
-
-	// install db engine
-	ch := make(chan bool)
-	defer close(ch)
-	go interactiveWorker("Installation DB Engine", ch)
-
-	if err := exec.Command(fileName,
-		generateDBEngineInstallParams(conf)...).Run(); err != nil {
-		ch <- true
-		fmt.Printf("\r%s\n", "Ocurred error when install DB Engine")
-		log.Warn("ocurred error when install dbengine")
-		return err
-	}
-	log.Info("dbengine successfully installed")
-
-	ch <- true
-	fmt.Printf("\r%s\n", "DB Engine successfully installed")
-
-	for _, c := range conf.Copy {
-		fmt.Println(c.From, c.To)
-		fileName := path.Base(c.From)
-		if err := downloadFile(c.To+"\\"+fileName, c.From); err != nil {
-			log.Warn("ocurred error when downloded file from " + c.From)
-			return err
-		}
-	}
-
-	// start db engine service
-	if err := startService(conf.ServiceName); err != nil {
-		log.Warn("ocurred error when start dbengine service")
-		return err
-	}
-
-	log.Info("dbengine service successfully started")
-	return nil
+	return 0, false
 }
 
-func startService(service string) error {
-	checkServiceCmd := exec.Command("sc", "queryex", service)
+// ExecuteCommand does executing file.
+func ExecuteCommand(filename string, args []string) error {
+	cmd := exec.Command(filename, args...)
+	return cmd.Run()
+}
 
-	var checkServiceStdOut bytes.Buffer
-	checkServiceCmd.Stdout = &checkServiceStdOut
-
-	if err := checkServiceCmd.Run(); err != nil {
-		return err
+// ExistingDapp returns info about existing dappctrl.
+func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
+	maps, err := getInstalledDappVersion(role)
+	if err != nil {
+		return nil, false
 	}
+	return maps, len(maps) > 0
+}
 
-	// service is running
-	if strings.Contains(checkServiceStdOut.String(), "RUNNING") {
-		return nil
-	}
+// RenamePath changes folder name and returns it
+func RenamePath(path, folder string) string {
+	path = strings.TrimSuffix(path, "\\")
+	path = path[:strings.LastIndex(path, "\\")]
 
-	// trying start service
-	return exec.Command("net", "start", service).Run()
+	return path + "\\" + folder + "\\"
 }

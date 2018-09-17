@@ -1,16 +1,17 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
 	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/Privatix/dapp-installer/data"
 )
 
 const (
@@ -26,22 +27,6 @@ type WriteCounter struct {
 	Total     uint64
 }
 
-// DBEngine has a db engine configuration.
-type DBEngine struct {
-	Download    string
-	ServiceName string
-	DataDir     string
-	InstallDir  string
-	Copy        []Copy
-	DB          *data.DB
-}
-
-// Copy has a file copies parameters.
-type Copy struct {
-	From string
-	To   string
-}
-
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.Processed += uint64(n)
@@ -55,7 +40,8 @@ func (wc WriteCounter) printProgress() {
 		humanateBytes(wc.Processed), humanateBytes(wc.Total))
 }
 
-func downloadFile(filePath, url string) error {
+// DownloadFile downloads the file.
+func DownloadFile(filePath, url string) error {
 	out, err := os.Create(filePath + ".tmp")
 	if err != nil {
 		return err
@@ -108,51 +94,66 @@ func humanateBytes(s uint64) string {
 	return fmt.Sprintf(f, val, suffix)
 }
 
-func generateDBEngineInstallParams(dbConf *DBEngine) []string {
-	args := []string{"--mode", "unattended", "--unattendedmodeui", "none"}
+// DappCtrlVersion returns dappctrl version.
+func DappCtrlVersion(filename string) string {
+	cmd := exec.Command(filename, "-version")
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	if err := cmd.Run(); err != nil {
+		return ""
+	}
 
-	if len(dbConf.ServiceName) > 0 {
-		args = append(args, "--servicename", dbConf.ServiceName)
+	if strings.Contains(output.String(), "undefined (undefined)") {
+		return "0.0.0"
 	}
-	if len(dbConf.DB.Port) > 0 {
-		args = append(args, "--serverport", dbConf.DB.Port)
-	}
-	if len(dbConf.DB.User) > 0 {
-		args = append(args, "--superaccount", dbConf.DB.User)
-	}
-	if len(dbConf.DB.Password) > 0 {
-		args = append(args, "--superpassword", dbConf.DB.Password)
-	}
-	if len(dbConf.InstallDir) > 0 {
-		args = append(args, "--prefix", dbConf.InstallDir)
-	}
-	if len(dbConf.DataDir) > 0 {
-		args = append(args, "--datadir", dbConf.DataDir)
-	}
-	return args
+	return output.String()
 }
 
-func interactiveWorker(s string, quit chan bool) {
-	i := 0
-	for {
-		select {
-		case <-quit:
-			return
-		default:
-			i++
-			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
-			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
-			if i >= 10 {
-				i = 0
-			}
-			time.Sleep(time.Millisecond * 250)
+// RemoveFile removes file.
+func RemoveFile(filename string) error {
+	return os.Remove(filename)
+}
+
+// TemporaryDownload downloads file to the temp installation directory.
+func TemporaryDownload(installPath, downloadPath string) (string, error) {
+	if _, err := os.Stat(installPath); os.IsNotExist(err) {
+		os.MkdirAll(installPath, 0644)
+	}
+	fileName := installPath + "temporary." + path.Base(downloadPath)
+	return fileName, DownloadFile(fileName, downloadPath)
+}
+
+// CopyFile copies file.
+func CopyFile(src, dst string) error {
+	var err error
+	var srcfd *os.File
+	var dstfd *os.File
+	var srcinfo os.FileInfo
+	if srcfd, err = os.Open(src); err != nil {
+		return err
+	}
+	defer srcfd.Close()
+	if dstfd, err = os.Create(dst); err != nil {
+		return err
+	}
+	defer dstfd.Close()
+	if _, err = io.Copy(dstfd, srcfd); err != nil {
+		return err
+	}
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+	return os.Chmod(dst, srcinfo.Mode())
+}
+
+// DirSize returns total dir size.
+func DirSize(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
 		}
-	}
-}
-
-// GetConnectionString is generate connection string.
-func GetConnectionString(db, user, pwd, port string) string {
-	connStr := "host=localhost sslmode=disable"
-	return fmt.Sprintf("%s dbname=%s user=%s password=%s port=%s",
-		connStr, db, user, pwd, port)
+		return err
+	})
+	return size, err
 }

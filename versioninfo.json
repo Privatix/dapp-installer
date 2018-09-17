@@ -38,6 +38,6 @@
             "CharsetID": "04B0"
         }
     },
-    "IconPath": "util/windows/installer.ico",
-    "ManifestPath": "util/windows/installer.exe.manifest"
+    "IconPath": "windows/embed/installer.ico",
+    "ManifestPath": "windows/embed/installer.exe.manifest"
 }

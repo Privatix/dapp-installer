@@ -3,27 +3,26 @@
 package util
 
 import (
-	"errors"
 	"fmt"
 	"runtime"
 
-	"github.com/Privatix/dappctrl/util/log"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(log log.Logger) bool {
-	log.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
+func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
+	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
 	return false
 }
 
-// DBEngineExists is checking to install DB engine.
-func DBEngineExists(log log.Logger) bool {
-	log.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
-	return false
+// ExistingDBEnginePort returns existing db engine port number.
+func ExistingDBEnginePort(logger log.Logger) (int, bool) {
+	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
+	return 0, false
 }
 
-// InstallDBEngine is installing DB engine.
-func InstallDBEngine(dbConf *DBEngine, log log.Logger) error {
-	log.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
-	return errors.New("is not supported for this feature")
+// ExistingDappCtrlVersion returns existing dappctrl version.
+func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
+	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
+	return "", false
 }

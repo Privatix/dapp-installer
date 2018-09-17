@@ -37,11 +37,6 @@
                 "Value":"The Privatix Dapp, packaged by Privatix"
             },
             {
-                "Name" : "EstimatedSize",
-                "Type":"dword",
-                "Value":"10000"
-            },
-            {
                 "Name" : "HelpLink",
                 "Type":"string",
                 "Value":"https://privatix.io"
@@ -60,11 +55,6 @@
                 "Name" : "Publisher",
                 "Type":"string",
                 "Value":"Privatix (c)"
-            },
-            {
-                "Name" : "UninstallString",
-                "Type":"string",
-                "Value":"dapp-installer.exe remove"
             },
             {
                 "Name" : "UrlInfoAbout",

@@ -11,7 +11,9 @@ type Dapp struct {
 	Controller     string
 	Gui            string
 	DownloadConfig string
+	Configuration  string
 	DownloadGui    string
+	Installer      string
 	InstallPath    string
 	BackupPath     string
 	Service        *windows.Service

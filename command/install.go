@@ -8,11 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dapp-installer/windows"
 	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 )
@@ -91,23 +89,6 @@ func finalize(cmd *installCmd, conf *config, logger log.Logger) error {
 		logger.Info("backup version was removed")
 	}
 	return nil
-}
-
-func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
-	maps, ok := util.ExistingDapp(role, logger)
-
-	if !ok {
-		return nil, false
-	}
-
-	d := &dapp.Dapp{
-		Version:     maps["Version"],
-		InstallPath: maps["BaseDirectory"],
-		Service: &windows.Service{
-			GUID: maps["ServiceID"],
-		},
-	}
-	return d, true
 }
 
 func checkDapp(cmd *installCmd, conf *config, logger log.Logger) error {

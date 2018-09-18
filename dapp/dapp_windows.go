@@ -54,8 +54,8 @@ func (d *Dapp) Remove() error {
 
 func downloadAndConfigurateFiles(dapp *Dapp, db *data.DB) error {
 	_, dapp.Controller = filepath.Split(dapp.DownloadCtrl)
-	err := util.DownloadFile(dapp.InstallPath+dapp.Controller,
-		dapp.DownloadCtrl)
+	err := util.CopyFile(dapp.TempPath+dapp.Controller,
+		dapp.InstallPath+dapp.Controller)
 	if err != nil {
 		return err
 	}

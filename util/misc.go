@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"math"
@@ -23,8 +24,10 @@ const (
 
 // WriteCounter type is used for download process.
 type WriteCounter struct {
-	Processed uint64
-	Total     uint64
+	Label        string
+	Processed    uint64
+	Total        uint64
+	OutputLenght int
 }
 
 func (wc *WriteCounter) Write(p []byte) (int, error) {
@@ -34,10 +37,12 @@ func (wc *WriteCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-func (wc WriteCounter) printProgress() {
-	fmt.Printf("\r%s", strings.Repeat(" ", 35))
-	fmt.Printf("\rDownloading... %s from %s",
-		humanateBytes(wc.Processed), humanateBytes(wc.Total))
+func (wc *WriteCounter) printProgress() {
+	fmt.Printf("\r%s", strings.Repeat(" ", wc.OutputLenght+1))
+	output := fmt.Sprintf("\rDownloading %s ... %s from %s",
+		wc.Label, humanateBytes(wc.Processed), humanateBytes(wc.Total))
+	wc.OutputLenght = len(output)
+	fmt.Printf(output)
 }
 
 // DownloadFile downloads the file.
@@ -59,7 +64,7 @@ func DownloadFile(filePath, url string) error {
 		return err
 	}
 
-	counter := &WriteCounter{Total: uint64(length)}
+	counter := &WriteCounter{Label: path.Base(url), Total: uint64(length)}
 
 	_, err = io.Copy(out, io.TeeReader(resp.Body, counter))
 	if err != nil {
@@ -119,13 +124,20 @@ func RemoveFile(filename string) error {
 	return os.Remove(filename)
 }
 
-// TemporaryDownload downloads file to the temp installation directory.
-func TemporaryDownload(installPath, downloadPath string) (string, error) {
-	if _, err := os.Stat(installPath); os.IsNotExist(err) {
-		os.MkdirAll(installPath, 0644)
+// TempPath creates temporary directory.
+func TempPath(volume string) string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return fmt.Sprintf(`%s\temporary\`, volume)
 	}
-	fileName := installPath + "temporary." + path.Base(downloadPath)
-	return fileName, DownloadFile(fileName, downloadPath)
+
+	path := fmt.Sprintf(`%s\%x\`, volume, b)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.MkdirAll(path, 0644)
+	}
+
+	return path
 }
 
 // CopyFile copies file.

@@ -14,8 +14,8 @@ import (
 )
 
 // Install installs a DB engine.
-func (engine *DBEngine) Install(logger log.Logger) error {
-	fileName := path.Base(engine.Download)
+func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
+	fileName := installPath + path.Base(engine.Download)
 	if err := util.DownloadFile(fileName, engine.Download); err != nil {
 		logger.Warn("ocurred error when downloded file: " + engine.Download)
 		return err

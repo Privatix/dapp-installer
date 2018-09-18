@@ -1,7 +1,7 @@
 {
     "InstallPath" : "C:\\Program Files\\Privatix\\Dapp\\",
     "DBEngine": {
-        "Download" : "https://get.enterprisedb.com/postgresql/postgresql-10.5-1-windows-x64.exe",
+        "Download" : "http://localhost/dapp/postgresql-10.5-1-windows-x64.exe",
         "ServiceName": "postgresdapp",
         "DataDir": "C:\\Program Files\\PostgreSQL\\10\\data",
         "InstallDir": "C:\\Program Files\\PostgreSQL\\10",

@@ -39,6 +39,7 @@ type command interface {
 
 type config struct {
 	InstallPath string
+	TempPath    string
 	DBEngine    *dbengine.DBEngine
 	Registry    *util.Registry
 	Dapp        *dapp.Dapp

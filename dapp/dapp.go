@@ -1,6 +1,8 @@
 package dapp
 
 import (
+	"path"
+
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dapp-installer/windows"
 )
@@ -15,6 +17,7 @@ type Dapp struct {
 	DownloadGui    string
 	Installer      string
 	InstallPath    string
+	TempPath       string
 	BackupPath     string
 	Service        *windows.Service
 	Shortcuts      bool
@@ -28,11 +31,11 @@ func NewConfig() *Dapp {
 }
 
 // DownloadDappCtrl returns temporary downloaded path.
-func (d *Dapp) DownloadDappCtrl(path string) string {
-	tempDappCtrl, err := util.TemporaryDownload(path, d.DownloadCtrl)
-	if err != nil {
+func (d *Dapp) DownloadDappCtrl() string {
+	filePath := d.TempPath + path.Base(d.DownloadCtrl)
+	if err := util.DownloadFile(filePath, d.DownloadCtrl); err != nil {
 		return ""
 	}
 
-	return tempDappCtrl
+	return filePath
 }

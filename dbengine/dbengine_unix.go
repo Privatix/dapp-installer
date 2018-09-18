@@ -11,7 +11,7 @@ import (
 )
 
 // Install installs a DB engine.
-func (engine *DBEngine) Install(logger log.Logger) error {
+func (engine *DBEngine) Install(path string, logger log.Logger) error {
 	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
 	return errors.New("is not supported for this feature")
 }

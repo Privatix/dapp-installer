@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/privatix/dapp-installer/statik"
+	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dappctrl/util/log"
 
 	// Load Go Postgres driver.
@@ -97,6 +98,27 @@ func DropDatabase(conf *DB) error {
 		return err
 	}
 	defer conn.Close()
+
+	var version string
+
+	row := conn.QueryRow("SHOW server_version")
+	if err := row.Scan(&version); err != nil {
+		return err
+	}
+
+	colName := "pid"
+	if util.ParseVersion(version) < util.ParseVersion("9.2") {
+		// for Postgres < 9.2
+		colName = "procpid"
+	}
+	closeActiveConnQuery := fmt.Sprintf(`
+		SELECT pg_terminate_backend(pg_stat_activity.%s)
+    	FROM pg_stat_activity
+    	WHERE pg_stat_activity.datname = '%s';`, colName, conf.DBName)
+	if _, err := conn.Exec(closeActiveConnQuery); err != nil {
+		return err
+	}
+
 	query := fmt.Sprintf("DROP DATABASE %s;", conf.DBName)
 	if _, err := conn.Exec(query); err != nil {
 		return err

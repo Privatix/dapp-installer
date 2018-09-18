@@ -103,10 +103,15 @@ func DappCtrlVersion(filename string) string {
 		return ""
 	}
 
-	if strings.Contains(output.String(), "undefined (undefined)") {
+	version := output.String()
+	if i := strings.Index(version, " "); i > 0 {
+		version = version[:i]
+	}
+
+	if strings.Contains(version, "undefined") {
 		return "0.0.0"
 	}
-	return output.String()
+	return version
 }
 
 // RemoveFile removes file.
@@ -156,4 +161,25 @@ func DirSize(path string) (int64, error) {
 		return err
 	})
 	return size, err
+}
+
+// ParseVersion returns version number in int64 format.
+func ParseVersion(s string) int64 {
+	strList := strings.Split(s, ".")
+	length := len(strList)
+	for i := 0; i < (4 - length); i++ {
+		strList = append(strList, "0")
+	}
+
+	format := fmt.Sprintf("%%s%%0%ds", 4)
+	v := ""
+	for _, value := range strList {
+		v = fmt.Sprintf(format, v, value)
+	}
+
+	result, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return result
 }

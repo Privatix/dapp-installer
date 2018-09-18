@@ -108,7 +108,8 @@ func checkDapp(cmd *installCmd, conf *config, logger log.Logger) error {
 		newDapp.InstallPath += "\\"
 	}
 
-	if ok && existDapp.Version >= newDapp.Version {
+	version := util.ParseVersion(newDapp.Version)
+	if ok && util.ParseVersion(existDapp.Version) >= version {
 		util.RemoveFile(path)
 		fmt.Printf("you have not to update. your dapp version: %v\n",
 			existDapp.Version)

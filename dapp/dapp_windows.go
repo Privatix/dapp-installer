@@ -49,6 +49,12 @@ func (d *Dapp) Install(db *data.DB, logger log.Logger, ok bool) error {
 func (d *Dapp) Remove() error {
 	d.Service.Stop()
 	d.Service.Remove()
+	if d.Shortcuts {
+		extension := filepath.Ext(d.Gui)
+		linkName := d.Gui[0 : len(d.Gui)-len(extension)]
+		link := util.DesktopPath() + "\\" + linkName + ".lnk"
+		os.Remove(link)
+	}
 	return os.RemoveAll(d.InstallPath)
 }
 

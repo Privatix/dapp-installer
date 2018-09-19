@@ -72,11 +72,15 @@ func (cmd *installCmd) execute(conf *config, log log.Logger) error {
 		return err
 	}
 
-	if ok, err := checkDapp(cmd, conf, logger); !ok || err != nil {
+	ok, err := checkDapp(cmd, conf, logger)
+	if err != nil {
 		return err
 	}
 
-	return finalize(cmd, conf, logger)
+	if ok {
+		return finalize(cmd, conf, logger)
+	}
+	return nil
 }
 
 func finalize(cmd *installCmd, conf *config, logger log.Logger) error {

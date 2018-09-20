@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
@@ -103,41 +104,36 @@ func finalize(cmd *installCmd, conf *config, logger log.Logger) error {
 func checkDapp(cmd *installCmd, conf *config, logger log.Logger) (bool, error) {
 	existDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
 
-	newDapp := conf.Dapp
+	newDapp := initDapp(conf)
 	if ok {
 		newDapp.InstallPath = existDapp.InstallPath
 	}
 
-	newDapp.TempPath = conf.TempPath
-	path := conf.Dapp.DownloadDappCtrl()
-
-	newDapp.Version, newDapp.InstallPath = util.DappCtrlVersion(path),
-		conf.InstallPath
-
-	if !strings.HasSuffix(newDapp.InstallPath, "\\") {
-		newDapp.InstallPath += "\\"
-	}
-
 	version := util.ParseVersion(newDapp.Version)
 	if ok && util.ParseVersion(existDapp.Version) >= version {
-		util.RemoveFile(path)
-		fmt.Printf("you have not to update. your dapp version: %v\n",
+		fmt.Printf("you don't need to update. your dapp version: %v\n",
 			existDapp.Version)
-		logger.Warn("have not to update")
+		logger.Warn("don't need to update")
 		return false, nil
 	}
 
 	// rename existing folder name to backup
 	if ok {
-		existDapp.Service.Stop()
-		existDapp.Service.Remove()
+		existDapp.Service.Uninstall()
 		newDapp.BackupPath = util.RenamePath(existDapp.InstallPath, "backup")
 		if err := os.Rename(existDapp.InstallPath, newDapp.BackupPath); err != nil {
-			util.RemoveFile(path)
 			return false, err
 		}
 		logger.Info("existing dapp version successfully backuped")
 	}
+
+	// execute migration scripts
+	if err := dbengine.DatabaseMigrate(newDapp.TempPath+newDapp.Controller,
+		conf.DBEngine); err != nil {
+		return false, err
+	}
+	cmd.addRollbackFuncs(revertDatabaseMigrate)
+	logger.Info("db migration was successfully executed")
 
 	// install dapp core
 	if err := newDapp.Install(conf.DBEngine.DB, logger, ok); err != nil {
@@ -146,15 +142,25 @@ func checkDapp(cmd *installCmd, conf *config, logger log.Logger) (bool, error) {
 	}
 	cmd.addRollbackFuncs(uninstallDapp)
 
-	// execute migration scripts
-	if err := dbengine.DatabaseMigrate(newDapp.InstallPath+newDapp.Controller,
-		conf.DBEngine); err != nil {
-		return false, err
-	}
-	cmd.addRollbackFuncs(revertDatabaseMigrate)
-	logger.Info("db migration was successfully executed")
-
 	return true, nil
+}
+
+func initDapp(conf *config) *dapp.Dapp {
+	d := conf.Dapp
+	d.TempPath = conf.TempPath
+	path := conf.Dapp.DownloadDappCtrl()
+
+	d.Version, d.InstallPath = util.DappCtrlVersion(path),
+		conf.InstallPath
+	_, d.Controller = filepath.Split(d.DownloadCtrl)
+
+	if !strings.HasSuffix(d.TempPath, "\\") {
+		d.TempPath += "\\"
+	}
+	if !strings.HasSuffix(d.InstallPath, "\\") {
+		d.InstallPath += "\\"
+	}
+	return d
 }
 
 func (cmd *installCmd) addRollbackFuncs(f func(c *config, l log.Logger)) {

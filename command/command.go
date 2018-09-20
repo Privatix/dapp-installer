@@ -38,11 +38,16 @@ type command interface {
 }
 
 type config struct {
+	// InstallPath contains a path to installation.
 	InstallPath string
-	TempPath    string
-	DBEngine    *dbengine.DBEngine
-	Registry    *util.Registry
-	Dapp        *dapp.Dapp
+	// TempPath contains a temporary path to downloads.
+	TempPath string
+	// DBEngine contains a db engine parameters.
+	DBEngine *dbengine.DBEngine
+	// Registry contains a winregistry parameters.
+	Registry *util.Registry
+	// Dapp contains a dapp installation parameters.
+	Dapp *dapp.Dapp
 }
 
 func newConfig() *config {

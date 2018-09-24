@@ -1,11 +1,16 @@
 package util
 
 import (
+	"archive/zip"
 	"bytes"
 	"crypto/rand"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -13,6 +18,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -119,11 +125,6 @@ func DappCtrlVersion(filename string) string {
 	return version
 }
 
-// RemoveFile removes file.
-func RemoveFile(filename string) error {
-	return os.Remove(filename)
-}
-
 // TempPath creates temporary directory.
 func TempPath(volume string) string {
 	b := make([]byte, 16)
@@ -194,4 +195,131 @@ func ParseVersion(s string) int64 {
 		return 0
 	}
 	return result
+}
+
+// Unzip will decompress a zip archive, moving all files and folders
+// within the zip file (parameter 1) to an output directory (parameter 2).
+func Unzip(src string, dest string) ([]string, error) {
+	var filenames []string
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return filenames, err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return filenames, err
+		}
+		defer rc.Close()
+		fpath := filepath.Join(dest, f.Name)
+
+		if !strings.HasPrefix(fpath,
+			filepath.Clean(dest)+string(os.PathSeparator)) {
+			return filenames, fmt.Errorf("%s: illegal file path", fpath)
+		}
+
+		filenames = append(filenames, fpath)
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(fpath, 0644)
+		} else {
+			err := os.MkdirAll(filepath.Dir(fpath), 0644)
+			if err != nil {
+				return filenames, err
+			}
+			outFile, err := os.OpenFile(fpath,
+				os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return filenames, err
+			}
+			_, err = io.Copy(outFile, rc)
+			outFile.Close()
+
+			if err != nil {
+				return filenames, err
+			}
+		}
+	}
+	return filenames, nil
+}
+
+// CopyDir copies data from source directory to desctination directory.
+func CopyDir(src string, dst string) error {
+	var err error
+	var fds []os.FileInfo
+	var srcinfo os.FileInfo
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
+		return err
+	}
+	if fds, err = ioutil.ReadDir(src); err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		srcfp := path.Join(src, fd.Name())
+		dstfp := path.Join(dst, fd.Name())
+		if fd.IsDir() {
+			err = CopyDir(srcfp, dstfp)
+		} else {
+			err = CopyFile(srcfp, dstfp)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Hash returns string hash.
+func Hash(s string) string {
+	h := sha1.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// InteractiveWorker shows display text for imitate interactive mode.
+func InteractiveWorker(s string, quit chan bool) {
+	i := 0
+	for {
+		select {
+		case <-quit:
+			return
+		default:
+			i++
+			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
+			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
+			if i >= 10 {
+				i = 0
+			}
+			time.Sleep(time.Millisecond * 250)
+		}
+	}
+}
+
+// FreePort returns available free port number.
+func FreePort(port string) (string, error) {
+	p, err := strconv.Atoi(port)
+	if err != nil {
+		return "", err
+	}
+
+	for i := p; i < 65535; i++ {
+		ln, err := net.Listen("tcp", "localhost:"+strconv.Itoa(i))
+
+		if err != nil {
+			continue
+		}
+
+		if err := ln.Close(); err != nil {
+			continue
+		}
+		port = strconv.Itoa(i)
+		break
+	}
+
+	return port, nil
 }

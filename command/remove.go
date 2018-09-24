@@ -1,13 +1,10 @@
 package command
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 
-	"github.com/privatix/dapp-installer/data"
-	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -65,31 +62,11 @@ func (cmd *removeCmd) execute(conf *config, log log.Logger) error {
 func remove(conf *config, logger log.Logger) error {
 	dapp := conf.Dapp
 
-	db, err := dbParamsFromConfig(dapp.InstallPath + dapp.Configuration)
-	if err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when read config %v", err))
-		return err
-	}
-
-	if data.DBExists(db, logger) {
-		dapp.Service.Uninstall()
-
-		if err := data.DropDatabase(db); err != nil {
-			logger.Warn(fmt.Sprintf(
-				"ocurred error when drop database %v", err))
-			return err
-		}
-	}
-
-	if err := dapp.Remove(); err != nil {
+	if err := dapp.Remove(logger); err != nil {
 		logger.Warn(fmt.Sprintf(
 			"ocurred error when remove dapp %v", err))
 		return err
 	}
-
-	util.RemoveRegistryKey(conf.Registry, dapp.UserRole)
-
 	return nil
 }
 
@@ -101,35 +78,6 @@ func (cmd *removeCmd) rollback(conf *config, logger log.Logger) {
 
 func (cmd *removeCmd) addRollbackFuncs(f func(c *config, l log.Logger)) {
 	cmd.rollbackFuncs = append(cmd.rollbackFuncs, f)
-}
-
-func dbParamsFromConfig(configFile string) (*data.DB, error) {
-	read, err := os.Open(configFile)
-	if err != nil {
-		return nil, err
-	}
-	defer read.Close()
-
-	jsonMap := make(map[string]interface{})
-
-	json.NewDecoder(read).Decode(&jsonMap)
-
-	db, ok := jsonMap["DB"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("DB params not found")
-	}
-	conn, ok := db["Conn"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("Conn params not found")
-	}
-
-	res := &data.DB{
-		DBName:   conn["dbname"].(string),
-		User:     conn["user"].(string),
-		Password: conn["password"].(string),
-		Port:     conn["port"].(string),
-	}
-	return res, nil
 }
 
 func removeHelp() {

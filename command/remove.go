@@ -73,8 +73,7 @@ func remove(conf *config, logger log.Logger) error {
 	}
 
 	if data.DBExists(db, logger) {
-		dapp.Service.Stop()
-		dapp.Service.Remove()
+		dapp.Service.Uninstall()
 
 		if err := data.DropDatabase(db); err != nil {
 			logger.Warn(fmt.Sprintf(

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
@@ -57,21 +58,30 @@ func (cmd *installCmd) execute(conf *config, log log.Logger) error {
 	defer logger.Info("finish process")
 
 	volume := filepath.VolumeName(conf.InstallPath)
+
+	conf.TempPath = util.TempPath(volume)
+	defer os.RemoveAll(conf.TempPath)
+
 	if !util.CheckSystemPrerequisites(volume, logger) {
 		logger.Warn("installation process was interrupted")
 		return nil
 	}
 	logger.Info("check the system prerequisites was successful")
 
-	if err := checkDatabase(cmd, conf.DBEngine, logger); err != nil {
+	err := checkDatabase(cmd, conf.DBEngine, logger, conf.TempPath)
+	if err != nil {
 		return err
 	}
 
-	if err := checkDapp(cmd, conf, logger); err != nil {
+	ok, err := checkDapp(cmd, conf, logger)
+	if err != nil {
 		return err
 	}
 
-	return finalize(cmd, conf, logger)
+	if ok {
+		return finalize(cmd, conf, logger)
+	}
+	return nil
 }
 
 func finalize(cmd *installCmd, conf *config, logger log.Logger) error {
@@ -91,59 +101,66 @@ func finalize(cmd *installCmd, conf *config, logger log.Logger) error {
 	return nil
 }
 
-func checkDapp(cmd *installCmd, conf *config, logger log.Logger) error {
+func checkDapp(cmd *installCmd, conf *config, logger log.Logger) (bool, error) {
 	existDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
 
-	newDapp := conf.Dapp
+	newDapp := initDapp(conf)
 	if ok {
 		newDapp.InstallPath = existDapp.InstallPath
 	}
 
-	path := conf.Dapp.DownloadDappCtrl(conf.InstallPath)
-
-	newDapp.Version, newDapp.InstallPath = util.DappCtrlVersion(path),
-		conf.InstallPath
-
-	if !strings.HasSuffix(newDapp.InstallPath, "\\") {
-		newDapp.InstallPath += "\\"
-	}
-
-	if ok && existDapp.Version >= newDapp.Version {
-		util.RemoveFile(path)
-		fmt.Printf("you have not to update. your dapp version: %v\n",
+	version := util.ParseVersion(newDapp.Version)
+	if ok && util.ParseVersion(existDapp.Version) >= version {
+		fmt.Printf("you don't need to update. your dapp version: %v\n",
 			existDapp.Version)
-		logger.Warn("have not to update")
-		return nil
+		logger.Warn("don't need to update")
+		return false, nil
 	}
 
 	// rename existing folder name to backup
 	if ok {
-		existDapp.Service.Stop()
-		existDapp.Service.Remove()
+		existDapp.Service.Uninstall()
 		newDapp.BackupPath = util.RenamePath(existDapp.InstallPath, "backup")
 		if err := os.Rename(existDapp.InstallPath, newDapp.BackupPath); err != nil {
-			util.RemoveFile(path)
-			return err
+			return false, err
 		}
 		logger.Info("existing dapp version successfully backuped")
 	}
 
-	// install dapp core
-	if err := newDapp.Install(conf.DBEngine.DB, logger, ok); err != nil {
-		logger.Warn(fmt.Sprintf("ocurred error when install dapp %v", err))
-		return err
-	}
-	cmd.addRollbackFuncs(uninstallDapp)
-
 	// execute migration scripts
-	if err := dbengine.DatabaseMigrate(newDapp.InstallPath+newDapp.Controller,
+	if err := dbengine.DatabaseMigrate(newDapp.TempPath+newDapp.Controller,
 		conf.DBEngine); err != nil {
-		return err
+		return false, err
 	}
 	cmd.addRollbackFuncs(revertDatabaseMigrate)
 	logger.Info("db migration was successfully executed")
 
-	return nil
+	// install dapp core
+	if err := newDapp.Install(conf.DBEngine.DB, logger, ok); err != nil {
+		logger.Warn(fmt.Sprintf("ocurred error when install dapp %v", err))
+		return false, err
+	}
+	cmd.addRollbackFuncs(uninstallDapp)
+
+	return true, nil
+}
+
+func initDapp(conf *config) *dapp.Dapp {
+	d := conf.Dapp
+	d.TempPath = conf.TempPath
+	path := conf.Dapp.DownloadDappCtrl()
+
+	d.Version, d.InstallPath = util.DappCtrlVersion(path),
+		conf.InstallPath
+	_, d.Controller = filepath.Split(d.DownloadCtrl)
+
+	if !strings.HasSuffix(d.TempPath, "\\") {
+		d.TempPath += "\\"
+	}
+	if !strings.HasSuffix(d.InstallPath, "\\") {
+		d.InstallPath += "\\"
+	}
+	return d
 }
 
 func (cmd *installCmd) addRollbackFuncs(f func(c *config, l log.Logger)) {
@@ -155,11 +172,11 @@ func revertDatabaseMigrate(conf *config, logger log.Logger) {
 }
 
 func checkDatabase(cmd *installCmd, engine *dbengine.DBEngine,
-	logger log.Logger) error {
+	logger log.Logger, tempPath string) error {
 	p, ok := util.ExistingDBEnginePort(logger)
 	if !ok {
 		logger.Warn("db engine is not exists")
-		if err := engine.Install(logger); err != nil {
+		if err := engine.Install(tempPath, logger); err != nil {
 			logger.Warn(
 				fmt.Sprintf("ocurred error while installing dbengine %v", err))
 			return err

@@ -39,23 +39,30 @@ func (d *Dapp) Install(db *data.DB, logger log.Logger, ok bool) error {
 	}
 	logger.Info("start service")
 	if err := d.Service.Start(); err != nil {
-		logger.Warn("ocurred error when start service " + d.Service.ID)
-		return err
+		// retry attempt to start service
+		if err := d.Service.Start(); err != nil {
+			logger.Warn("ocurred error when start service " + d.Service.ID)
+			return err
+		}
 	}
 	return nil
 }
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	d.Service.Stop()
-	d.Service.Remove()
+	d.Service.Uninstall()
+	if d.Shortcuts {
+		extension := filepath.Ext(d.Gui)
+		linkName := d.Gui[0 : len(d.Gui)-len(extension)]
+		link := util.DesktopPath() + "\\" + linkName + ".lnk"
+		os.Remove(link)
+	}
 	return os.RemoveAll(d.InstallPath)
 }
 
 func downloadAndConfigurateFiles(dapp *Dapp, db *data.DB) error {
-	_, dapp.Controller = filepath.Split(dapp.DownloadCtrl)
-	err := util.DownloadFile(dapp.InstallPath+dapp.Controller,
-		dapp.DownloadCtrl)
+	err := util.CopyFile(dapp.TempPath+dapp.Controller,
+		dapp.InstallPath+dapp.Controller)
 	if err != nil {
 		return err
 	}

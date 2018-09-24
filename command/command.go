@@ -38,10 +38,16 @@ type command interface {
 }
 
 type config struct {
+	// InstallPath contains a path to installation.
 	InstallPath string
-	DBEngine    *dbengine.DBEngine
-	Registry    *util.Registry
-	Dapp        *dapp.Dapp
+	// TempPath contains a temporary path to downloads.
+	TempPath string
+	// DBEngine contains a db engine parameters.
+	DBEngine *dbengine.DBEngine
+	// Registry contains a winregistry parameters.
+	Registry *util.Registry
+	// Dapp contains a dapp installation parameters.
+	Dapp *dapp.Dapp
 }
 
 func newConfig() *config {
@@ -105,7 +111,7 @@ func createRegistryKey(conf *config) error {
 	db := conf.DBEngine.DB
 	shortcuts := strconv.FormatBool(d.Shortcuts)
 	conf.Registry.Install = append(conf.Registry.Install,
-		util.Key{Name: "Shotrcuts", Type: "string", Value: shortcuts},
+		util.Key{Name: "Shortcuts", Type: "string", Value: shortcuts},
 		util.Key{Name: "BaseDirectory", Type: "string", Value: d.InstallPath},
 		util.Key{Name: "Version", Type: "string", Value: d.Version},
 		util.Key{Name: "ServiceID", Type: "string", Value: d.Service.GUID},
@@ -193,11 +199,14 @@ func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
 		return nil, false
 	}
 
+	shortcut, _ := strconv.ParseBool(maps["Shortcuts"])
 	d := &dapp.Dapp{
 		UserRole:      role,
 		Version:       maps["Version"],
 		InstallPath:   maps["BaseDirectory"],
 		Configuration: maps["Configuration"],
+		Gui:           maps["Gui"],
+		Shortcuts:     shortcut,
 		Service: &windows.Service{
 			GUID: maps["ServiceID"],
 		},

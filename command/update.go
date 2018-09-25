@@ -2,14 +2,12 @@ package command
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
-	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -22,30 +20,7 @@ func getUpdateCmd() *updateCmd {
 	return &updateCmd{name: "update"}
 }
 
-func updateProcessedFlags(cmd *updateCmd, conf *config, logger log.Logger) bool {
-	h := flag.Bool("help", false, "Display dapp-installer help")
-	configFile := flag.String("config", "", "Configuration file")
-
-	flag.CommandLine.Parse(os.Args[2:])
-
-	if *h {
-		cmd.helpMessage()
-		return true
-	}
-
-	if *configFile == "" {
-		logger.Warn("config parameter is empty")
-		fmt.Println("config parameter is empty")
-		return true
-	}
-	if err := dapputil.ReadJSONFile(*configFile, &conf); err != nil {
-		logger.Error(fmt.Sprintf("failed to read config file - %s", err))
-		return true
-	}
-	return false
-}
-
-func (cmd *updateCmd) helpMessage() {
+func updateHelpMessage() {
 	fmt.Printf(`
 Usage:
 	dapp-installer update [flags]
@@ -58,7 +33,7 @@ Flags:
 
 func (cmd *updateCmd) execute(conf *config, log log.Logger) error {
 	logger := log.Add("command", cmd.name)
-	if updateProcessedFlags(cmd, conf, logger) {
+	if commandProcessedFlags(updateHelpMessage, conf, logger) {
 		return nil
 	}
 
@@ -73,16 +48,16 @@ func (cmd *updateCmd) execute(conf *config, log log.Logger) error {
 }
 
 func updateDapp(cmd *updateCmd, conf *config, logger log.Logger) error {
-	existDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
+	oldDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
 
 	if !ok {
-		fmt.Println("dapp is not exist.")
-		fmt.Println("for install you should run with command 'install'")
-		logger.Warn("dapp is not exists")
+		fmt.Println("dapp is not installed.")
+		fmt.Println("to install run 'install' command")
+		logger.Warn("dapp is not installed")
 		return nil
 	}
 
-	b, dir := filepath.Split(existDapp.InstallPath)
+	b, dir := filepath.Split(oldDapp.InstallPath)
 	conf.Dapp.InstallPath = filepath.Join(b, dir+"_new")
 
 	newDapp, err := initDapp(conf)
@@ -91,27 +66,27 @@ func updateDapp(cmd *updateCmd, conf *config, logger log.Logger) error {
 	}
 
 	version := util.ParseVersion(newDapp.Version)
-	if util.ParseVersion(existDapp.Version) >= version {
-		fmt.Printf("you don't need to update. your dapp version: %v\n",
-			existDapp.Version)
-		logger.Warn("don't need to update")
+	if util.ParseVersion(oldDapp.Version) >= version {
+		fmt.Printf("dapp current version: %s, update is not required\n",
+			oldDapp.Version)
+		logger.Warn("already updated")
 		return nil
 	}
 
-	configFile := filepath.Join(existDapp.InstallPath,
-		existDapp.Controller.Configuration)
+	configFile := filepath.Join(oldDapp.InstallPath,
+		oldDapp.Controller.Configuration)
 	if newDapp.DBEngine.DB, err = dbParamsFromConfig(configFile); err != nil {
-		logger.Warn(fmt.Sprintf("ocurred error when read config %v", err))
+		logger.Warn(fmt.Sprintf("failed to read config: %v", err))
 		return err
 	}
 
-	// update dapp core
-	if err := newDapp.Update(existDapp, logger); err != nil {
+	// Update dapp core.
+	if err := newDapp.Update(oldDapp, logger); err != nil {
 
-		existDapp.DBEngine.Start(existDapp.InstallPath)
-		existDapp.Controller.Service.Start()
+		oldDapp.DBEngine.Start(oldDapp.InstallPath)
+		oldDapp.Controller.Service.Start()
 
-		logger.Warn(fmt.Sprintf("ocurred error when update dapp %v", err))
+		logger.Warn(fmt.Sprintf("failed to update dapp: %v", err))
 		return err
 	}
 	cmd.addRollbackFuncs(uninstallDapp)

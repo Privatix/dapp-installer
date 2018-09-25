@@ -7,13 +7,13 @@ import (
 )
 
 func startService(installPath, user string, envs []string) error {
-	return errors.New("does not implemented")
+	return errors.New("not implemented")
 }
 
 func removeService(installPath string) error {
-	return errors.New("does not implemented")
+	return errors.New("not implemented")
 }
 
 func stopService(installPath string) error {
-	return errors.New("does not implemented")
+	return errors.New("not implemented")
 }

@@ -43,7 +43,7 @@ func NewConfig() *Dapp {
 	}
 }
 
-// DownloadDapp downloads dapp and returns temporary downloaded path.
+// DownloadDapp downloads dapp and returns temporary download path.
 func (d *Dapp) DownloadDapp() string {
 	filePath := filepath.Join(d.TempPath, path.Base(d.Download))
 	if err := util.DownloadFile(filePath, d.Download); err != nil {
@@ -55,19 +55,19 @@ func (d *Dapp) DownloadDapp() string {
 
 // Install installs a dapp core.
 func (d *Dapp) Install(logger log.Logger) error {
-	// install dbengine
+	// Install dbengine.
 	err := d.DBEngine.Install(d.InstallPath, logger)
 	if err != nil {
 		return err
 	}
 
-	//create db
+	// Create DB.
 	filePath := filepath.Join(d.InstallPath, d.Controller.EntryPoint)
 	if err := d.DBEngine.CreateDatabase(filePath); err != nil {
 		return err
 	}
 
-	//configure dappctrl
+	// Configure dappctrl.
 	if err := d.configurateController(logger); err != nil {
 		return err
 	}
@@ -77,16 +77,16 @@ func (d *Dapp) Install(logger log.Logger) error {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp, logger log.Logger) error {
-	// install db engine
+	// Install db engine.
 	ch := make(chan bool)
 	defer close(ch)
 	go util.InteractiveWorker("Upgrading Dapp", ch)
 
-	// stop services
+	// Stop services.
 	oldDapp.Controller.Service.Stop()
 	oldDapp.DBEngine.Stop(oldDapp.InstallPath)
 
-	//copy data
+	// Copy data.
 	util.CopyDir(filepath.Join(oldDapp.InstallPath, "pgsql/data"),
 		filepath.Join(d.InstallPath, "pgsql/data"))
 
@@ -107,10 +107,10 @@ func (d *Dapp) Update(oldDapp *Dapp, logger log.Logger) error {
 
 	d.InstallPath = oldDapp.InstallPath
 
-	//todo start dbengine
+	// Start dbengine.
 	d.DBEngine.Start(d.InstallPath)
 
-	//update db
+	// Update DB schema.
 	filePath := filepath.Join(d.InstallPath, d.Controller.EntryPoint)
 	if err := d.DBEngine.UpdateDatabase(filePath); err != nil {
 		d.DBEngine.Stop(d.InstallPath)
@@ -121,7 +121,7 @@ func (d *Dapp) Update(oldDapp *Dapp, logger log.Logger) error {
 	}
 	logger.Info("db migartions were successfully executed")
 
-	//configure dappctrl
+	// Configure dappctrl.
 	if err := d.configurateController(logger); err != nil {
 		d.DBEngine.Stop(d.InstallPath)
 		os.RemoveAll(d.InstallPath)

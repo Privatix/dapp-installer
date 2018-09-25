@@ -47,7 +47,7 @@ func DBExists(conf *DB, logger log.Logger) bool {
 		conf.Port)
 	if err := ping(connStr); err != nil {
 		logger.Warn(fmt.Sprintf(
-			"ocurred error when check to access dbengine service %v", err))
+			"failed to check access dbengine service: %v", err))
 		return false
 	}
 

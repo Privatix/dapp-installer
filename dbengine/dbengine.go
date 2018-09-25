@@ -54,11 +54,7 @@ func (engine DBEngine) databaseMigrate(fileName string) error {
 	conn := data.GetConnectionString(db.DBName, db.User, db.Password, db.Port)
 
 	args := []string{"db-migrate", "-conn", conn}
-	if err := util.ExecuteCommand(fileName, args); err != nil {
-		return err
-	}
-
-	return nil
+	return util.ExecuteCommand(fileName, args)
 }
 
 func (engine DBEngine) databaseInit(fileName string) error {
@@ -93,7 +89,8 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	fileName := filepath.Join(installPath, `pgsql/bin/initdb`)
 	cmd := exec.Command(fileName, "-E UTF8", "-A trust")
 	cmd.Env = os.Environ()
-	envs := []string{`PATH="` + filepath.Join(installPath, `pgsql/bin`) + `";%PATH%`,
+	envs := []string{
+		`PATH="` + filepath.Join(installPath, `pgsql/bin`) + `";%PATH%`,
 		`PGDATA=` + dataPath,
 		`PGDATABASE=postgres`,
 		`PGUSER=postgres`,
@@ -126,41 +123,8 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 		return err
 	}
 
-	// file, lr, err := util.CreateLogger("test.log")
-	// defer file.Close()
-
-	// stderr, err := cmd.StderrPipe()
-	// if err != nil {
-	// 	lr.Error(fmt.Sprintf("failed to create stderrpipe: %v", err))
-	// 	return err
-	// }
-
-	// stdout, err := cmd.StdoutPipe()
-	// if err != nil {
-	// 	lr.Error(fmt.Sprintf("failed to create stdoutpipe: %v", err))
-	// 	return err
-	// }
-
-	// writer := bufio.NewWriter(file)
-	// defer writer.Flush()
-
-	// lr.Info("starting child process")
-	// if err := cmd.Start(); err != nil {
-	// 	lr.Error(fmt.Sprintf("failed to start child process: %v", err))
-	// 	return err
-	// }
-
-	// go io.Copy(writer, stdout)
-	// go io.Copy(writer, stderr)
-
-	// if err := cmd.Wait(); err != nil {
-	// 	lr.Error(fmt.Sprintf("failed to wait child process: %v", err))
-	// 	return err
-	// }
-
 	ch <- true
 	fmt.Printf("\r%s\n", "DB Engine successfully installed")
-
 	logger.Info("dbengine successfully installed")
 
 	return nil

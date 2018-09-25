@@ -167,12 +167,13 @@ func CopyFile(src, dst string) error {
 // DirSize returns total dir size.
 func DirSize(path string) (int64, error) {
 	var size int64
-	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			size += info.Size()
-		}
-		return err
-	})
+	err := filepath.Walk(path,
+		func(_ string, info os.FileInfo, err error) error {
+			if !info.IsDir() {
+				size += info.Size()
+			}
+			return err
+		})
 	return size, err
 }
 
@@ -225,24 +226,29 @@ func Unzip(src string, dest string) ([]string, error) {
 		if f.FileInfo().IsDir() {
 			os.MkdirAll(fpath, 0644)
 		} else {
-			err := os.MkdirAll(filepath.Dir(fpath), 0644)
-			if err != nil {
-				return filenames, err
-			}
-			outFile, err := os.OpenFile(fpath,
-				os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return filenames, err
-			}
-			_, err = io.Copy(outFile, rc)
-			outFile.Close()
-
-			if err != nil {
+			if err := extractFile(fpath, rc, f); err != nil {
 				return filenames, err
 			}
 		}
 	}
 	return filenames, nil
+}
+
+func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
+	err := os.MkdirAll(filepath.Dir(fpath), 0644)
+	if err != nil {
+		return err
+	}
+	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		f.Mode())
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	_, err = io.Copy(outFile, rc)
+
+	return err
 }
 
 // CopyDir copies data from source directory to desctination directory.

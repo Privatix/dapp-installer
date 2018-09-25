@@ -24,5 +24,5 @@ func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
 
 // GrantAccess grants access to directory.
 func GrantAccess(path, user string) error {
-	return errors.New("does not implemented")
+	return errors.New("not implemented")
 }

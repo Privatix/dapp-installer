@@ -49,22 +49,19 @@ func (d *Dapp) configurateController(logger log.Logger) error {
 	ctrl.Service.Description = fmt.Sprintf("dapp %s %s", d.UserRole, hash)
 	ctrl.Service.GUID = filepath.Join(ctrlPath, ctrl.Service.ID)
 	if err := ctrl.Service.CreateWrapper(ctrlPath); err != nil {
-		logger.Warn("ocurred error when create service wrapper:" +
-			ctrl.Service.ID)
+		logger.Warn("failed to create service wrapper:" + ctrl.Service.ID)
 		return err
 	}
 	logger.Info("install service")
 	if err := ctrl.Service.Install(); err != nil {
-		logger.Warn(
-			"ocurred error when install service " + ctrl.Service.ID)
+		logger.Warn("failed to install service:" + ctrl.Service.ID)
 		return err
 	}
 	logger.Info("start service")
 	if err := ctrl.Service.Start(); err != nil {
 		// retry attempt to start service
 		if err := ctrl.Service.Start(); err != nil {
-			logger.Warn(
-				"ocurred error when start service " + ctrl.Service.ID)
+			logger.Warn("failed to start service:" + ctrl.Service.ID)
 			return err
 		}
 	}
@@ -94,11 +91,14 @@ func (d *Dapp) installFinalize(logger log.Logger) error {
 		util.Key{Name: "Shortcuts", Type: "string", Value: shortcuts},
 		util.Key{Name: "BaseDirectory", Type: "string", Value: d.InstallPath},
 		util.Key{Name: "Version", Type: "string", Value: d.Version},
-		util.Key{Name: "ServiceID", Type: "string", Value: d.Controller.Service.GUID},
-		util.Key{Name: "Controller", Type: "string", Value: d.Controller.EntryPoint},
+		util.Key{Name: "ServiceID", Type: "string",
+			Value: d.Controller.Service.GUID},
+		util.Key{Name: "Controller", Type: "string",
+			Value: d.Controller.EntryPoint},
 		util.Key{Name: "Gui", Type: "string", Value: d.Gui.EntryPoint},
 		util.Key{Name: "Database", Type: "string", Value: db.DBName},
-		util.Key{Name: "Configuration", Type: "string", Value: d.Controller.Configuration},
+		util.Key{Name: "Configuration", Type: "string",
+			Value: d.Controller.Configuration},
 	)
 
 	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
@@ -112,12 +112,14 @@ func (d *Dapp) installFinalize(logger log.Logger) error {
 		return err
 	}
 	d.Registry.Uninstall = append(d.Registry.Uninstall,
-		util.Key{Name: "InstallLocation", Type: "string", Value: d.InstallPath},
+		util.Key{Name: "InstallLocation", Type: "string",
+			Value: d.InstallPath},
 		util.Key{Name: "InstallDate", Type: "string", Value: current},
 		util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
 		util.Key{Name: "DisplayName", Type: "string",
 			Value: "Privatix Dapp " + d.UserRole},
-		util.Key{Name: "UninstallString", Type: "string", Value: uninstallCmd},
+		util.Key{Name: "UninstallString", Type: "string",
+			Value: uninstallCmd},
 		util.Key{Name: "EstimatedSize", Type: "dword",
 			Value: strconv.FormatInt(size, 10)},
 	)

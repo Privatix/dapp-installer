@@ -63,8 +63,7 @@ func remove(conf *config, logger log.Logger) error {
 	dapp := conf.Dapp
 
 	if err := dapp.Remove(logger); err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when remove dapp %v", err))
+		logger.Warn(fmt.Sprintf("failed to remove dapp: %v", err))
 		return err
 	}
 	return nil

@@ -11,6 +11,7 @@ import (
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dapp-installer/windows"
+	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -125,12 +126,11 @@ func initDapp(conf *config) (*dapp.Dapp, error) {
 func uninstallDapp(conf *config, logger log.Logger) {
 	err := conf.Dapp.Remove(logger)
 	if err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when remove dapp %v", err))
+		logger.Warn(fmt.Sprintf("failed to remove dapp: %v", err))
 		return
 	}
 
-	logger.Info("dappctrl successfully removed")
+	logger.Info("dappctrl was successfully removed")
 }
 
 func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
@@ -156,4 +156,28 @@ func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
 		},
 	}
 	return d, true
+}
+
+func commandProcessedFlags(help func(), conf *config,
+	logger log.Logger) bool {
+	h := flag.Bool("help", false, "Display dapp-installer help")
+	configFile := flag.String("config", "", "Configuration file")
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if *h {
+		help()
+		return true
+	}
+
+	if *configFile == "" {
+		logger.Warn("config parameter is empty")
+		fmt.Println("config parameter is empty")
+		return true
+	}
+	if err := dapputil.ReadJSONFile(*configFile, &conf); err != nil {
+		logger.Error(fmt.Sprintf("failed to read config: %s", err))
+		return true
+	}
+	return false
 }

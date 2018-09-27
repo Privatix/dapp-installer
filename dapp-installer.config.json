@@ -1,91 +1,71 @@
 {
-    "InstallPath" : "C:\\Program Files\\Privatix\\Dapp\\",
-    "DBEngine": {
-        "Download" : "http://localhost/dapp/postgresql-10.5-1-windows-x64.exe",
-        "ServiceName": "postgresdapp",
-        "DataDir": "C:\\Program Files\\PostgreSQL\\10\\data",
-        "InstallDir": "C:\\Program Files\\PostgreSQL\\10",
-        "Copy" : [
-            {
-                "From" : "https://privatix.io/ico/images/logo_easysoft.png",
-                "To" : "C:\\Program Files\\PostgreSQL\\10\\data"
-            },
-            {
-                "From" : "https://privatix.io/ico/images/whitepaper_cover.png",
-                "To" : "C:\\Program Files\\PostgreSQL\\10\\data"
-            }
-        ],
-        "DB" : {
-           "DBName": "dappctrl",
-           "User": "postgres",
-           "Password": "postgres",
-           "Port": "5432"
-        }
-    },
-    "Registry" : {
-        "Install": [
-            {
-                 "Name" : "Branding",
-                 "Type":"string",
-                 "Value":"Privatix"
-            }
-        ],
-        "Uninstall" : [
-            {
-                "Name" : "Comment",
-                "Type":"string",
-                "Value":"The Privatix Dapp, packaged by Privatix"
-            },
-            {
-                "Name" : "HelpLink",
-                "Type":"string",
-                "Value":"https://privatix.io"
-            },
-            {
-                "Name" : "NoModify",
-                "Type":"string",
-                "Value":"1"
-            },
-            {
-                "Name" : "NoRepair",
-                "Type":"string",
-                "Value":"1"
-            },
-            {
-                "Name" : "Publisher",
-                "Type":"string",
-                "Value":"Privatix (c)"
-            },
-            {
-                "Name" : "UrlInfoAbout",
-                "Type":"string",
-                "Value":"https://privatix.io"
-            },
-            {
-                "Name" : "VersionMajor",
-                "Type":"dword",
-                "Value":"1"
-            },
-            {
-                "Name" : "VersionMinor",
-                "Type":"dword",
-                "Value":"0"
-            }
-        ]
-    },
     "Dapp": {
-        "UserRole" : "agent",
-        "Shortcuts" : true,
-        "DownloadCtrl" : "http://localhost/dapp/dappctrl.exe",
-        "DownloadConfig" : "http://localhost/dapp/dappctrl.config.json",
-        "DownloadGui" : "http://localhost/dapp/dappgui.exe",
-        "Service" : {
-            "ID": "dappservice",
-            "Name":  "dapp service name",
-            "Description" : "service description",
-            "Command" :    "dappctrl.exe",
-            "Args":        ["-config", "dappctrl.config.json"],
-            "AutoStart" : true
+        "UserRole" : "client",
+        "InstallPath" : "C:\\Program Files\\Privatix\\Dapp\\client",
+        "Download":"http://localhost/dapp/dapp.zip",
+        "Controller": {
+            "EntryPoint":"dappctrl/dappctrl.exe",
+            "Configuration":"dappctrl/dappctrl.config.json",
+            "Service" : {
+                "Command" :    "dappctrl.exe",
+                "Args":        ["-config", "dappctrl.config.json"],
+                "AutoStart" : true
+            }
+        },
+        "Gui": {
+            "EntryPoint":"dappgui/dapp-gui.exe",
+            "Shortcuts" : true
+        },
+        "Registry" : {
+            "Install": [
+                {
+                     "Name" : "Branding",
+                     "Type":"string",
+                     "Value":"Privatix"
+                }
+            ],
+            "Uninstall" : [
+                {
+                    "Name" : "Comment",
+                    "Type":"string",
+                    "Value":"The Privatix Dapp, packaged by Privatix"
+                },
+                {
+                    "Name" : "HelpLink",
+                    "Type":"string",
+                    "Value":"https://privatix.io"
+                },
+                {
+                    "Name" : "NoModify",
+                    "Type":"string",
+                    "Value":"1"
+                },
+                {
+                    "Name" : "NoRepair",
+                    "Type":"string",
+                    "Value":"1"
+                },
+                {
+                    "Name" : "Publisher",
+                    "Type":"string",
+                    "Value":"Privatix (c)"
+                },
+                {
+                    "Name" : "UrlInfoAbout",
+                    "Type":"string",
+                    "Value":"https://privatix.io"
+                },
+                {
+                    "Name" : "VersionMajor",
+                    "Type":"dword",
+                    "Value":"1"
+                },
+                {
+                    "Name" : "VersionMinor",
+                    "Type":"dword",
+                    "Value":"0"
+                }
+            ]
         }
     }
  }

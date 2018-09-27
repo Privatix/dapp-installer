@@ -24,10 +24,9 @@ type DB struct {
 // NewConfig creates a default DB configuration.
 func NewConfig() *DB {
 	return &DB{
-		DBName:   "dappctrl",
-		User:     "postgres",
-		Password: "postgres",
-		Port:     "5432",
+		DBName: "dappctrl",
+		User:   "postgres",
+		Port:   "5432",
 	}
 }
 
@@ -48,7 +47,7 @@ func DBExists(conf *DB, logger log.Logger) bool {
 		conf.Port)
 	if err := ping(connStr); err != nil {
 		logger.Warn(fmt.Sprintf(
-			"ocurred error when check to access dbengine service %v", err))
+			"failed to check access dbengine service: %v", err))
 		return false
 	}
 
@@ -157,6 +156,6 @@ func ConfigurateDatabase(conf *DB) error {
 // GetConnectionString is generate connection string.
 func GetConnectionString(db, user, pwd, port string) string {
 	connStr := "host=localhost sslmode=disable"
-	return fmt.Sprintf("%s dbname=%s user=%s password=%s port=%s",
-		connStr, db, user, pwd, port)
+	return fmt.Sprintf("%s dbname=%s user=%s port=%s password=%s",
+		connStr, db, user, port, pwd)
 }

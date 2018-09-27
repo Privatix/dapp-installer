@@ -73,9 +73,10 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	go util.InteractiveWorker("Installation DB Engine", ch)
 
 	// init db
+	installPath, _ = filepath.Abs(installPath)
 	dataPath := filepath.Join(installPath, `pgsql/data`)
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
-		os.MkdirAll(dataPath, 0644)
+		os.MkdirAll(dataPath, 0777)
 	}
 
 	u, err := user.Current()
@@ -84,20 +85,10 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 		return err
 	}
 
-	util.GrantAccess(dataPath, u.Username)
+	util.GrantAccess(installPath, u.Username)
 
 	fileName := filepath.Join(installPath, `pgsql/bin/initdb`)
-	cmd := exec.Command(fileName, "-E UTF8", "-A trust")
-	cmd.Env = os.Environ()
-	envs := []string{
-		`PATH="` + filepath.Join(installPath, `pgsql/bin`) + `";%PATH%`,
-		`PGDATA=` + dataPath,
-		`PGDATABASE=postgres`,
-		`PGUSER=postgres`,
-		`PGPORT=5432`,
-		`PGLOCALEDIR=` + filepath.Join(installPath, `pgsql/share/locale`),
-	}
-	cmd.Env = append(cmd.Env, envs...)
+	cmd := exec.Command(fileName, "-E UTF8", "-D", dataPath)
 
 	if err := cmd.Run(); err != nil {
 		ch <- true
@@ -110,7 +101,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	err = configDBEngine(pgconf, engine.DB.Port)
 
 	// start service
-	err = startService(installPath, u.Username, envs)
+	err = startService(installPath, u.Username)
 	if err != nil {
 		ch <- true
 		return err
@@ -149,7 +140,7 @@ func (engine *DBEngine) Remove(installPath string, logger log.Logger) error {
 
 // Start starts the DB engine.
 func (engine *DBEngine) Start(installPath string) error {
-	return startService(installPath, engine.DB.User, nil)
+	return startService(installPath, engine.DB.User)
 }
 
 // Stop stops the DB engine.

@@ -5,7 +5,6 @@ package dbengine
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -32,7 +31,7 @@ func runService(service string) error {
 	return exec.Command("net", "start", service).Run()
 }
 
-func startService(installPath, user string, envs []string) error {
+func startService(installPath, user string) error {
 	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
 	serviceName := fmt.Sprintf("dapp_db_%s", util.Hash(installPath))
 
@@ -41,9 +40,6 @@ func startService(installPath, user string, envs []string) error {
 	dataPath := filepath.Join(installPath, `pgsql/data`)
 	cmd := exec.Command(fileName, "register",
 		"-N", serviceName, "-D", dataPath)
-	cmd.Env = os.Environ()
-
-	cmd.Env = append(cmd.Env, envs...)
 
 	if err := cmd.Run(); err != nil {
 		return err

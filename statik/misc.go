@@ -7,9 +7,6 @@ import (
 	"github.com/rakyll/statik/fs"
 )
 
-//go:generate go build -o ./wrapper/winsvc.exe ../tool/winsvc/
-//go:generate statik -f -src=. -dest=..
-
 // ReadFile reads a file content from the embedded filesystem.
 func ReadFile(name string) ([]byte, error) {
 	fs, err := fs.New()

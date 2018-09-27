@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
-	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
@@ -71,12 +70,6 @@ func checkMemory() bool {
 	return totalMemoryInKilobytes*1024 > MinMemorySize
 }
 
-// ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args []string) error {
-	cmd := exec.Command(filename, args...)
-	return cmd.Run()
-}
-
 // ExistingDapp returns info about existing dappctrl.
 func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
 	maps, err := getInstalledDappVersion(role)
@@ -84,14 +77,6 @@ func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
 		return nil, false
 	}
 	return maps, len(maps) > 0
-}
-
-// RenamePath changes folder name and returns it
-func RenamePath(path, folder string) string {
-	path = strings.TrimSuffix(path, "\\")
-	path = path[:strings.LastIndex(path, "\\")]
-
-	return path + "\\" + folder + "\\"
 }
 
 // GrantAccess grants access to directory.

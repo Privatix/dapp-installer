@@ -1,4 +1,4 @@
-// + build windows
+// +build windows
 
 // This is wrapper tool for create windows service.
 // Windows services are configured by configuration files.

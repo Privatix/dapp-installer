@@ -76,7 +76,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	installPath, _ = filepath.Abs(installPath)
 	dataPath := filepath.Join(installPath, `pgsql/data`)
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
-		os.MkdirAll(dataPath, 0777)
+		os.MkdirAll(dataPath, util.FullPermission)
 	}
 
 	u, err := user.Current()

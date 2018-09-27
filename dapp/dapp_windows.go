@@ -174,8 +174,8 @@ func (d *Dapp) removeRegistry() error {
 	return util.RemoveRegistryKey(d.UserRole)
 }
 
-// ExistingDapp returns existing dapp in the host.
-func ExistingDapp(role string, logger log.Logger) (*Dapp, bool) {
+// Exists returns existing dapp in the host.
+func Exists(role string, logger log.Logger) (*Dapp, bool) {
 	maps, ok := util.ExistingDapp(role, logger)
 
 	if !ok {

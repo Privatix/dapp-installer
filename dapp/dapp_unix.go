@@ -24,8 +24,8 @@ func NewConfig() *Dapp {
 	}
 }
 
-// ExistingDapp returns existing dapp in the host.
-func ExistingDapp(role string, logger log.Logger) (*Dapp, bool) {
+// Exists returns existing dapp in the host.
+func Exists(role string, logger log.Logger) (*Dapp, bool) {
 	return nil, false
 }
 
@@ -40,9 +40,8 @@ func (d *Dapp) configurateController(logger log.Logger) error {
 }
 
 func (d *Dapp) installFinalize(logger log.Logger) error {
-	// TODO register dbengine service as deamon?
+	// TODO (ubozov) register dbengine service as deamon?
 	return nil
-	//return errors.New("not implemented")
 }
 
 func (d *Dapp) updateFinalize(logger log.Logger) error {

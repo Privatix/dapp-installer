@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,8 @@ const (
 	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
 	// MinMemorySize  - min RAM 2 GB
 	MinMemorySize uint64 = 2 * 1000 * 1024 * 1024
+	// FullPermission - 0777
+	FullPermission os.FileMode = 0777
 )
 
 // WriteCounter type is used for download process.
@@ -224,7 +227,7 @@ func Unzip(src string, dest string) ([]string, error) {
 		filenames = append(filenames, fpath)
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(fpath, 0777)
+			os.MkdirAll(fpath, FullPermission)
 		} else {
 			if err := extractFile(fpath, rc, f); err != nil {
 				return filenames, err
@@ -235,12 +238,12 @@ func Unzip(src string, dest string) ([]string, error) {
 }
 
 func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
-	err := os.MkdirAll(filepath.Dir(fpath), 0777)
+	err := os.MkdirAll(filepath.Dir(fpath), FullPermission)
 	if err != nil {
 		return err
 	}
 	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0777)
+		FullPermission)
 	if err != nil {
 		return err
 	}
@@ -342,4 +345,12 @@ func RenamePath(path, folder string) string {
 	path = path[:strings.LastIndex(path, "\\")]
 
 	return filepath.Join(path, folder)
+}
+
+// IsURL checks path to url.
+func IsURL(path string) bool {
+	pattern := `^(https?:\/\/)`
+
+	ok, _ := regexp.MatchString(pattern, path)
+	return ok
 }

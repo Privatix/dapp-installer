@@ -25,7 +25,7 @@ Available Commands:
 Flags:
   --help      Display help information
   --version   Display the current version of this CLI
-  
+
 Use "dapp-installer [command] --help" for more information about a command.
 `
 
@@ -96,14 +96,14 @@ func processedFlags(printVersion func()) bool {
 
 func initDapp(conf *config) (*dapp.Dapp, error) {
 	d := conf.Dapp
-	downloadPath := conf.Dapp.DownloadDapp()
+	downloadPath := conf.Dapp.Download()
 
 	ch := make(chan bool)
 	defer close(ch)
 	go util.InteractiveWorker("Extracting dapp", ch)
 
 	if _, err := os.Stat(d.InstallPath); os.IsNotExist(err) {
-		os.MkdirAll(d.InstallPath, 0777)
+		os.MkdirAll(d.InstallPath, util.FullPermission)
 	}
 
 	_, err := util.Unzip(downloadPath, d.InstallPath)
@@ -132,7 +132,7 @@ func uninstallDapp(conf *config, logger log.Logger) {
 }
 
 func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
-	return dapp.ExistingDapp(role, logger)
+	return dapp.Exists(role, logger)
 }
 
 func commandProcessedFlags(help func(), conf *config,

@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -18,7 +17,7 @@ import (
 type Dapp struct {
 	UserRole    string
 	InstallPath string
-	Download    string
+	Source      string
 	Controller  *InstallerEntity
 	Gui         *InstallerEntity
 	DBEngine    *dbengine.DBEngine
@@ -36,16 +35,14 @@ type InstallerEntity struct {
 	Service       *service
 }
 
-// DownloadDapp downloads dapp and returns temporary download path.
-func (d *Dapp) DownloadDapp() string {
-	pattern := `^(https?:\/\/)`
-
-	if ok, _ := regexp.MatchString(pattern, d.Download); !ok {
-		return d.Download
+// Download downloads dapp and returns temporary download path.
+func (d *Dapp) Download() string {
+	if !util.IsURL(d.Source) {
+		return d.Source
 	}
 
-	filePath := filepath.Join(d.TempPath, path.Base(d.Download))
-	if err := util.DownloadFile(filePath, d.Download); err != nil {
+	filePath := filepath.Join(d.TempPath, path.Base(d.Source))
+	if err := util.DownloadFile(filePath, d.Source); err != nil {
 		return ""
 	}
 

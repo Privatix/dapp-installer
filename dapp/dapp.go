@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -45,6 +46,12 @@ func NewConfig() *Dapp {
 
 // DownloadDapp downloads dapp and returns temporary download path.
 func (d *Dapp) DownloadDapp() string {
+	pattern := `^(https?:\/\/)`
+
+	if ok, _ := regexp.MatchString(pattern, d.Download); !ok {
+		return d.Download
+	}
+
 	filePath := filepath.Join(d.TempPath, path.Base(d.Download))
 	if err := util.DownloadFile(filePath, d.Download); err != nil {
 		return ""

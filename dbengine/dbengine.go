@@ -95,7 +95,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 		return err
 	}
 
-	engine.DB.Port, _ = util.FreePort("5432")
+	engine.DB.Port, _ = util.FreePort("localhost", "5432")
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
 	err = configDBEngine(pgconf, engine.DB.Port)

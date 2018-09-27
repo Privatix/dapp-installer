@@ -3,9 +3,12 @@ package dapp
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -135,6 +138,11 @@ func (d *Dapp) Update(oldDapp *Dapp, logger log.Logger) error {
 
 func (d *Dapp) modifyDappConfig() error {
 	configFile := filepath.Join(d.InstallPath, d.Controller.Configuration)
+
+	if err := setDynamicPorts(configFile); err != nil {
+		return err
+	}
+
 	read, err := os.Open(configFile)
 	if err != nil {
 		return err
@@ -167,6 +175,44 @@ func (d *Dapp) modifyDappConfig() error {
 	defer write.Close()
 
 	return json.NewEncoder(write).Encode(jsonMap)
+}
+
+func setDynamicPorts(configFile string) error {
+	read, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+
+	contents := string(read)
+	addrs := util.MatchAddr(contents)
+	reserve := make(map[string]bool)
+
+	for _, addr := range addrs {
+		port, err := util.FreePort(addr.Host, addr.Port)
+		if err != nil {
+			return err
+		}
+
+		_, ok := reserve[port]
+		for ok {
+			p, _ := strconv.Atoi(port)
+			port, _ := util.FreePort(addr.Host, strconv.Itoa(p+1))
+			_, ok = reserve[port]
+		}
+
+		reserve[port] = true
+
+		if port == addr.Port {
+			continue
+		}
+
+		newAddress := strings.Replace(addr.Address,
+			fmt.Sprintf(":%s", addr.Port),
+			fmt.Sprintf(":%s", port), -1)
+		contents = strings.Replace(contents, addr.Address,
+			newAddress, -1)
+	}
+	return ioutil.WriteFile(configFile, []byte(contents), 0)
 }
 
 // Remove removes installed dapp core.

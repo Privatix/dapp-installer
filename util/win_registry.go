@@ -69,7 +69,7 @@ func createRegistryKey(path string, keys []Key) error {
 }
 
 // RemoveRegistryKey removes registry key from windows registry.
-func RemoveRegistryKey(reg *Registry, version string) error {
+func RemoveRegistryKey(version string) error {
 	err := registry.DeleteKey(registry.LOCAL_MACHINE,
 		WinRegInstalledDapp+version)
 	if err != nil {

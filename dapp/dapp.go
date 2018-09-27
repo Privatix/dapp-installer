@@ -10,7 +10,6 @@ import (
 
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dapp-installer/windows"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -18,14 +17,14 @@ import (
 type Dapp struct {
 	UserRole    string
 	InstallPath string
-	Download    string
+	Source      string
 	Controller  *InstallerEntity
 	Gui         *InstallerEntity
 	DBEngine    *dbengine.DBEngine
 	TempPath    string
 	BackupPath  string
 	Version     string
-	Registry    *util.Registry
+	Registry    interface{}
 }
 
 // InstallerEntity has a config for install entity.
@@ -33,20 +32,17 @@ type InstallerEntity struct {
 	EntryPoint    string
 	Configuration string
 	Shortcuts     bool
-	Service       *windows.Service
+	Service       *service
 }
 
-// NewConfig creates a default Dapp configuration.
-func NewConfig() *Dapp {
-	return &Dapp{
-		DBEngine: dbengine.NewConfig(),
+// Download downloads dapp and returns temporary download path.
+func (d *Dapp) Download() string {
+	if !util.IsURL(d.Source) {
+		return d.Source
 	}
-}
 
-// DownloadDapp downloads dapp and returns temporary download path.
-func (d *Dapp) DownloadDapp() string {
-	filePath := filepath.Join(d.TempPath, path.Base(d.Download))
-	if err := util.DownloadFile(filePath, d.Download); err != nil {
+	filePath := filepath.Join(d.TempPath, path.Base(d.Source))
+	if err := util.DownloadFile(filePath, d.Source); err != nil {
 		return ""
 	}
 

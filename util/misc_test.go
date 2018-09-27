@@ -28,3 +28,21 @@ func TestParseVersion(t *testing.T) {
 		}
 	}
 }
+
+func TestIsURL(t *testing.T) {
+	var paths = map[string]bool{
+		"http://localhost/dapp.zip":             true,
+		"/home/dappcore/":                       false,
+		"https://privatix.io/download/dapp.zip": true,
+		"c:/program files/privatix/":            false,
+	}
+	for p, ok := range paths {
+		if ok != IsURL(p) {
+			t.Error(
+				"For", p,
+				"expected", ok,
+				"got", !ok,
+			)
+		}
+	}
+}

@@ -1,19 +1,19 @@
 {
     "Dapp": {
         "UserRole" : "client",
-        "InstallPath" : "C:\\Program Files\\Privatix\\Dapp\\client",
-        "Download":"http://localhost/dapp/dapp.zip",
+        "InstallPath" : "/Users/bozov/Desktop/DappTest/client",
+        "Source":"/Users/bozov/Desktop/Dapp/dapp_mac.zip",
         "Controller": {
-            "EntryPoint":"dappctrl/dappctrl.exe",
+            "EntryPoint":"dappctrl/dappctrl",
             "Configuration":"dappctrl/dappctrl.config.json",
             "Service" : {
-                "Command" :    "dappctrl.exe",
+                "Command" :    "dappctrl",
                 "Args":        ["-config", "dappctrl.config.json"],
                 "AutoStart" : true
             }
         },
         "Gui": {
-            "EntryPoint":"dappgui/dapp-gui.exe",
+            "EntryPoint":"dappgui/dapp-gui",
             "Shortcuts" : true
         },
         "Registry" : {

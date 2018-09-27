@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*.syso
 
 dapp-installer
 dapp-installer.log

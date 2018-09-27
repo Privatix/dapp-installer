@@ -1,6 +1,5 @@
 // dapp-installer is a cli installer for dapp core.
 
-//go:generate goversioninfo
 package main
 
 import (

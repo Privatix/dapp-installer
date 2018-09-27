@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dapp-installer/windows"
 	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 )
@@ -105,7 +103,7 @@ func initDapp(conf *config) (*dapp.Dapp, error) {
 	go util.InteractiveWorker("Extracting dapp", ch)
 
 	if _, err := os.Stat(d.InstallPath); os.IsNotExist(err) {
-		os.MkdirAll(d.InstallPath, 0644)
+		os.MkdirAll(d.InstallPath, 0777)
 	}
 
 	_, err := util.Unzip(downloadPath, d.InstallPath)
@@ -134,28 +132,7 @@ func uninstallDapp(conf *config, logger log.Logger) {
 }
 
 func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
-	maps, ok := util.ExistingDapp(role, logger)
-
-	if !ok {
-		return nil, false
-	}
-
-	shortcut, _ := strconv.ParseBool(maps["Shortcuts"])
-	d := &dapp.Dapp{
-		UserRole:    role,
-		Version:     maps["Version"],
-		InstallPath: maps["BaseDirectory"],
-		Controller: &dapp.InstallerEntity{
-			Configuration: maps["Configuration"],
-			Service: &windows.Service{
-				GUID: maps["ServiceID"],
-			}},
-		Gui: &dapp.InstallerEntity{
-			EntryPoint: maps["Gui"],
-			Shortcuts:  shortcut,
-		},
-	}
-	return d, true
+	return dapp.ExistingDapp(role, logger)
 }
 
 func commandProcessedFlags(help func(), conf *config,

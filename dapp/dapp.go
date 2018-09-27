@@ -11,7 +11,6 @@ import (
 
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dapp-installer/windows"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -26,7 +25,7 @@ type Dapp struct {
 	TempPath    string
 	BackupPath  string
 	Version     string
-	Registry    *util.Registry
+	Registry    interface{}
 }
 
 // InstallerEntity has a config for install entity.
@@ -34,14 +33,7 @@ type InstallerEntity struct {
 	EntryPoint    string
 	Configuration string
 	Shortcuts     bool
-	Service       *windows.Service
-}
-
-// NewConfig creates a default Dapp configuration.
-func NewConfig() *Dapp {
-	return &Dapp{
-		DBEngine: dbengine.NewConfig(),
-	}
+	Service       *service
 }
 
 // DownloadDapp downloads dapp and returns temporary download path.

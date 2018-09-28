@@ -54,6 +54,7 @@ func (d *Dapp) Download() string {
 
 // Install installs a dapp core.
 func (d *Dapp) Install(logger log.Logger) error {
+	d.InstallPath, _ = filepath.Abs(d.InstallPath)
 	// Install dbengine.
 	err := d.DBEngine.Install(d.InstallPath, logger)
 	if err != nil {

@@ -73,7 +73,6 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	go util.InteractiveWorker("Installation DB Engine", ch)
 
 	// init db
-	installPath, _ = filepath.Abs(installPath)
 	dataPath := filepath.Join(installPath, `pgsql/data`)
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 		os.MkdirAll(dataPath, util.FullPermission)

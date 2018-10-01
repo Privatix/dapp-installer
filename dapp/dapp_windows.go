@@ -49,7 +49,7 @@ func (d *Dapp) configurateController(logger log.Logger) error {
 		d.createShortcut()
 	}
 
-	if err := d.modifyDappConfig(); err != nil {
+	if err := d.modifyDappConfig(logger); err != nil {
 		return err
 	}
 

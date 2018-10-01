@@ -50,16 +50,14 @@ func (engine DBEngine) UpdateDatabase(fileName string) error {
 }
 
 func (engine DBEngine) databaseMigrate(fileName string) error {
-	db := engine.DB
-	conn := data.GetConnectionString(db.DBName, db.User, db.Password, db.Port)
+	conn := engine.DB.ConnectionString()
 
 	args := []string{"db-migrate", "-conn", conn}
 	return util.ExecuteCommand(fileName, args)
 }
 
 func (engine DBEngine) databaseInit(fileName string) error {
-	db := engine.DB
-	conn := data.GetConnectionString(db.DBName, db.User, db.Password, db.Port)
+	conn := engine.DB.ConnectionString()
 
 	args := []string{"db-init-data", "-conn", conn}
 	return util.ExecuteCommand(fileName, args)
@@ -73,7 +71,6 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	go util.InteractiveWorker("Installation DB Engine", ch)
 
 	// init db
-	installPath, _ = filepath.Abs(installPath)
 	dataPath := filepath.Join(installPath, `pgsql/data`)
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 		os.MkdirAll(dataPath, util.FullPermission)
@@ -95,7 +92,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 		return err
 	}
 
-	engine.DB.Port, _ = util.FreePort("5432")
+	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
 	err = configDBEngine(pgconf, engine.DB.Port)

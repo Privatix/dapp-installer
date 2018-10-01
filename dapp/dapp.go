@@ -3,9 +3,13 @@ package dapp
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -33,6 +37,7 @@ type InstallerEntity struct {
 	Configuration string
 	Shortcuts     bool
 	Service       *service
+	Settings      map[string]interface{}
 }
 
 // Download downloads dapp and returns temporary download path.
@@ -51,6 +56,7 @@ func (d *Dapp) Download() string {
 
 // Install installs a dapp core.
 func (d *Dapp) Install(logger log.Logger) error {
+	d.InstallPath, _ = filepath.Abs(d.InstallPath)
 	// Install dbengine.
 	err := d.DBEngine.Install(d.InstallPath, logger)
 	if err != nil {
@@ -133,8 +139,13 @@ func (d *Dapp) Update(oldDapp *Dapp, logger log.Logger) error {
 	return d.updateFinalize(logger)
 }
 
-func (d *Dapp) modifyDappConfig() error {
+func (d *Dapp) modifyDappConfig(logger log.Logger) error {
 	configFile := filepath.Join(d.InstallPath, d.Controller.Configuration)
+
+	if err := setDynamicPorts(configFile, logger); err != nil {
+		return err
+	}
+
 	read, err := os.Open(configFile)
 	if err != nil {
 		return err
@@ -160,6 +171,13 @@ func (d *Dapp) modifyDappConfig() error {
 		jsonMap["Role"] = d.UserRole
 	}
 
+	if d.Controller.Settings != nil {
+		err := setConfigurationValues(jsonMap, d.Controller.Settings)
+		if err != nil {
+			return err
+		}
+	}
+
 	write, err := os.Create(configFile)
 	if err != nil {
 		fmt.Println(err)
@@ -167,6 +185,67 @@ func (d *Dapp) modifyDappConfig() error {
 	defer write.Close()
 
 	return json.NewEncoder(write).Encode(jsonMap)
+}
+
+func setConfigurationValues(jsonMap map[string]interface{},
+	settings map[string]interface{}) error {
+	for key, value := range settings {
+		path := strings.Split(key, ".")
+		length := len(path) - 1
+		m := jsonMap
+		if length > 0 {
+			for i := 0; i < length; i++ {
+				item, ok := m[path[i]]
+				if !ok || reflect.TypeOf(m) != reflect.TypeOf(item) {
+					return fmt.Errorf("failed to set config params: %s", key)
+				}
+				m, _ = item.(map[string]interface{})
+			}
+		}
+		m[path[length]] = value
+	}
+	return nil
+}
+
+func setDynamicPorts(configFile string, logger log.Logger) error {
+	read, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+
+	contents := string(read)
+	addrs := util.MatchAddr(contents)
+	reserves := make(map[string]bool)
+
+	for _, addr := range addrs {
+		port, err := util.FreePort(addr.Host, addr.Port)
+		if err != nil {
+			return err
+		}
+
+		// If the available port is already reserved,
+		// the search for another unreserved available port in the loop.
+		_, ok := reserves[port]
+		for ok {
+			p, _ := strconv.Atoi(port)
+			port, _ := util.FreePort(addr.Host, strconv.Itoa(p+1))
+			_, ok = reserves[port]
+		}
+
+		reserves[port] = true
+
+		if port == addr.Port {
+			continue
+		}
+
+		newAddress := strings.Replace(addr.Address,
+			fmt.Sprintf(":%s", addr.Port),
+			fmt.Sprintf(":%s", port), -1)
+		contents = strings.Replace(contents, addr.Address,
+			newAddress, -1)
+		logger.Info(fmt.Sprintf("%s -> %s", addr.Address, newAddress))
+	}
+	return ioutil.WriteFile(configFile, []byte(contents), 0)
 }
 
 // Remove removes installed dapp core.

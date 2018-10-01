@@ -31,6 +31,13 @@ const (
 	FullPermission os.FileMode = 0777
 )
 
+// Addr type contains address, host and port parameters.
+type Addr struct {
+	Address string
+	Host    string
+	Port    string
+}
+
 // WriteCounter type is used for download process.
 type WriteCounter struct {
 	Label        string
@@ -310,14 +317,14 @@ func InteractiveWorker(s string, quit chan bool) {
 }
 
 // FreePort returns available free port number.
-func FreePort(port string) (string, error) {
+func FreePort(host, port string) (string, error) {
 	p, err := strconv.Atoi(port)
 	if err != nil {
 		return "", err
 	}
 
 	for i := p; i < 65535; i++ {
-		ln, err := net.Listen("tcp", "localhost:"+strconv.Itoa(i))
+		ln, err := net.Listen("tcp", host+":"+strconv.Itoa(i))
 
 		if err != nil {
 			continue
@@ -353,4 +360,20 @@ func IsURL(path string) bool {
 
 	ok, _ := regexp.MatchString(pattern, path)
 	return ok
+}
+
+// MatchAddr returns matches addr params from text.
+func MatchAddr(str string) []Addr {
+	pattern := `(?m)"Addr"\s*:\s*"\s*((localhost|127\.0\.0\.1|0\.0\.0\.0)\s*:\s*(\d{1,5}))\s*"`
+
+	var addrs []Addr
+	re := regexp.MustCompile(pattern)
+	for _, match := range re.FindAllStringSubmatch(str, -1) {
+		addrs = append(addrs, Addr{
+			Address: match[1],
+			Host:    match[2],
+			Port:    match[3],
+		})
+	}
+	return addrs
 }

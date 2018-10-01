@@ -44,6 +44,10 @@ func (d *Dapp) installFinalize(logger log.Logger) error {
 	return nil
 }
 
+func (d *Dapp) prepareToInstall(logger log.Logger) error {
+	return nil
+}
+
 func (d *Dapp) updateFinalize(logger log.Logger) error {
 	return errors.New("not implemented")
 }

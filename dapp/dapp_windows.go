@@ -198,3 +198,12 @@ func Exists(role string, logger log.Logger) (*Dapp, bool) {
 	}
 	return d, true
 }
+
+// TODO (ubozov) this algorithm should be reviewed.
+// Installs run-time components (the Visual C++ Redistributable Packages
+// for VS 2013) that are required to run postgresql database engine.
+func (d *Dapp) prepareToInstall(logger log.Logger) error {
+	fileName := filepath.Join(d.InstallPath, "util/vcredist_x64.exe")
+	args := []string{"/install", "/quiet", "/norestart"}
+	return util.ExecuteCommand(fileName, args)
+}

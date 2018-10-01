@@ -1,19 +1,19 @@
 {
     "Dapp": {
         "UserRole" : "client",
-        "InstallPath" : "/Users/bozov/Desktop/DappTest/client",
-        "Source":"/Users/bozov/Desktop/Dapp/dapp_mac.zip",
+        "InstallPath" : "C:/DappTest/client",
+        "Source":"c:/Dapp/dapp.zip",
         "Controller": {
-            "EntryPoint":"dappctrl/dappctrl",
+            "EntryPoint":"dappctrl/dappctrl.exe",
             "Configuration":"dappctrl/dappctrl.config.json",
             "Service" : {
-                "Command" :    "dappctrl",
+                "Command" :    "dappctrl.exe",
                 "Args":        ["-config", "dappctrl.config.json"],
                 "AutoStart" : true
             }
         },
         "Gui": {
-            "EntryPoint":"dappgui/dapp-gui",
+            "EntryPoint":"dappgui/dapp-gui.exe",
             "Shortcuts" : true
         },
         "Registry" : {

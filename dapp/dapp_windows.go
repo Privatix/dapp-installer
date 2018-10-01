@@ -3,124 +3,198 @@
 package dapp
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
+	"time"
 
-	"github.com/privatix/dapp-installer/data"
+	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dapp-installer/windows"
 	"github.com/privatix/dappctrl/util/log"
 )
 
-// Install installs a dapp core.
-func (d *Dapp) Install(db *data.DB, logger log.Logger, ok bool) error {
-	if _, err := os.Stat(d.InstallPath); os.IsNotExist(err) {
-		os.MkdirAll(d.InstallPath, 0644)
-	}
-	logger.Info("download and modify files")
-	if err := downloadAndConfigurateFiles(d, db); err != nil {
-		logger.Warn("ocurred error when downloaded files")
-		return err
+// NewConfig creates a default Dapp configuration.
+func NewConfig() *Dapp {
+	reg := &util.Registry{
+		Install:   []util.Key{},
+		Uninstall: []util.Key{},
 	}
 
-	logger.Info("create service wrapper")
-	d.Service.GUID = fmt.Sprintf("%s%s", d.InstallPath, d.Service.ID)
-	if err := d.Service.CreateWrapper(d.InstallPath); err != nil {
-		logger.Warn("ocurred error when create service wrapper:" +
-			d.Service.ID)
-		return err
+	return &Dapp{
+		DBEngine: dbengine.NewConfig(),
+		Registry: reg,
 	}
-	logger.Info("install service")
-	if err := d.Service.Install(); err != nil {
-		logger.Warn("ocurred error when install service " + d.Service.ID)
-		return err
-	}
-	logger.Info("start service")
-	if err := d.Service.Start(); err != nil {
-		logger.Warn("ocurred error when start service " + d.Service.ID)
-		return err
-	}
-	return nil
 }
 
-// Remove removes installed dapp core.
-func (d *Dapp) Remove() error {
-	d.Service.Stop()
-	d.Service.Remove()
-	return os.RemoveAll(d.InstallPath)
-}
-
-func downloadAndConfigurateFiles(dapp *Dapp, db *data.DB) error {
-	_, dapp.Controller = filepath.Split(dapp.DownloadCtrl)
-	err := util.DownloadFile(dapp.InstallPath+dapp.Controller,
-		dapp.DownloadCtrl)
-	if err != nil {
-		return err
-	}
-	_, dapp.Gui = filepath.Split(dapp.DownloadGui)
-	err = util.DownloadFile(dapp.InstallPath+dapp.Gui, dapp.DownloadGui)
-	if err != nil {
-		return err
-	}
-	if dapp.Shortcuts {
-		dapp.createShortcut()
-	}
-
-	_, dapp.Installer = filepath.Split(os.Args[0])
-	err = util.CopyFile(os.Args[0], dapp.InstallPath+dapp.Installer)
-	if err != nil {
-		return err
-	}
-
-	_, dapp.Configuration = filepath.Split(dapp.DownloadConfig)
-	configFile := dapp.InstallPath + dapp.Configuration
-	err = util.DownloadFile(configFile, dapp.DownloadConfig)
-	if err != nil {
-		return err
-	}
-	return modifyDappConfig(configFile, db, dapp.UserRole)
-}
-
-func modifyDappConfig(configFile string, dbConf *data.DB, role string) error {
-	read, err := os.Open(configFile)
-	if err != nil {
-		return err
-	}
-	defer read.Close()
-
-	jsonMap := make(map[string]interface{})
-
-	json.NewDecoder(read).Decode(&jsonMap)
-
-	if db, ok := jsonMap["DB"].(map[string]interface{}); ok {
-		if conn, ok := db["Conn"].(map[string]interface{}); ok {
-			conn["user"] = dbConf.User
-			conn["password"] = dbConf.Password
-			conn["port"] = dbConf.Port
-			conn["dbname"] = dbConf.DBName
-		}
-	}
-
-	if _, ok := jsonMap["Role"]; ok {
-		jsonMap["Role"] = role
-	}
-
-	write, err := os.Create(configFile)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer write.Close()
-
-	return json.NewEncoder(write).Encode(jsonMap)
+type service struct {
+	windows.Service
 }
 
 func (d *Dapp) createShortcut() {
-	target := d.InstallPath + d.Gui
-	extension := filepath.Ext(d.Gui)
-	linkName := d.Gui[0 : len(d.Gui)-len(extension)]
-	link := util.DesktopPath() + "\\" + linkName + ".lnk"
+	target := filepath.Join(d.InstallPath, d.Gui.EntryPoint)
+	gui := path.Base(d.Gui.EntryPoint)
+	extension := filepath.Ext(gui)
+	linkName := gui[0 : len(gui)-len(extension)]
+	link := filepath.Join(util.DesktopPath(),
+		fmt.Sprintf("%s-%s.lnk", linkName, d.UserRole))
 
 	windows.CreateShortcut(target, "Privatix Dapp", "", link)
+}
+
+func (d *Dapp) configurateController(logger log.Logger) error {
+	if d.Gui.Shortcuts {
+		d.createShortcut()
+	}
+
+	if err := d.modifyDappConfig(logger); err != nil {
+		return err
+	}
+
+	_, installer := filepath.Split(os.Args[0])
+	util.CopyFile(os.Args[0], filepath.Join(d.InstallPath, installer))
+
+	logger.Info("create service wrapper")
+	ctrl := d.Controller
+	ctrlPath := filepath.Join(d.InstallPath,
+		filepath.Dir(d.Controller.EntryPoint))
+
+	hash := util.Hash(d.InstallPath)
+	ctrl.Service.ID = fmt.Sprintf("dapp_%s_%s", d.UserRole, hash)
+	ctrl.Service.Name = fmt.Sprintf("dapp %s %s", d.UserRole, hash)
+	ctrl.Service.Description = fmt.Sprintf("dapp %s %s", d.UserRole, hash)
+	ctrl.Service.GUID = filepath.Join(ctrlPath, ctrl.Service.ID)
+	if err := ctrl.Service.CreateWrapper(ctrlPath); err != nil {
+		logger.Warn("failed to create service wrapper:" + ctrl.Service.ID)
+		return err
+	}
+	logger.Info("install service")
+	if err := ctrl.Service.Install(); err != nil {
+		logger.Warn("failed to install service:" + ctrl.Service.ID)
+		return err
+	}
+	logger.Info("start service")
+	if err := ctrl.Service.Start(); err != nil {
+		// retry attempt to start service
+		if err := ctrl.Service.Start(); err != nil {
+			logger.Warn("failed to start service:" + ctrl.Service.ID)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (d *Dapp) removeFinalize(logger log.Logger) error {
+	if d.Gui.Shortcuts {
+		gui := path.Base(d.Gui.EntryPoint)
+		extension := filepath.Ext(gui)
+		linkName := gui[0 : len(gui)-len(extension)]
+		link := filepath.Join(util.DesktopPath(),
+			fmt.Sprintf("%s-%s.lnk", linkName, d.UserRole))
+		os.Remove(link)
+	}
+
+	util.RemoveRegistryKey(d.UserRole)
+
+	return nil
+}
+
+func (d *Dapp) installFinalize(logger log.Logger) error {
+	db := d.DBEngine.DB
+	shortcuts := strconv.FormatBool(d.Gui.Shortcuts)
+	reg := d.Registry.(*util.Registry)
+	reg.Install = append(reg.Install,
+		util.Key{Name: "Shortcuts", Type: "string", Value: shortcuts},
+		util.Key{Name: "BaseDirectory", Type: "string", Value: d.InstallPath},
+		util.Key{Name: "Version", Type: "string", Value: d.Version},
+		util.Key{Name: "ServiceID", Type: "string",
+			Value: d.Controller.Service.GUID},
+		util.Key{Name: "Controller", Type: "string",
+			Value: d.Controller.EntryPoint},
+		util.Key{Name: "Gui", Type: "string", Value: d.Gui.EntryPoint},
+		util.Key{Name: "Database", Type: "string", Value: db.DBName},
+		util.Key{Name: "Configuration", Type: "string",
+			Value: d.Controller.Configuration},
+	)
+
+	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
+		time.Now().Month(), time.Now().Day())
+
+	_, installer := filepath.Split(os.Args[0])
+	uninstallCmd := fmt.Sprintf("%s remove -role %s",
+		filepath.Join(d.InstallPath, installer), d.UserRole)
+	size, err := util.DirSize(d.InstallPath)
+	if err != nil {
+		return err
+	}
+	reg.Uninstall = append(reg.Uninstall,
+		util.Key{Name: "InstallLocation", Type: "string",
+			Value: d.InstallPath},
+		util.Key{Name: "InstallDate", Type: "string", Value: current},
+		util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
+		util.Key{Name: "DisplayName", Type: "string",
+			Value: "Privatix Dapp " + d.UserRole},
+		util.Key{Name: "UninstallString", Type: "string",
+			Value: uninstallCmd},
+		util.Key{Name: "EstimatedSize", Type: "dword",
+			Value: strconv.FormatInt(size, 10)},
+	)
+	return util.CreateRegistryKey(reg, d.UserRole)
+}
+
+func (d *Dapp) updateFinalize(logger log.Logger) error {
+	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
+		time.Now().Month(), time.Now().Day())
+
+	size, err := util.DirSize(d.InstallPath)
+	if err != nil {
+		return err
+	}
+
+	reg := &util.Registry{
+		Install: []util.Key{
+			util.Key{Name: "Version", Type: "string", Value: d.Version},
+		},
+		Uninstall: []util.Key{
+			util.Key{Name: "InstallDate", Type: "string", Value: current},
+			util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
+			util.Key{Name: "EstimatedSize", Type: "dword",
+				Value: strconv.FormatInt(size, 10)},
+		},
+	}
+
+	d.Registry = reg
+	return util.CreateRegistryKey(reg, d.UserRole)
+}
+
+func (d *Dapp) removeRegistry() error {
+	return util.RemoveRegistryKey(d.UserRole)
+}
+
+// Exists returns existing dapp in the host.
+func Exists(role string, logger log.Logger) (*Dapp, bool) {
+	maps, ok := util.ExistingDapp(role, logger)
+
+	if !ok {
+		return nil, false
+	}
+
+	shortcut, _ := strconv.ParseBool(maps["Shortcuts"])
+	d := &Dapp{
+		UserRole:    role,
+		Version:     maps["Version"],
+		InstallPath: maps["BaseDirectory"],
+		Controller: &InstallerEntity{
+			Configuration: maps["Configuration"],
+			Service:       &service{windows.Service{GUID: maps["ServiceID"]}},
+		},
+		Gui: &InstallerEntity{
+			EntryPoint: maps["Gui"],
+			Shortcuts:  shortcut,
+		},
+	}
+	return d, true
 }

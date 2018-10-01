@@ -33,41 +33,6 @@ func getRegistryKeyByPath(key registry.Key, p string) (*registry.Key, error) {
 	return &k, nil
 }
 
-func getServicePort(key registry.Key, path string) int {
-	k, err := getRegistryKeyByPath(key, path)
-	if err != nil {
-		return 0
-	}
-	defer k.Close()
-	v, _, _ := k.GetIntegerValue("Port")
-	return int(v)
-}
-
-func checkDBEngineVersion(key registry.Key, path string) (string, bool) {
-	k, err := getRegistryKeyByPath(key, path)
-	if err != nil {
-		return "", false
-	}
-	defer k.Close()
-	s, _, _ := k.GetStringValue("Version")
-	if len(s) > 0 {
-		major, _ := strconv.Atoi(s[0:strings.Index(s, ".")])
-		if major >= MinDBEngineVersion {
-			return path, true
-		}
-	}
-	subNames, err := k.ReadSubKeyNames(-1)
-	if err != nil {
-		return "", false
-	}
-	for _, each := range subNames {
-		if p, ok := checkDBEngineVersion(*k, each); ok {
-			return p, true
-		}
-	}
-	return "", false
-}
-
 // CreateRegistryKey creates new registry key in windows registry.
 func CreateRegistryKey(reg *Registry, role string) error {
 	err := createRegistryKey(WinRegInstalledDapp+role, reg.Install)
@@ -104,7 +69,7 @@ func createRegistryKey(path string, keys []Key) error {
 }
 
 // RemoveRegistryKey removes registry key from windows registry.
-func RemoveRegistryKey(reg *Registry, version string) error {
+func RemoveRegistryKey(version string) error {
 	err := registry.DeleteKey(registry.LOCAL_MACHINE,
 		WinRegInstalledDapp+version)
 	if err != nil {
@@ -137,12 +102,16 @@ func getInstalledDappVersion(role string) (map[string]string, error) {
 			s, _, _ := k.GetStringValue("ServiceID")
 			p, _, _ := k.GetStringValue("BaseDirectory")
 			c, _, _ := k.GetStringValue("Configuration")
+			g, _, _ := k.GetStringValue("Gui")
+			sh, _, _ := k.GetStringValue("Shortcuts")
 
 			maps := make(map[string]string)
 			maps["Version"] = v
 			maps["ServiceID"] = s
 			maps["BaseDirectory"] = p
 			maps["Configuration"] = c
+			maps["Gui"] = g
+			maps["Shortcuts"] = sh
 			return maps, nil
 		}
 	}
@@ -160,18 +129,5 @@ func DesktopPath() string {
 	defer key.Close()
 
 	val, _, _ := key.GetStringValue("Common Desktop")
-	return val
-}
-
-// ProgramFilesPath returns windows program files path.
-func ProgramFilesPath() string {
-	key, err := getRegistryKeyByPath(registry.LOCAL_MACHINE,
-		`SOFTWARE\Microsoft\Windows\CurrentVersion`)
-	if err != nil {
-		return ""
-	}
-	defer key.Close()
-
-	val, _, _ := key.GetStringValue("ProgramFilesDir")
 	return val
 }

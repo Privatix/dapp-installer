@@ -1,4 +1,4 @@
-// + build windows
+// +build windows
 
 package main
 
@@ -47,7 +47,7 @@ loop:
 		//s.log.Info(1, fmt.Sprintf("kill process %v", s.pid))
 		if err := s.pid.Kill(); err != nil {
 			s.log.Error(1, fmt.Sprintf(
-				"occured error when stop child process: %v", err))
+				"failed to stop child process: %v", err))
 		}
 	}
 	//s.log.Info(1, fmt.Sprintf("stoped %v", s))

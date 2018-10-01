@@ -4,15 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
+	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/privatix/dapp-installer/dapp"
-	"github.com/privatix/dapp-installer/data"
-	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dapp-installer/windows"
+	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -28,7 +25,7 @@ Available Commands:
 Flags:
   --help      Display help information
   --version   Display the current version of this CLI
-  
+
 Use "dapp-installer [command] --help" for more information about a command.
 `
 
@@ -38,16 +35,13 @@ type command interface {
 }
 
 type config struct {
-	InstallPath string
-	DBEngine    *dbengine.DBEngine
-	Registry    *util.Registry
-	Dapp        *dapp.Dapp
+	// Dapp contains a dapp installation parameters.
+	Dapp *dapp.Dapp
 }
 
 func newConfig() *config {
 	return &config{
-		Dapp:     dapp.NewConfig(),
-		DBEngine: dbengine.NewConfig(),
+		Dapp: dapp.NewConfig(),
 	}
 }
 
@@ -100,107 +94,67 @@ func processedFlags(printVersion func()) bool {
 	return false
 }
 
-func createRegistryKey(conf *config) error {
+func initDapp(conf *config) (*dapp.Dapp, error) {
 	d := conf.Dapp
-	db := conf.DBEngine.DB
-	shortcuts := strconv.FormatBool(d.Shortcuts)
-	conf.Registry.Install = append(conf.Registry.Install,
-		util.Key{Name: "Shotrcuts", Type: "string", Value: shortcuts},
-		util.Key{Name: "BaseDirectory", Type: "string", Value: d.InstallPath},
-		util.Key{Name: "Version", Type: "string", Value: d.Version},
-		util.Key{Name: "ServiceID", Type: "string", Value: d.Service.GUID},
-		util.Key{Name: "Controller", Type: "string", Value: d.Controller},
-		util.Key{Name: "Gui", Type: "string", Value: conf.Dapp.Gui},
-		util.Key{Name: "Database", Type: "string", Value: db.DBName},
-		util.Key{Name: "Configuration", Type: "string", Value: d.Configuration},
-	)
+	downloadPath := conf.Dapp.Download()
 
-	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
-		time.Now().Month(), time.Now().Day())
+	ch := make(chan bool)
+	defer close(ch)
+	go util.InteractiveWorker("Extracting dapp", ch)
 
-	uninstallCmd := fmt.Sprintf("%s remove -role %s", d.Installer, d.UserRole)
-	size, err := util.DirSize(d.InstallPath)
+	if _, err := os.Stat(d.InstallPath); os.IsNotExist(err) {
+		os.MkdirAll(d.InstallPath, util.FullPermission)
+	}
+
+	_, err := util.Unzip(downloadPath, d.InstallPath)
 	if err != nil {
-		return err
+		ch <- true
+		return nil, err
 	}
-	conf.Registry.Uninstall = append(conf.Registry.Uninstall,
-		util.Key{Name: "InstallLocation", Type: "string", Value: d.InstallPath},
-		util.Key{Name: "InstallDate", Type: "string", Value: current},
-		util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
-		util.Key{Name: "DisplayName", Type: "string",
-			Value: "Privatix Dapp " + d.UserRole},
-		util.Key{Name: "UninstallString", Type: "string", Value: uninstallCmd},
-		util.Key{Name: "EstimatedSize", Type: "dword",
-			Value: strconv.FormatInt(size, 10)},
-	)
-	return util.CreateRegistryKey(conf.Registry, d.UserRole)
-}
 
-func removeRegistry(conf *config, logger log.Logger) {
-	err := util.RemoveRegistryKey(conf.Registry, conf.Dapp.UserRole)
-	if err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when remove registry key %v", err))
-		return
-	}
-	logger.Info("windows registry successfully cleared")
-}
+	fileName := filepath.Join(d.InstallPath, d.Controller.EntryPoint)
+	d.Version = util.DappCtrlVersion(fileName)
 
-func dropDatabase(conf *config, logger log.Logger) {
-	if err := data.DropDatabase(conf.DBEngine.DB); err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when drop database %v", err))
-		return
-	}
-	logger.Info("database successfully dropped")
-}
+	ch <- true
+	fmt.Printf("\r%s\n", "Dapp was successfully extracted")
 
-func createDatabase(db *data.DB) error {
-	if err := data.CreateDatabase(db); err != nil {
-		return err
-	}
-	return data.ConfigurateDatabase(db)
+	return d, nil
 }
 
 func uninstallDapp(conf *config, logger log.Logger) {
-	err := conf.Dapp.Remove()
+	err := conf.Dapp.Remove(logger)
 	if err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when remove dapp %v", err))
+		logger.Warn(fmt.Sprintf("failed to remove dapp: %v", err))
 		return
 	}
 
-	if conf.Dapp.BackupPath == "" {
-		logger.Info("dappctrl successfully removed")
-		return
-	}
-
-	if err := os.Rename(conf.Dapp.BackupPath, conf.Dapp.InstallPath); err != nil {
-		logger.Warn(fmt.Sprintf(
-			"ocurred error when restore dapp %v", err))
-		return
-	}
-	conf.Dapp.Service.Install()
-	conf.Dapp.Service.Start()
-
-	logger.Info("dappctrl successfully removed")
+	logger.Info("dappctrl was successfully removed")
 }
 
 func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
-	maps, ok := util.ExistingDapp(role, logger)
+	return dapp.Exists(role, logger)
+}
 
-	if !ok {
-		return nil, false
+func commandProcessedFlags(help func(), conf *config,
+	logger log.Logger) bool {
+	h := flag.Bool("help", false, "Display dapp-installer help")
+	configFile := flag.String("config", "", "Configuration file")
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if *h {
+		help()
+		return true
 	}
 
-	d := &dapp.Dapp{
-		UserRole:      role,
-		Version:       maps["Version"],
-		InstallPath:   maps["BaseDirectory"],
-		Configuration: maps["Configuration"],
-		Service: &windows.Service{
-			GUID: maps["ServiceID"],
-		},
+	if *configFile == "" {
+		logger.Warn("config parameter is empty")
+		fmt.Println("config parameter is empty")
+		return true
 	}
-	return d, true
+	if err := dapputil.ReadJSONFile(*configFile, &conf); err != nil {
+		logger.Error(fmt.Sprintf("failed to read config: %s", err))
+		return true
+	}
+	return false
 }

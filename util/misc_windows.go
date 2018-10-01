@@ -3,29 +3,19 @@
 package util
 
 import (
+	"fmt"
 	"os/exec"
 	"runtime"
-	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
 
 	"github.com/lxn/win"
 	"github.com/privatix/dappctrl/util/log"
-	"golang.org/x/sys/windows/registry"
 )
 
 // MinWindowsVersion is supported min windows version (Windows7 and newer)
 const MinWindowsVersion byte = 6
-
-// MinDBEngineVersion is supported min DB Engine version
-const MinDBEngineVersion int = 9
-
-// WinRegDBEngine64 is a registry path to 64 bit DBEngine installations
-const WinRegDBEngine64 string = `SOFTWARE\PostgreSQL\Installations\`
-
-// WinRegDBEngine32 is a registry path to 32 bit DBEngine installations
-const WinRegDBEngine32 string = `SOFTWARE\WOW6432Node\PostgreSQL\Installations\`
 
 // WinRegInstalledDapp is a registry path to dapp installations
 const WinRegInstalledDapp string = `SOFTWARE\Privatix\Dapp\`
@@ -80,30 +70,6 @@ func checkMemory() bool {
 	return totalMemoryInKilobytes*1024 > MinMemorySize
 }
 
-// ExistingDBEnginePort returns existing db engine port number.
-func ExistingDBEnginePort(logger log.Logger) (int, bool) {
-	if p, ok := getDBEngineServicePort(WinRegDBEngine64); ok {
-		return p, ok
-	}
-	return getDBEngineServicePort(WinRegDBEngine32)
-}
-
-func getDBEngineServicePort(keyPath string) (int, bool) {
-	path, ok := checkDBEngineVersion(registry.LOCAL_MACHINE, keyPath)
-	if ok {
-		s := strings.Replace(keyPath, "Installations", "Services", 1)
-		path = s + path
-		return getServicePort(registry.LOCAL_MACHINE, path), true
-	}
-	return 0, false
-}
-
-// ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args []string) error {
-	cmd := exec.Command(filename, args...)
-	return cmd.Run()
-}
-
 // ExistingDapp returns info about existing dappctrl.
 func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
 	maps, err := getInstalledDappVersion(role)
@@ -113,10 +79,9 @@ func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
 	return maps, len(maps) > 0
 }
 
-// RenamePath changes folder name and returns it
-func RenamePath(path, folder string) string {
-	path = strings.TrimSuffix(path, "\\")
-	path = path[:strings.LastIndex(path, "\\")]
-
-	return path + "\\" + folder + "\\"
+// GrantAccess grants access to directory.
+func GrantAccess(path, user string) error {
+	cmd := exec.Command("icacls", path, "/t", "/grant",
+		fmt.Sprintf("%s:F", user))
+	return cmd.Run()
 }

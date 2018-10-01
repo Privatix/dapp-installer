@@ -1,5 +1,7 @@
 // +build windows
 
+//go:generate goversioninfo -o ../resource.syso
+
 package windows
 
 import (
@@ -7,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/privatix/dapp-installer/statik"
@@ -27,6 +30,12 @@ type Service struct {
 // Install installs windows service.
 func (s *Service) Install() error {
 	return util.ExecuteCommand(s.GUID, []string{"install"})
+}
+
+// Uninstall uninstalls windows service.
+func (s *Service) Uninstall() {
+	s.Stop()
+	s.Remove()
 }
 
 // Start starts windows service.
@@ -56,20 +65,22 @@ func (s *Service) CreateWrapper(path string) error {
 		os.MkdirAll(path, 0644)
 	}
 
-	err = ioutil.WriteFile(path+s.ID+".exe", bytes, 0644)
+	fileName := filepath.Join(path, s.ID+".exe")
+	err = ioutil.WriteFile(fileName, bytes, 0644)
 	if err != nil {
 		return err
 	}
 	// create winservice wrapper config file
-	s.Command = path + s.Command
+	s.Command = filepath.Join(path, s.Command)
 	for i, arg := range s.Args {
 		if strings.HasSuffix(arg, ".json") {
-			s.Args[i] = path + arg
+			s.Args[i] = filepath.Join(path, arg)
 		}
 	}
 	bytes, err = json.Marshal(s)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	return ioutil.WriteFile(path+s.ID+".config.json", bytes, 0644)
+	fileName = filepath.Join(path, s.ID+".config.json")
+	return ioutil.WriteFile(fileName, bytes, 0644)
 }

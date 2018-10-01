@@ -1,4 +1,4 @@
-// + build windows
+// +build windows
 
 // This is wrapper tool for create windows service.
 // Windows services are configured by configuration files.
@@ -72,7 +72,7 @@ func executeCommand(svcConf *serviceConfig, logger log.Logger, file *os.File, ar
 	isIntSess, err := svc.IsAnInteractiveSession()
 	if err != nil {
 		logger.Error(fmt.Sprintf(
-			"occurred error when determinate running session: %v", err))
+			"failed to determinate running session: %v", err))
 	}
 
 	if !isIntSess {

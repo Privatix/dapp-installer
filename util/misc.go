@@ -1,17 +1,25 @@
 package util
 
 import (
+	"archive/zip"
 	"bytes"
+	"crypto/rand"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -19,12 +27,23 @@ const (
 	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
 	// MinMemorySize  - min RAM 2 GB
 	MinMemorySize uint64 = 2 * 1000 * 1024 * 1024
+	// FullPermission - 0777
+	FullPermission os.FileMode = 0777
 )
+
+// Addr type contains address, host and port parameters.
+type Addr struct {
+	Address string
+	Host    string
+	Port    string
+}
 
 // WriteCounter type is used for download process.
 type WriteCounter struct {
-	Processed uint64
-	Total     uint64
+	Label        string
+	Processed    uint64
+	Total        uint64
+	OutputLenght int
 }
 
 func (wc *WriteCounter) Write(p []byte) (int, error) {
@@ -34,10 +53,12 @@ func (wc *WriteCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-func (wc WriteCounter) printProgress() {
-	fmt.Printf("\r%s", strings.Repeat(" ", 35))
-	fmt.Printf("\rDownloading... %s from %s",
-		humanateBytes(wc.Processed), humanateBytes(wc.Total))
+func (wc *WriteCounter) printProgress() {
+	fmt.Printf("\r%s", strings.Repeat(" ", wc.OutputLenght+1))
+	output := fmt.Sprintf("\rDownloading %s ... %s from %s",
+		wc.Label, humanateBytes(wc.Processed), humanateBytes(wc.Total))
+	wc.OutputLenght = len(output)
+	fmt.Printf(output)
 }
 
 // DownloadFile downloads the file.
@@ -59,7 +80,7 @@ func DownloadFile(filePath, url string) error {
 		return err
 	}
 
-	counter := &WriteCounter{Total: uint64(length)}
+	counter := &WriteCounter{Label: path.Base(url), Total: uint64(length)}
 
 	_, err = io.Copy(out, io.TeeReader(resp.Body, counter))
 	if err != nil {
@@ -103,24 +124,31 @@ func DappCtrlVersion(filename string) string {
 		return ""
 	}
 
-	if strings.Contains(output.String(), "undefined (undefined)") {
+	version := output.String()
+	if i := strings.Index(version, " "); i > 0 {
+		version = version[:i]
+	}
+
+	if strings.Contains(version, "undefined") {
 		return "0.0.0"
 	}
-	return output.String()
+	return version
 }
 
-// RemoveFile removes file.
-func RemoveFile(filename string) error {
-	return os.Remove(filename)
-}
-
-// TemporaryDownload downloads file to the temp installation directory.
-func TemporaryDownload(installPath, downloadPath string) (string, error) {
-	if _, err := os.Stat(installPath); os.IsNotExist(err) {
-		os.MkdirAll(installPath, 0644)
+// TempPath creates temporary directory.
+func TempPath(volume string) string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return fmt.Sprintf(`%s\temporary\`, volume)
 	}
-	fileName := installPath + "temporary." + path.Base(downloadPath)
-	return fileName, DownloadFile(fileName, downloadPath)
+
+	path := fmt.Sprintf(`%s\%x\`, volume, b)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.MkdirAll(path, 0644)
+	}
+
+	return path
 }
 
 // CopyFile copies file.
@@ -149,11 +177,203 @@ func CopyFile(src, dst string) error {
 // DirSize returns total dir size.
 func DirSize(path string) (int64, error) {
 	var size int64
-	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			size += info.Size()
-		}
-		return err
-	})
+	err := filepath.Walk(path,
+		func(_ string, info os.FileInfo, err error) error {
+			if !info.IsDir() {
+				size += info.Size()
+			}
+			return err
+		})
 	return size, err
+}
+
+// ParseVersion returns version number in int64 format.
+func ParseVersion(s string) int64 {
+	strList := strings.Split(s, ".")
+	length := len(strList)
+	for i := 0; i < (4 - length); i++ {
+		strList = append(strList, "0")
+	}
+
+	format := fmt.Sprintf("%%s%%0%ds", 4)
+	v := ""
+	for _, value := range strList {
+		v = fmt.Sprintf(format, v, value)
+	}
+
+	result, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return result
+}
+
+// Unzip will decompress a zip archive, moving all files and folders
+// within the zip file (parameter 1) to an output directory (parameter 2).
+func Unzip(src string, dest string) ([]string, error) {
+	var filenames []string
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return filenames, err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return filenames, err
+		}
+		defer rc.Close()
+		fpath := filepath.Join(dest, f.Name)
+
+		if !strings.HasPrefix(fpath,
+			filepath.Clean(dest)+string(os.PathSeparator)) {
+			return filenames, fmt.Errorf("%s: illegal file path", fpath)
+		}
+
+		filenames = append(filenames, fpath)
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(fpath, FullPermission)
+		} else {
+			if err := extractFile(fpath, rc, f); err != nil {
+				return filenames, err
+			}
+		}
+	}
+	return filenames, nil
+}
+
+func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
+	err := os.MkdirAll(filepath.Dir(fpath), FullPermission)
+	if err != nil {
+		return err
+	}
+	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		FullPermission)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	_, err = io.Copy(outFile, rc)
+
+	return err
+}
+
+// CopyDir copies data from source directory to desctination directory.
+func CopyDir(src string, dst string) error {
+	var err error
+	var fds []os.FileInfo
+	var srcinfo os.FileInfo
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
+		return err
+	}
+	if fds, err = ioutil.ReadDir(src); err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		srcfp := path.Join(src, fd.Name())
+		dstfp := path.Join(dst, fd.Name())
+		if fd.IsDir() {
+			err = CopyDir(srcfp, dstfp)
+		} else {
+			err = CopyFile(srcfp, dstfp)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Hash returns string hash.
+func Hash(s string) string {
+	h := sha1.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// InteractiveWorker shows display text for imitate interactive mode.
+func InteractiveWorker(s string, quit chan bool) {
+	i := 0
+	for {
+		select {
+		case <-quit:
+			return
+		default:
+			i++
+			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
+			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
+			if i >= 10 {
+				i = 0
+			}
+			time.Sleep(time.Millisecond * 250)
+		}
+	}
+}
+
+// FreePort returns available free port number.
+func FreePort(host, port string) (string, error) {
+	p, err := strconv.Atoi(port)
+	if err != nil {
+		return "", err
+	}
+
+	for i := p; i < 65535; i++ {
+		ln, err := net.Listen("tcp", host+":"+strconv.Itoa(i))
+
+		if err != nil {
+			continue
+		}
+
+		if err := ln.Close(); err != nil {
+			continue
+		}
+		port = strconv.Itoa(i)
+		break
+	}
+
+	return port, nil
+}
+
+// ExecuteCommand does executing file.
+func ExecuteCommand(filename string, args []string) error {
+	cmd := exec.Command(filename, args...)
+	return cmd.Run()
+}
+
+// RenamePath changes folder name and returns it
+func RenamePath(path, folder string) string {
+	path = strings.TrimSuffix(path, "\\")
+	path = path[:strings.LastIndex(path, "\\")]
+
+	return filepath.Join(path, folder)
+}
+
+// IsURL checks path to url.
+func IsURL(path string) bool {
+	pattern := `^(https?:\/\/)`
+
+	ok, _ := regexp.MatchString(pattern, path)
+	return ok
+}
+
+// MatchAddr returns matches addr params from text.
+func MatchAddr(str string) []Addr {
+	pattern := `(?m)"Addr"\s*:\s*"\s*((localhost|127\.0\.0\.1|0\.0\.0\.0)\s*:\s*(\d{1,5}))\s*"`
+
+	var addrs []Addr
+	re := regexp.MustCompile(pattern)
+	for _, match := range re.FindAllStringSubmatch(str, -1) {
+		addrs = append(addrs, Addr{
+			Address: match[1],
+			Host:    match[2],
+			Port:    match[3],
+		})
+	}
+	return addrs
 }

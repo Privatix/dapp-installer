@@ -278,6 +278,12 @@ func CopyDir(src string, dst string) error {
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
 		dstfp := path.Join(dst, fd.Name())
+		if _, err := os.Stat(srcfp); err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+			continue
+		}
 		if fd.IsDir() {
 			err = CopyDir(srcfp, dstfp)
 		} else {

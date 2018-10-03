@@ -4,12 +4,9 @@ package dbengine
 
 import (
 	"bytes"
-	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/privatix/dapp-installer/util"
 )
 
 func runService(service string) error {
@@ -33,7 +30,7 @@ func runService(service string) error {
 
 func startService(installPath, user string) error {
 	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
-	serviceName := fmt.Sprintf("dapp_db_%s", util.Hash(installPath))
+	serviceName := Hash(installPath)
 
 	exec.Command(fileName, "unregister", "-N", serviceName).Run()
 
@@ -49,7 +46,7 @@ func startService(installPath, user string) error {
 }
 
 func removeService(installPath string) error {
-	serviceName := fmt.Sprintf("dapp_db_%s", util.Hash(installPath))
+	serviceName := Hash(installPath)
 	stopService(installPath)
 
 	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
@@ -58,7 +55,7 @@ func removeService(installPath string) error {
 }
 
 func stopService(installPath string) error {
-	serviceName := fmt.Sprintf("dapp_db_%s", util.Hash(installPath))
+	serviceName := Hash(installPath)
 	checkServiceCmd := exec.Command("sc", "stop", serviceName)
 
 	return checkServiceCmd.Run()

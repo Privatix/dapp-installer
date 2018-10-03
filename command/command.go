@@ -74,7 +74,6 @@ func Execute(logger log.Logger, printVersion func(), args []string) {
 		logger.Info("installation was canceled")
 		return
 	}
-	fmt.Println("command successfully finished")
 }
 
 func processedFlags(printVersion func()) bool {
@@ -98,32 +97,31 @@ func initDapp(conf *config) (*dapp.Dapp, error) {
 	d := conf.Dapp
 	downloadPath := conf.Dapp.Download()
 
-	ch := make(chan bool)
-	defer close(ch)
-	go util.InteractiveWorker("Extracting dapp", ch)
-
 	if _, err := os.Stat(d.InstallPath); os.IsNotExist(err) {
 		os.MkdirAll(d.InstallPath, util.FullPermission)
 	}
 
-	_, err := util.Unzip(downloadPath, d.InstallPath)
-	if err != nil {
-		ch <- true
-		return nil, err
-	}
+	if len(downloadPath) > 0 {
+		ch := make(chan bool)
+		defer close(ch)
+		go util.InteractiveWorker("Extracting dapp", ch)
 
+		_, err := util.Unzip(downloadPath, d.InstallPath)
+		if err != nil {
+			ch <- true
+			return nil, err
+		}
+		ch <- true
+		fmt.Printf("\r%s\n", "Dapp was successfully extracted")
+	}
 	fileName := filepath.Join(d.InstallPath, d.Controller.EntryPoint)
 	d.Version = util.DappCtrlVersion(fileName)
-
-	ch <- true
-	fmt.Printf("\r%s\n", "Dapp was successfully extracted")
 
 	return d, nil
 }
 
 func uninstallDapp(conf *config, logger log.Logger) {
-	err := conf.Dapp.Remove(logger)
-	if err != nil {
+	if err := conf.Dapp.Remove(logger); err != nil {
 		logger.Warn(fmt.Sprintf("failed to remove dapp: %v", err))
 		return
 	}
@@ -131,14 +129,17 @@ func uninstallDapp(conf *config, logger log.Logger) {
 	logger.Info("dappctrl was successfully removed")
 }
 
-func existingDapp(role string, logger log.Logger) (*dapp.Dapp, bool) {
-	return dapp.Exists(role, logger)
+func existingDapp(path string, logger log.Logger) (*dapp.Dapp, bool) {
+	return dapp.Exists(path, logger)
 }
 
 func commandProcessedFlags(help func(), conf *config,
 	logger log.Logger) bool {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	configFile := flag.String("config", "", "Configuration file")
+	role := flag.String("role", "", "Dapp user role")
+	path := flag.String("workdir", "", "Dapp install directory")
+	src := flag.String("source", "", "Dapp install source")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -147,14 +148,23 @@ func commandProcessedFlags(help func(), conf *config,
 		return true
 	}
 
-	if *configFile == "" {
-		logger.Warn("config parameter is empty")
-		fmt.Println("config parameter is empty")
-		return true
+	if len(*configFile) > 0 {
+		if err := dapputil.ReadJSONFile(*configFile, &conf); err != nil {
+			logger.Error(fmt.Sprintf("failed to read config: %s", err))
+			return true
+		}
 	}
-	if err := dapputil.ReadJSONFile(*configFile, &conf); err != nil {
-		logger.Error(fmt.Sprintf("failed to read config: %s", err))
-		return true
+
+	if len(*role) > 0 {
+		conf.Dapp.UserRole = *role
+	}
+
+	if len(*path) > 0 {
+		conf.Dapp.SetInstallPath(*path)
+	}
+
+	if len(*src) > 0 {
+		conf.Dapp.Source = *src
 	}
 	return false
 }

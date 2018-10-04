@@ -7,30 +7,24 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
-	"time"
 
-	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dapp-installer/windows"
 	"github.com/privatix/dappctrl/util/log"
 )
 
-// NewConfig creates a default Dapp configuration.
-func NewConfig() *Dapp {
-	reg := &util.Registry{
-		Install:   []util.Key{},
-		Uninstall: []util.Key{},
-	}
-
-	return &Dapp{
-		DBEngine: dbengine.NewConfig(),
-		Registry: reg,
-	}
-}
-
 type service struct {
 	windows.Service
+}
+
+func newService() *service {
+	return &service{
+		windows.Service{
+			Command:   "dappctrl",
+			Args:      []string{"-config", "dappctrl.config.json"},
+			AutoStart: true,
+		},
+	}
 }
 
 func (d *Dapp) createShortcut() {
@@ -40,6 +34,10 @@ func (d *Dapp) createShortcut() {
 	linkName := gui[0 : len(gui)-len(extension)]
 	link := filepath.Join(util.DesktopPath(),
 		fmt.Sprintf("%s-%s.lnk", linkName, d.UserRole))
+
+	if len(extension) == 0 {
+		target += ".exe"
+	}
 
 	windows.CreateShortcut(target, "Privatix Dapp", "", link)
 }
@@ -61,10 +59,10 @@ func (d *Dapp) configurateController(logger log.Logger) error {
 	ctrlPath := filepath.Join(d.InstallPath,
 		filepath.Dir(d.Controller.EntryPoint))
 
-	hash := util.Hash(d.InstallPath)
-	ctrl.Service.ID = fmt.Sprintf("dapp_%s_%s", d.UserRole, hash)
-	ctrl.Service.Name = fmt.Sprintf("dapp %s %s", d.UserRole, hash)
-	ctrl.Service.Description = fmt.Sprintf("dapp %s %s", d.UserRole, hash)
+	hash := d.controllerHash()
+	ctrl.Service.ID = hash
+	ctrl.Service.Name = hash
+	ctrl.Service.Description = fmt.Sprintf("dapp controller %s", hash)
 	ctrl.Service.GUID = filepath.Join(ctrlPath, ctrl.Service.ID)
 	if err := ctrl.Service.CreateWrapper(ctrlPath); err != nil {
 		logger.Warn("failed to create service wrapper:" + ctrl.Service.ID)
@@ -97,106 +95,7 @@ func (d *Dapp) removeFinalize(logger log.Logger) error {
 		os.Remove(link)
 	}
 
-	util.RemoveRegistryKey(d.UserRole)
-
 	return nil
-}
-
-func (d *Dapp) installFinalize(logger log.Logger) error {
-	db := d.DBEngine.DB
-	shortcuts := strconv.FormatBool(d.Gui.Shortcuts)
-	reg := d.Registry.(*util.Registry)
-	reg.Install = append(reg.Install,
-		util.Key{Name: "Shortcuts", Type: "string", Value: shortcuts},
-		util.Key{Name: "BaseDirectory", Type: "string", Value: d.InstallPath},
-		util.Key{Name: "Version", Type: "string", Value: d.Version},
-		util.Key{Name: "ServiceID", Type: "string",
-			Value: d.Controller.Service.GUID},
-		util.Key{Name: "Controller", Type: "string",
-			Value: d.Controller.EntryPoint},
-		util.Key{Name: "Gui", Type: "string", Value: d.Gui.EntryPoint},
-		util.Key{Name: "Database", Type: "string", Value: db.DBName},
-		util.Key{Name: "Configuration", Type: "string",
-			Value: d.Controller.Configuration},
-	)
-
-	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
-		time.Now().Month(), time.Now().Day())
-
-	_, installer := filepath.Split(os.Args[0])
-	uninstallCmd := fmt.Sprintf("%s remove -role %s",
-		filepath.Join(d.InstallPath, installer), d.UserRole)
-	size, err := util.DirSize(d.InstallPath)
-	if err != nil {
-		return err
-	}
-	reg.Uninstall = append(reg.Uninstall,
-		util.Key{Name: "InstallLocation", Type: "string",
-			Value: d.InstallPath},
-		util.Key{Name: "InstallDate", Type: "string", Value: current},
-		util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
-		util.Key{Name: "DisplayName", Type: "string",
-			Value: "Privatix Dapp " + d.UserRole},
-		util.Key{Name: "UninstallString", Type: "string",
-			Value: uninstallCmd},
-		util.Key{Name: "EstimatedSize", Type: "dword",
-			Value: strconv.FormatInt(size, 10)},
-	)
-	return util.CreateRegistryKey(reg, d.UserRole)
-}
-
-func (d *Dapp) updateFinalize(logger log.Logger) error {
-	current := fmt.Sprintf("%d%d%d", time.Now().Year(),
-		time.Now().Month(), time.Now().Day())
-
-	size, err := util.DirSize(d.InstallPath)
-	if err != nil {
-		return err
-	}
-
-	reg := &util.Registry{
-		Install: []util.Key{
-			util.Key{Name: "Version", Type: "string", Value: d.Version},
-		},
-		Uninstall: []util.Key{
-			util.Key{Name: "InstallDate", Type: "string", Value: current},
-			util.Key{Name: "DisplayVersion", Type: "string", Value: d.Version},
-			util.Key{Name: "EstimatedSize", Type: "dword",
-				Value: strconv.FormatInt(size, 10)},
-		},
-	}
-
-	d.Registry = reg
-	return util.CreateRegistryKey(reg, d.UserRole)
-}
-
-func (d *Dapp) removeRegistry() error {
-	return util.RemoveRegistryKey(d.UserRole)
-}
-
-// Exists returns existing dapp in the host.
-func Exists(role string, logger log.Logger) (*Dapp, bool) {
-	maps, ok := util.ExistingDapp(role, logger)
-
-	if !ok {
-		return nil, false
-	}
-
-	shortcut, _ := strconv.ParseBool(maps["Shortcuts"])
-	d := &Dapp{
-		UserRole:    role,
-		Version:     maps["Version"],
-		InstallPath: maps["BaseDirectory"],
-		Controller: &InstallerEntity{
-			Configuration: maps["Configuration"],
-			Service:       &service{windows.Service{GUID: maps["ServiceID"]}},
-		},
-		Gui: &InstallerEntity{
-			EntryPoint: maps["Gui"],
-			Shortcuts:  shortcut,
-		},
-	}
-	return d, true
 }
 
 // TODO (ubozov) this algorithm should be reviewed.
@@ -206,4 +105,15 @@ func (d *Dapp) prepareToInstall(logger log.Logger) error {
 	fileName := filepath.Join(d.InstallPath, "util/vcredist_x64.exe")
 	args := []string{"/install", "/quiet", "/norestart"}
 	return util.ExecuteCommand(fileName, args)
+}
+
+func copyServiceWrapper(d, s *Dapp) {
+	hash := s.controllerHash()
+	scvExe := "dappctrl/" + hash + ".exe"
+	scvConfig := "dappctrl/" + hash + ".config.json"
+
+	util.CopyFile(filepath.Join(s.InstallPath, scvExe),
+		filepath.Join(d.InstallPath, scvExe))
+	util.CopyFile(filepath.Join(s.InstallPath, scvConfig),
+		filepath.Join(d.InstallPath, scvConfig))
 }

@@ -42,11 +42,11 @@ func (cmd *installCmd) execute(conf *config, log log.Logger) error {
 }
 
 func installDapp(cmd *installCmd, conf *config, logger log.Logger) error {
-	existDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
+	existDapp, ok := existingDapp(conf.Dapp.InstallPath, logger)
 
 	if ok {
-		fmt.Printf("dapp is installed. your dapp version: %v\n",
-			existDapp.Version)
+		fmt.Printf("dapp is installed in '%s'. your dapp version: %v\n",
+			conf.Dapp.InstallPath, existDapp.Version)
 		fmt.Println("to update run 'update' command")
 		logger.Warn("dapp is installed")
 		return nil
@@ -85,6 +85,9 @@ Usage:
 
 Flags:
 	--config	Configuration file
-	--help      Display help information
+	--role		Dapp user role
+	--workdir	Dapp install directory
+	--source	Dapp install source
+	--help		Display help information
 `)
 }

@@ -7,26 +7,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/unix"
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dappctrl/util/log"
 )
 
-type service struct {
-	unix.Service
-}
-
-// NewConfig creates a default Dapp configuration.
-func NewConfig() *Dapp {
-	return &Dapp{
-		DBEngine: dbengine.NewConfig(),
+func newService() *service {
+	return &service{
+		unix.Service{
+			Command: "dappctrl",
+			Args:    []string{"-config", "dappctrl.config.json"},
+		},
 	}
-}
-
-// Exists returns existing dapp in the host.
-func Exists(role string, logger log.Logger) (*Dapp, bool) {
-	return nil, false
 }
 
 func (d *Dapp) configurateController(logger log.Logger) error {
@@ -39,19 +31,14 @@ func (d *Dapp) configurateController(logger log.Logger) error {
 		filepath.Join(d.InstallPath, installer))
 }
 
-func (d *Dapp) installFinalize(logger log.Logger) error {
-	// TODO (ubozov) register dbengine service as deamon?
-	return nil
-}
-
 func (d *Dapp) prepareToInstall(logger log.Logger) error {
 	return nil
 }
 
-func (d *Dapp) updateFinalize(logger log.Logger) error {
+func (d *Dapp) removeFinalize(logger log.Logger) error {
 	return errors.New("not implemented")
 }
 
-func (d *Dapp) removeFinalize(logger log.Logger) error {
+func copyServiceWrapper(d, s *Dapp) {
 	return errors.New("not implemented")
 }

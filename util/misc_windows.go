@@ -3,9 +3,11 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"runtime"
+	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
@@ -16,12 +18,6 @@ import (
 
 // MinWindowsVersion is supported min windows version (Windows7 and newer)
 const MinWindowsVersion byte = 6
-
-// WinRegInstalledDapp is a registry path to dapp installations
-const WinRegInstalledDapp string = `SOFTWARE\Privatix\Dapp\`
-
-// WinRegUninstallDapp is a registry path to dapp uninstallations
-const WinRegUninstallDapp string = `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Privatix Dapp `
 
 // CheckSystemPrerequisites does checked system to prerequisites.
 func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
@@ -70,18 +66,20 @@ func checkMemory() bool {
 	return totalMemoryInKilobytes*1024 > MinMemorySize
 }
 
-// ExistingDapp returns info about existing dappctrl.
-func ExistingDapp(role string, logger log.Logger) (map[string]string, bool) {
-	maps, err := getInstalledDappVersion(role)
-	if err != nil {
-		return nil, false
-	}
-	return maps, len(maps) > 0
-}
-
 // GrantAccess grants access to directory.
 func GrantAccess(path, user string) error {
 	cmd := exec.Command("icacls", path, "/t", "/grant",
 		fmt.Sprintf("%s:F", user))
 	return cmd.Run()
+}
+
+// IsServiceStopped returns service stopped status.
+func IsServiceStopped(service string) bool {
+	checkServiceCmd := exec.Command("sc", "queryex", service)
+	var checkServiceStdOut bytes.Buffer
+	checkServiceCmd.Stdout = &checkServiceStdOut
+	if err := checkServiceCmd.Run(); err != nil {
+		return false
+	}
+	return strings.Contains(checkServiceStdOut.String(), "STOPPED")
 }

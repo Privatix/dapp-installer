@@ -174,19 +174,6 @@ func CopyFile(src, dst string) error {
 	return os.Chmod(dst, srcinfo.Mode())
 }
 
-// DirSize returns total dir size.
-func DirSize(path string) (int64, error) {
-	var size int64
-	err := filepath.Walk(path,
-		func(_ string, info os.FileInfo, err error) error {
-			if !info.IsDir() {
-				size += info.Size()
-			}
-			return err
-		})
-	return size, err
-}
-
 // ParseVersion returns version number in int64 format.
 func ParseVersion(s string) int64 {
 	strList := strings.Split(s, ".")
@@ -278,12 +265,6 @@ func CopyDir(src string, dst string) error {
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
 		dstfp := path.Join(dst, fd.Name())
-		if _, err := os.Stat(srcfp); err != nil {
-			if !os.IsNotExist(err) {
-				return err
-			}
-			continue
-		}
 		if fd.IsDir() {
 			err = CopyDir(srcfp, dstfp)
 		} else {

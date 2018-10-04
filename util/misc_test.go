@@ -1,6 +1,9 @@
 package util
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 type testpair struct {
 	version string
@@ -71,5 +74,23 @@ func TestMatchAddr(t *testing.T) {
 		if addr.Address != testaddrs[i].Address {
 			t.Error("Expected", testaddrs[i], "got", addr)
 		}
+	}
+}
+
+func TestMergeJSON(t *testing.T) {
+	dst := `{"A":1,"B":{"b":2,"bb":3,"bbbb":4},"C":true}`
+	src := `{"B":{"b":2,"bb":30,"bbb":4},"C":false}`
+	result := `{"A":1,"B":{"b":2,"bb":30,"bbbb":4},"C":false}`
+
+	var dstMap, srcMap map[string]interface{}
+	json.Unmarshal([]byte(dst), &dstMap)
+	json.Unmarshal([]byte(src), &srcMap)
+
+	mergeJSON(dstMap, srcMap)
+
+	r, _ := json.Marshal(dstMap)
+
+	if string(r) != result {
+		t.Error("Expected", result, "got", string(r))
 	}
 }

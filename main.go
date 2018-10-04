@@ -34,6 +34,6 @@ func main() {
 	logger.Info("begin program")
 	command.Execute(logger, printVersion, os.Args[1:])
 	logger.Info("end program")
-	fmt.Println("Press the Enter Key to close the console screen!")
+	fmt.Println("\nPress the Enter Key to close the console screen!")
 	fmt.Scanln()
 }

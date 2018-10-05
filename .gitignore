@@ -7,8 +7,7 @@
 *.syso
 
 dapp-installer
-dapp-installer.log
-dapp-service.log
+*.log
 logFile
 statik.go
 # Test binary, build with `go test -c`

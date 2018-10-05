@@ -28,7 +28,7 @@ func runService(service string) error {
 	return exec.Command("net", "start", service).Run()
 }
 
-func startService(installPath, user string) error {
+func startService(installPath string) error {
 	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
 	serviceName := Hash(installPath)
 

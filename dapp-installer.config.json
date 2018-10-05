@@ -1,7 +1,7 @@
 {
     "Dapp": {
-        "UserRole" : "client",
-        "InstallPath" : "C:/DappTest/client",
-        "Source":"c:/Dapp/dapp.zip"
+        "UserRole" : "agent",
+        "InstallPath" : "/Users/bozov/Desktop/DappTest/agent",
+        "Source":"/Users/bozov/Desktop/Dapp/mac/dapp_mac.zip"
     }
  }

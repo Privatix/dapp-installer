@@ -105,7 +105,7 @@ func (d *Dapp) Update(oldDapp *Dapp, logger log.Logger) error {
 	select {
 	case <-done:
 		logger.Info("services were successfully stopped")
-	case <-time.After(time.Second * 90):
+	case <-time.After(util.Timeout):
 		os.RemoveAll(d.InstallPath)
 		ch <- true
 		return errors.New("failed to stopped services. timeout expired")
@@ -174,6 +174,8 @@ func (d *Dapp) modifyDappConfig(logger log.Logger) error {
 	settings := d.Controller.Settings
 
 	settings["Role"] = d.UserRole
+	settings["FileLog.Filename"] = filepath.Join(d.InstallPath,
+		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
 	settings["DB.Conn.port"] = d.DBEngine.DB.Port
 	settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
@@ -200,21 +202,11 @@ func (d *Dapp) Remove(logger log.Logger) error {
 	defer close(ch)
 	go util.InteractiveWorker("Removing Dapp", ch)
 
-	// Stop services.
-	done := make(chan bool)
-	go d.stopServices(done)
-
-	select {
-	case <-done:
-		logger.Info("services were successfully stopped")
-	case <-time.After(time.Second * 90):
+	if err := d.uninstallServices(logger); err != nil {
 		ch <- true
-		return errors.New("failed to stopped services. timeout expired")
+		return err
 	}
 
-	d.Controller.Service.Uninstall()
-
-	d.DBEngine.Remove(d.InstallPath, logger)
 	d.removeFinalize(logger)
 
 	if err := os.RemoveAll(d.InstallPath); err != nil {
@@ -313,4 +305,24 @@ func (d *Dapp) stopServices(ch chan bool) {
 		break
 	}
 	ch <- true
+}
+
+func (d *Dapp) uninstallServices(logger log.Logger) error {
+	// Stop services.
+	done := make(chan bool)
+	go d.stopServices(done)
+
+	select {
+	case <-done:
+		logger.Info("services were successfully stopped")
+	case <-time.After(util.Timeout):
+		return errors.New("failed to stopped services.timeout expired")
+	}
+
+	// Remove services.
+	if err := d.Controller.Service.Remove(); err != nil {
+		return err
+	}
+
+	return d.DBEngine.Remove(d.InstallPath, logger)
 }

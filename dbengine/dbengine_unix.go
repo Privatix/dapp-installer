@@ -3,29 +3,29 @@
 package dbengine
 
 import (
-	"errors"
-	"os/exec"
 	"path/filepath"
+
+	"github.com/privatix/dapp-installer/unix"
 )
 
-func startService(installPath, user string) error {
-	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
-
+func startService(installPath string) error {
+	fileName := filepath.Join(installPath, `pgsql/bin/postgres`)
 	dataPath := filepath.Join(installPath, `pgsql/data`)
-	cmd := exec.Command(fileName, "start", "-D", dataPath)
 
-	return cmd.Run()
+	d := unix.NewDaemon(Hash(installPath))
+	d.Command = fileName
+	d.Args = []string{"-D" + dataPath}
+
+	if err := d.Install(); err != nil {
+		return err
+	}
+	return d.Start()
 }
 
 func removeService(installPath string) error {
-	return errors.New("not implemented")
+	return unix.NewDaemon(Hash(installPath)).Remove()
 }
 
 func stopService(installPath string) error {
-	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
-
-	dataPath := filepath.Join(installPath, `pgsql/data`)
-	cmd := exec.Command(fileName, "stop", "-D", dataPath)
-
-	return cmd.Run()
+	return unix.NewDaemon(Hash(installPath)).Stop()
 }

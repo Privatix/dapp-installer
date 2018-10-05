@@ -27,7 +27,7 @@ git clone https://github.com/Privatix/dapp-installer.git
 cd dapp-installer
 
 go get -d github.com/Privatix/dapp-installer
-
+go get -u github.com/rakyll/statik
 ```
 
 #### Windows platform

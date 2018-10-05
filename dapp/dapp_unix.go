@@ -3,7 +3,6 @@
 package dapp
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 
@@ -12,9 +11,13 @@ import (
 	"github.com/privatix/dappctrl/util/log"
 )
 
+type service struct {
+	unix.Daemon
+}
+
 func newService() *service {
 	return &service{
-		unix.Service{
+		unix.Daemon{
 			Command: "dappctrl",
 			Args:    []string{"-config", "dappctrl.config.json"},
 		},
@@ -24,6 +27,28 @@ func newService() *service {
 func (d *Dapp) configurateController(logger log.Logger) error {
 	if err := d.modifyDappConfig(logger); err != nil {
 		return err
+	}
+
+	logger.Info("create daemon")
+	ctrl := d.Controller
+
+	ctrl.Service.ID = d.controllerHash()
+
+	ctrl.Service.Command = filepath.Join(d.InstallPath, ctrl.EntryPoint)
+	ctrl.Service.Args = []string{
+		"-config", filepath.Join(d.InstallPath, ctrl.Configuration)}
+
+	if err := ctrl.Service.Install(); err != nil {
+		logger.Warn("failed to install daemon:" + ctrl.Service.ID)
+		return err
+	}
+	logger.Info("start daemon")
+	if err := ctrl.Service.Start(); err != nil {
+		// retry attempt to start service
+		if err := ctrl.Service.Start(); err != nil {
+			logger.Warn("failed to start daemon:" + ctrl.Service.ID)
+			return err
+		}
 	}
 
 	_, installer := filepath.Split(os.Args[0])
@@ -36,9 +61,8 @@ func (d *Dapp) prepareToInstall(logger log.Logger) error {
 }
 
 func (d *Dapp) removeFinalize(logger log.Logger) error {
-	return errors.New("not implemented")
+	return nil
 }
 
 func copyServiceWrapper(d, s *Dapp) {
-	return errors.New("not implemented")
 }

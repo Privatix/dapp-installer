@@ -16,19 +16,16 @@ var (
 	Version string
 )
 
-const logFile = "dapp-installer.log"
-
 func printVersion() {
 	fmt.Printf("dapp-installer %s %s", Version, Commit)
 }
 
 func main() {
-	file, logger, err := util.CreateLogger(logFile)
+	logger, closer, err := util.CreateLogger()
 	if err != nil {
 		panic(fmt.Sprintf("failed to create logger: %s", err))
 	}
-
-	defer file.Close()
+	defer closer.Close()
 
 	logger.Info("============================================================")
 	logger.Info("begin program")

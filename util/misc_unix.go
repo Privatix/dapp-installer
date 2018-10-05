@@ -6,12 +6,11 @@ package util
 import "C"
 
 import (
-	"fmt"
 	"os"
-	"os/exec"
 	"runtime"
 	"syscall"
 
+	"github.com/privatix/dapp-installer/unix"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -50,12 +49,11 @@ func checkMemory() bool {
 }
 
 // GrantAccess grants access to directory.
-func GrantAccess(path, user string) error {
-	cmd := exec.Command("chown", user, path)
-	return cmd.Run()
+func GrantAccess(path string) error {
+	return os.Chown(path, os.Getuid(), os.Getgid())
 }
 
 // IsServiceStopped returns service stopped status.
-func IsServiceStopped(service string) bool {
-	return true
+func IsServiceStopped(id string) bool {
+	return unix.NewDaemon(id).IsStopped()
 }

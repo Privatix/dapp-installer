@@ -56,8 +56,7 @@ func (d *Dapp) configurateController(logger log.Logger) error {
 
 	logger.Info("create service wrapper")
 	ctrl := d.Controller
-	ctrlPath := filepath.Join(d.InstallPath,
-		filepath.Dir(d.Controller.EntryPoint))
+	ctrlPath := filepath.Join(d.InstallPath, filepath.Dir(ctrl.EntryPoint))
 
 	hash := d.controllerHash()
 	ctrl.Service.ID = hash

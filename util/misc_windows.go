@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"os/user"
 	"runtime"
 	"strings"
 	"syscall"
@@ -67,9 +68,13 @@ func checkMemory() bool {
 }
 
 // GrantAccess grants access to directory.
-func GrantAccess(path, user string) error {
+func GrantAccess(path string) error {
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
 	cmd := exec.Command("icacls", path, "/t", "/grant",
-		fmt.Sprintf("%s:F", user))
+		fmt.Sprintf("%s:F", u.Username))
 	return cmd.Run()
 }
 

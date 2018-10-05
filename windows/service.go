@@ -32,12 +32,6 @@ func (s *Service) Install() error {
 	return util.ExecuteCommand(s.GUID, []string{"install"})
 }
 
-// Uninstall uninstalls windows service.
-func (s *Service) Uninstall() {
-	s.Stop()
-	s.Remove()
-}
-
 // Start starts windows service.
 func (s *Service) Start() error {
 	return util.ExecuteCommand(s.GUID, []string{"start"})

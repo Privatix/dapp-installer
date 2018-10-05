@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	//Timeout - 90 sec
+	Timeout time.Duration = 90 * time.Second
 	// MinAvailableDiskSize - available min 500MB
 	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
 	// MinMemorySize  - min RAM 2 GB
@@ -335,10 +337,8 @@ func ExecuteCommand(filename string, args []string) error {
 
 // RenamePath changes folder name and returns it
 func RenamePath(path, folder string) string {
-	path = strings.TrimSuffix(path, "\\")
-	path = path[:strings.LastIndex(path, "\\")]
-
-	return filepath.Join(path, folder)
+	dir, _ := filepath.Split(path)
+	return filepath.Join(dir, folder)
 }
 
 // IsURL checks path to url.

@@ -11,13 +11,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/privatix/dapp-installer/util"
 	dapputil "github.com/privatix/dappctrl/util"
 	"github.com/privatix/dappctrl/util/log"
 	"golang.org/x/sys/windows/svc"
 )
-
-const logFile = "dapp-service.log"
 
 type serviceConfig struct {
 	ID          string
@@ -54,21 +51,27 @@ func main() {
 	conf := newServiceConfig()
 	readFlags(conf)
 
-	file, logger, err := util.CreateLogger(logFile)
+	logConfig := &log.FileConfig{
+		WriterConfig: log.NewWriterConfig(),
+		Filename:     "dapp-winservice-%Y-%m-%d.log",
+		FileMode:     0644,
+	}
+
+	logger, closer, err := log.NewFileLogger(logConfig)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create logger: %s", err))
 	}
 
-	defer file.Close()
+	defer closer.Close()
 
 	logger = logger.Add("dapp-winservice", conf.ID)
 	logger.Info("begin")
 	defer logger.Info("end")
 	logger.Info(fmt.Sprintf("%v", conf))
-	executeCommand(conf, logger, file, os.Args[1:])
+	executeCommand(conf, logger, os.Args[1:])
 }
 
-func executeCommand(svcConf *serviceConfig, logger log.Logger, file *os.File, args []string) {
+func executeCommand(svcConf *serviceConfig, logger log.Logger, args []string) {
 	isIntSess, err := svc.IsAnInteractiveSession()
 	if err != nil {
 		logger.Error(fmt.Sprintf(
@@ -83,7 +86,7 @@ func executeCommand(svcConf *serviceConfig, logger log.Logger, file *os.File, ar
 				break
 			}
 		}
-		runServiceCommand(svcConf, logger, file)
+		runServiceCommand(svcConf, logger)
 		return
 	}
 

@@ -6,12 +6,11 @@ package util
 import "C"
 
 import (
-	"fmt"
 	"os"
-	"os/exec"
 	"runtime"
 	"syscall"
 
+	"github.com/privatix/dapp-installer/unix"
 	"github.com/privatix/dappctrl/util/log"
 )
 
@@ -49,14 +48,12 @@ func checkMemory() bool {
 	return uint64(memSize) > MinMemorySize
 }
 
-// ExistingDappCtrlVersion returns existing dappctrl version.
-func ExistingDappCtrlVersion(logger log.Logger) (string, bool) {
-	logger.Warn(fmt.Sprintf("your OS %s is not supported now", runtime.GOOS))
-	return "", false
+// GrantAccess grants access to directory.
+func GrantAccess(path string) error {
+	return os.Chown(path, os.Getuid(), os.Getgid())
 }
 
-// GrantAccess grants access to directory.
-func GrantAccess(path, user string) error {
-	cmd := exec.Command("chown", user, path)
-	return cmd.Run()
+// IsServiceStopped returns service stopped status.
+func IsServiceStopped(id string) bool {
+	return unix.NewDaemon(id).IsStopped()
 }

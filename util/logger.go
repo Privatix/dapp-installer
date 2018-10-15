@@ -1,24 +1,23 @@
 package util
 
 import (
-	"os"
+	"io"
 
 	"github.com/privatix/dappctrl/util/log"
 )
 
 // CreateLogger creates new logger file.
-func CreateLogger(logFile string) (*os.File, log.Logger, error) {
-	file, err := os.OpenFile(
-		logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+func CreateLogger() (log.Logger, io.Closer, error) {
+	logConfig := &log.FileConfig{
+		WriterConfig: log.NewWriterConfig(),
+		Filename:     "dapp-installer-%Y-%m-%d.log",
+		FileMode:     0644,
+	}
+
+	logger, closer, err := log.NewFileLogger(logConfig)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	logger, err := log.NewFileLogger(log.NewFileConfig(), file)
-	if err != nil {
-		file.Close()
-		return nil, nil, err
-	}
-
-	return file, logger, nil
+	return logger, closer, nil
 }

@@ -1,71 +1,7 @@
 {
     "Dapp": {
-        "UserRole" : "client",
-        "InstallPath" : "/Users/bozov/Desktop/DappTest/client",
-        "Source":"/Users/bozov/Desktop/Dapp/dapp_mac.zip",
-        "Controller": {
-            "EntryPoint":"dappctrl/dappctrl",
-            "Configuration":"dappctrl/dappctrl.config.json",
-            "Service" : {
-                "Command" :    "dappctrl",
-                "Args":        ["-config", "dappctrl.config.json"],
-                "AutoStart" : true
-            }
-        },
-        "Gui": {
-            "EntryPoint":"dappgui/dapp-gui",
-            "Shortcuts" : true
-        },
-        "Registry" : {
-            "Install": [
-                {
-                     "Name" : "Branding",
-                     "Type":"string",
-                     "Value":"Privatix"
-                }
-            ],
-            "Uninstall" : [
-                {
-                    "Name" : "Comment",
-                    "Type":"string",
-                    "Value":"The Privatix Dapp, packaged by Privatix"
-                },
-                {
-                    "Name" : "HelpLink",
-                    "Type":"string",
-                    "Value":"https://privatix.io"
-                },
-                {
-                    "Name" : "NoModify",
-                    "Type":"string",
-                    "Value":"1"
-                },
-                {
-                    "Name" : "NoRepair",
-                    "Type":"string",
-                    "Value":"1"
-                },
-                {
-                    "Name" : "Publisher",
-                    "Type":"string",
-                    "Value":"Privatix (c)"
-                },
-                {
-                    "Name" : "UrlInfoAbout",
-                    "Type":"string",
-                    "Value":"https://privatix.io"
-                },
-                {
-                    "Name" : "VersionMajor",
-                    "Type":"dword",
-                    "Value":"1"
-                },
-                {
-                    "Name" : "VersionMinor",
-                    "Type":"dword",
-                    "Value":"0"
-                }
-            ]
-        }
+        "UserRole" : "agent",
+        "InstallPath" : "/Users/bozov/Desktop/DappTest/agent",
+        "Source":"/Users/bozov/Desktop/Dapp/mac/dapp_mac.zip"
     }
  }

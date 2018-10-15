@@ -1,12 +1,10 @@
 package command
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dappctrl/util/log"
 )
@@ -27,7 +25,9 @@ Usage:
 
 Flags:
 	--config	Configuration file
-	--help      Display help information
+	--workdir	Dapp install directory
+	--source	Dapp install source
+	--help		Display help information
 `)
 }
 
@@ -48,7 +48,7 @@ func (cmd *updateCmd) execute(conf *config, log log.Logger) error {
 }
 
 func updateDapp(cmd *updateCmd, conf *config, logger log.Logger) error {
-	oldDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
+	oldDapp, ok := existingDapp(conf.Dapp.InstallPath, logger)
 
 	if !ok {
 		fmt.Println("dapp is not installed.")
@@ -58,12 +58,15 @@ func updateDapp(cmd *updateCmd, conf *config, logger log.Logger) error {
 	}
 
 	b, dir := filepath.Split(oldDapp.InstallPath)
-	conf.Dapp.InstallPath = filepath.Join(b, dir+"_new")
+	newPath := filepath.Join(b, dir+"_new")
+	conf.Dapp.InstallPath = newPath
 
 	newDapp, err := initDapp(conf)
 	if err != nil {
 		return err
 	}
+
+	defer os.RemoveAll(newPath)
 
 	version := util.ParseVersion(newDapp.Version)
 	if util.ParseVersion(oldDapp.Version) >= version {
@@ -71,13 +74,6 @@ func updateDapp(cmd *updateCmd, conf *config, logger log.Logger) error {
 			oldDapp.Version)
 		logger.Warn("already updated")
 		return nil
-	}
-
-	configFile := filepath.Join(oldDapp.InstallPath,
-		oldDapp.Controller.Configuration)
-	if newDapp.DBEngine.DB, err = dbParamsFromConfig(configFile); err != nil {
-		logger.Warn(fmt.Sprintf("failed to read config: %v", err))
-		return err
 	}
 
 	// Update dapp core.
@@ -102,45 +98,4 @@ func (cmd *updateCmd) rollback(conf *config, logger log.Logger) {
 	for i := len(cmd.rollbackFuncs) - 1; i >= 0; i-- {
 		cmd.rollbackFuncs[i](conf, logger)
 	}
-}
-
-func dbParamsFromConfig(configFile string) (*data.DB, error) {
-	read, err := os.Open(configFile)
-	if err != nil {
-		return nil, err
-	}
-	defer read.Close()
-
-	jsonMap := make(map[string]interface{})
-
-	json.NewDecoder(read).Decode(&jsonMap)
-
-	db, ok := jsonMap["DB"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("DB params not found")
-	}
-	conn, ok := db["Conn"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("Conn params not found")
-	}
-
-	res := data.NewConfig()
-
-	if dbname, ok := conn["dbname"]; ok {
-		res.DBName = dbname.(string)
-	}
-
-	if user, ok := conn["user"]; ok {
-		res.User = user.(string)
-	}
-
-	if pwd, ok := conn["password"]; ok {
-		res.Password = pwd.(string)
-	}
-
-	if port, ok := conn["port"]; ok {
-		res.Port = port.(string)
-	}
-
-	return res, nil
 }

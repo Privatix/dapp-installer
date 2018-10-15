@@ -1,13 +1,14 @@
 package dbengine
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
@@ -76,13 +77,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 		os.MkdirAll(dataPath, util.FullPermission)
 	}
 
-	u, err := user.Current()
-	if err != nil {
-		ch <- true
-		return err
-	}
-
-	util.GrantAccess(installPath, u.Username)
+	util.GrantAccess(installPath)
 
 	fileName := filepath.Join(installPath, `pgsql/bin/initdb`)
 	cmd := exec.Command(fileName, "-E UTF8", "-D", dataPath)
@@ -95,14 +90,19 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
-	err = configDBEngine(pgconf, engine.DB.Port)
-
-	// start service
-	err = startService(installPath, u.Username)
+	err := configDBEngine(pgconf, engine.DB.Port)
 	if err != nil {
 		ch <- true
 		return err
 	}
+
+	// start service
+	err = engine.Start(installPath)
+	if err != nil {
+		ch <- true
+		return err
+	}
+	logger.Info("service was successfully started")
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
 	if err := exec.Command(fileName, "-p", engine.DB.Port,
@@ -137,10 +137,40 @@ func (engine *DBEngine) Remove(installPath string, logger log.Logger) error {
 
 // Start starts the DB engine.
 func (engine *DBEngine) Start(installPath string) error {
-	return startService(installPath, engine.DB.User)
+	if err := startService(installPath); err != nil {
+		return err
+	}
+	return engine.checkRunning()
 }
 
 // Stop stops the DB engine.
 func (engine *DBEngine) Stop(installPath string) error {
 	return stopService(installPath)
+}
+
+// Hash returns db engine service unique ID.
+func Hash(installPath string) string {
+	hash := util.Hash(installPath)
+	return fmt.Sprintf("dapp_db_%s", hash)
+}
+
+func (engine *DBEngine) checkRunning() error {
+	done := make(chan bool)
+	go func() {
+		for {
+			p, _ := util.FreePort(engine.DB.Host, engine.DB.Port)
+			if p != engine.DB.Port {
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(util.Timeout):
+		return errors.New("failed to stopped services. timeout expired")
+	}
 }

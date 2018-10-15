@@ -19,7 +19,7 @@ func getRemoveCmd() *removeCmd {
 
 func removeProcessedFlags(conf *config, logger log.Logger) bool {
 	h := flag.Bool("help", false, "Display dapp-installer help")
-	r := flag.String("role", "", "Dapps role")
+	p := flag.String("workdir", ".", "Dapp install directory")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -28,13 +28,7 @@ func removeProcessedFlags(conf *config, logger log.Logger) bool {
 		return true
 	}
 
-	if r == nil || *r == "" {
-		logger.Warn("role parameter is empty")
-		fmt.Println("role parameter is empty")
-		return true
-	}
-
-	conf.Dapp.UserRole = *r
+	conf.Dapp.SetInstallPath(*p)
 	return false
 }
 
@@ -47,9 +41,9 @@ func (cmd *removeCmd) execute(conf *config, log log.Logger) error {
 	logger.Info("start process")
 	defer logger.Info("finish process")
 
-	existDapp, ok := existingDapp(conf.Dapp.UserRole, logger)
+	existDapp, ok := existingDapp(conf.Dapp.InstallPath, logger)
 	if !ok {
-		msg := fmt.Sprintf("dapp (%s) is not found", conf.Dapp.UserRole)
+		msg := fmt.Sprintf("dapp is not found at %s", conf.Dapp.InstallPath)
 		fmt.Println(msg)
 		logger.Warn(msg)
 		return nil
@@ -85,7 +79,7 @@ Usage:
 	dapp-installer remove [flags]
 
 Flags:
-	--help	Display help information
-	--role	Dapp for selected role will be removed
+	--help		Display help information
+	--workdir	Dapp install directory
 `)
 }

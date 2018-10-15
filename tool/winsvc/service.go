@@ -3,9 +3,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -228,35 +226,15 @@ func exePath() (string, error) {
 	return "", err
 }
 
-func runServiceCommand(conf *serviceConfig, logger log.Logger, file *os.File) {
+func runServiceCommand(conf *serviceConfig, logger log.Logger) {
 	cmd := exec.Command(conf.Command, conf.Args...)
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		logger.Error(fmt.Sprintf("failed to create stderrpipe: %v", err))
-		return
-	}
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		logger.Error(fmt.Sprintf("failed to create stdoutpipe: %v", err))
-		return
-	}
-
-	writer := bufio.NewWriter(file)
-	defer writer.Flush()
-
-	logger.Info("starting child process")
 	if err := cmd.Start(); err != nil {
 		logger.Error(fmt.Sprintf("failed to start child process: %v", err))
 		return
 	}
 	conf.service.pid = cmd.Process
 
-	go io.Copy(writer, stdout)
-	go io.Copy(writer, stderr)
-
 	if err := cmd.Wait(); err != nil {
 		logger.Error(fmt.Sprintf("failed to wait child process: %v", err))
-		return
 	}
 }

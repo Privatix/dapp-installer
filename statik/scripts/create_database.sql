@@ -7,6 +7,6 @@ SET client_min_messages = warning;
 
 DROP DATABASE IF EXISTS dappctrl;
 
-CREATE DATABASE dappctrl WITH TEMPLATE = template0 ENCODING = 'UTF8' --LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
+CREATE DATABASE dappctrl WITH TEMPLATE = template0 ENCODING = 'UTF8'
 
 ALTER DATABASE dappctrl OWNER TO postgres;

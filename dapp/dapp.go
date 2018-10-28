@@ -35,8 +35,8 @@ type InstallerEntity struct {
 	Settings      map[string]interface{}
 }
 
-// NewConfig creates a default Dapp configuration.
-func NewConfig() *Dapp {
+// NewDapp creates a default Dapp configuration.
+func NewDapp() *Dapp {
 	return &Dapp{
 		Role: "agent",
 		Path: ".",
@@ -182,13 +182,13 @@ func (d *Dapp) Remove() error {
 	return nil
 }
 
-func (d Dapp) controllerHash() string {
+func (d *Dapp) controllerHash() string {
 	hash := util.Hash(d.Path)
 	return fmt.Sprintf("dapp_ctrl_%s", hash)
 }
 
 // Exists returns existing dapp in the host.
-func (d Dapp) Exists() error {
+func (d *Dapp) Exists() error {
 	dappCtrl := filepath.Join(d.Path, "dappctrl")
 	if _, err := os.Stat(dappCtrl); os.IsNotExist(err) {
 		return err

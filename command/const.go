@@ -1,17 +1,25 @@
 package command
 
+// status constants
+const (
+	status  = "\t%20s:\t%s\n"
+	success = "[OK]"
+	failed  = "[FAILED]"
+)
+
 const rootHelp = `
 Usage:
   dapp-installer [command] [flags]
 
 Available Commands:
-  install     Install dapp core
-  update      Update dapp core
-  remove      Remove dapp core
+	install		Install dapp core
+	update		Update dapp core
+	remove		Remove dapp core
+	status		Display dapp installation info
 
 Flags:
-  --help      Display help information
-  --version   Display the current version of this CLI
+	--help		Display help information
+	--version	Display the current version of this CLI
 
 Use "dapp-installer [command] --help" for more information about a command.
 `
@@ -46,4 +54,13 @@ Flags:
 	--workdir	Dapp install directory
 	--source	Dapp install source
 	--help		Display help information
+`
+
+const statusHelp = `
+Usage:
+	dapp-installer status [flags]
+
+Flags:
+	--help		Display help information
+	--workdir	Dapp install directory
 `

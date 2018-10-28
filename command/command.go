@@ -29,6 +29,9 @@ func Execute(logger log.Logger, version func(), args []string) {
 	case "remove":
 		logger.Info("remove process")
 		flow = removeFlow()
+	case "status":
+		logger.Info("status process")
+		flow = statusFlow()
 	case "help":
 		fmt.Println(rootHelp)
 		return
@@ -37,7 +40,7 @@ func Execute(logger log.Logger, version func(), args []string) {
 		return
 	}
 
-	d := dapp.NewConfig()
+	d := dapp.NewDapp()
 
 	if err := flow.Run(d, logger); err != nil {
 		logger.Error(fmt.Sprintf("%v", err))
@@ -63,7 +66,7 @@ func updateFlow() pipeline.Flow {
 		newOperator("processed flags", processedUpdateFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("init temp", initTemp, removeTemp),
-		newOperator("update", install, nil),
+		newOperator("update", update, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
 }
@@ -75,5 +78,12 @@ func removeFlow() pipeline.Flow {
 		newOperator("stop services", stopServices, nil),
 		newOperator("remove services", removeServices, nil),
 		newOperator("remove dapp", removeDapp, nil),
+	}
+}
+
+func statusFlow() pipeline.Flow {
+	return pipeline.Flow{
+		newOperator("processed flags", processedStatusFlags, nil),
+		newOperator("print status", printStatus, nil),
 	}
 }

@@ -24,6 +24,7 @@ func newService() *service {
 	}
 }
 
+// Configurate configurates installed dapp.
 func (d *Dapp) Configurate() error {
 	if err := d.modifyDappConfig(); err != nil {
 		return err

@@ -11,6 +11,7 @@ import (
 	dapputil "github.com/privatix/dappctrl/util"
 
 	"github.com/privatix/dapp-installer/dapp"
+	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -36,18 +37,7 @@ func processedUpdateFlags(d *dapp.Dapp) error {
 }
 
 func processedRemoveFlags(d *dapp.Dapp) error {
-	h := flag.Bool("help", false, "Display dapp-installer help")
-	p := flag.String("workdir", ".", "Dapp install directory")
-
-	flag.CommandLine.Parse(os.Args[2:])
-
-	if *h {
-		fmt.Println(removeHelp)
-		os.Exit(0)
-	}
-
-	d.Path = *p
-	return nil
+	return processedWorkFlags(d, removeHelp)
 }
 
 func processedCommonFlags(d *dapp.Dapp, help string) error {
@@ -238,5 +228,63 @@ func removeDapp(d *dapp.Dapp) error {
 	if err := d.Remove(); err != nil {
 		return fmt.Errorf("failed to remove folder: %v", err)
 	}
+	return nil
+}
+
+func processedStatusFlags(d *dapp.Dapp) error {
+	return processedWorkFlags(d, statusHelp)
+}
+
+func printStatus(d *dapp.Dapp) error {
+	if err := validatePath(d); err != nil {
+		return err
+	}
+
+	fmt.Printf("installation status checking at `%v`:\n", d.Path)
+
+	v := filepath.VolumeName(d.Path)
+
+	result := success
+
+	if err := util.CheckSystemPrerequisites(v); err != nil {
+		result = failed
+	}
+
+	fmt.Printf(status, "system prerequisites", result)
+
+	if err := d.Exists(); err != nil {
+		fmt.Printf(status, "dapp exists", failed)
+		fmt.Printf(status, "error", err)
+		return nil
+	}
+
+	fmt.Printf(status, "dapp exists", success)
+	fmt.Printf(status, "dapp path", d.Path)
+	fmt.Printf(status, "dapp version", d.Version)
+	fmt.Printf(status, "dapp role", d.Role)
+	fmt.Printf(status, "dapp ctrl", d.Controller.Service.ID)
+	fmt.Printf(status, "dapp db", dbengine.Hash(d.Path))
+
+	fmt.Printf(status, "db host", d.DBEngine.DB.Host)
+	fmt.Printf(status, "db name", d.DBEngine.DB.DBName)
+	fmt.Printf(status, "db port", d.DBEngine.DB.Port)
+	fmt.Printf(status, "db user", d.DBEngine.DB.User)
+	fmt.Printf(status, "db password", d.DBEngine.DB.Password)
+
+	return nil
+}
+
+func processedWorkFlags(d *dapp.Dapp, help string) error {
+	h := flag.Bool("help", false, "Display dapp-installer help")
+	p := flag.String("workdir", ".", "Dapp install directory")
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if *h {
+		fmt.Println(help)
+		os.Exit(0)
+	}
+
+	d.Path = *p
 	return nil
 }

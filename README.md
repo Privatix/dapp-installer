@@ -52,6 +52,7 @@ Usage:
    install     Install dapp core
    update      Update dapp core
    remove      Remove dapp core
+   status      Display dapp installation info
  
  Flags:
    --help      Display help information

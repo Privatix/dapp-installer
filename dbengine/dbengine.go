@@ -98,15 +98,13 @@ func (engine *DBEngine) Install(installPath string) error {
 	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
-	err := configDBEngine(pgconf, engine.DB.Port)
-	if err != nil {
+	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
 		ch <- true
 		return err
 	}
 
 	// start service
-	err = engine.Start(installPath)
-	if err != nil {
+	if err := engine.Start(installPath); err != nil {
 		ch <- true
 		return err
 	}

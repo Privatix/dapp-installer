@@ -11,7 +11,6 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 func setConfigurationValues(jsonMap map[string]interface{},
@@ -34,7 +33,7 @@ func setConfigurationValues(jsonMap map[string]interface{},
 	return nil
 }
 
-func setDynamicPorts(configFile string, logger log.Logger) error {
+func setDynamicPorts(configFile string) error {
 	read, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
@@ -70,7 +69,6 @@ func setDynamicPorts(configFile string, logger log.Logger) error {
 			fmt.Sprintf(":%s", port), -1)
 		contents = strings.Replace(contents, addr.Address,
 			newAddress, -1)
-		logger.Info(fmt.Sprintf("%s -> %s", addr.Address, newAddress))
 	}
 	return ioutil.WriteFile(configFile, []byte(contents), 0)
 }

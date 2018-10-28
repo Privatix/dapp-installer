@@ -12,7 +12,6 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 // DBEngine has a db engine configuration.
@@ -65,11 +64,20 @@ func (engine DBEngine) databaseInit(fileName string) error {
 }
 
 // Install installs a DB engine.
-func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
+func (engine *DBEngine) Install(installPath string) error {
 	// install db engine
 	ch := make(chan bool)
 	defer close(ch)
-	go util.InteractiveWorker("Installation DB Engine", ch)
+	go util.InteractiveWorker("installation db engine", ch)
+
+	// installs run-time components (the Visual C++ Redistributable Packages
+	// for VS 2013) that are required to run postgresql database engine.
+	vcredist := filepath.Join(installPath, "util/vcredist_x64.exe")
+	args := []string{"/install", "/quiet", "/norestart"}
+	if err := util.ExecuteCommand(vcredist, args); err != nil {
+		ch <- true
+		return err
+	}
 
 	// init db
 	dataPath := filepath.Join(installPath, `pgsql/data`)
@@ -102,7 +110,6 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 		ch <- true
 		return err
 	}
-	logger.Info("service was successfully started")
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
 	if err := exec.Command(fileName, "-p", engine.DB.Port,
@@ -112,8 +119,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	}
 
 	ch <- true
-	fmt.Printf("\r%s\n", "DB Engine successfully installed")
-	logger.Info("dbengine successfully installed")
+	fmt.Printf("\r%s\n", "db engine was successfully installed")
 
 	return nil
 }
@@ -131,7 +137,7 @@ func configDBEngine(pgconf, port string) error {
 }
 
 // Remove removes the DB engine.
-func (engine *DBEngine) Remove(installPath string, logger log.Logger) error {
+func (engine *DBEngine) Remove(installPath string) error {
 	return removeService(installPath)
 }
 

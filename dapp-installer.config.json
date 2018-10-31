@@ -1,7 +1,5 @@
 {
-    "Dapp": {
-        "UserRole" : "agent",
-        "InstallPath" : "/Users/bozov/Desktop/DappTest/agent",
-        "Source":"/Users/bozov/Desktop/Dapp/mac/dapp_mac.zip"
-    }
+    "Role" : "agent",
+    "Path" : "/Users/bozov/Desktop/DappTest/agent",
+    "Source":"/Users/bozov/Desktop/Dapp/mac/dapp_mac.zip"
  }

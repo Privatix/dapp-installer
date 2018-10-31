@@ -3,12 +3,12 @@
 package dapp
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/unix"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 type service struct {
@@ -24,43 +24,35 @@ func newService() *service {
 	}
 }
 
-func (d *Dapp) configurateController(logger log.Logger) error {
-	if err := d.modifyDappConfig(logger); err != nil {
+// Configurate configurates installed dapp.
+func (d *Dapp) Configurate() error {
+	if err := d.modifyDappConfig(); err != nil {
 		return err
 	}
 
-	logger.Info("create daemon")
 	ctrl := d.Controller
 
 	ctrl.Service.ID = d.controllerHash()
 
-	ctrl.Service.Command = filepath.Join(d.InstallPath, ctrl.EntryPoint)
+	ctrl.Service.Command = filepath.Join(d.Path, ctrl.EntryPoint)
 	ctrl.Service.Args = []string{
-		"-config", filepath.Join(d.InstallPath, ctrl.Configuration)}
+		"-config", filepath.Join(d.Path, ctrl.Configuration)}
 
 	if err := ctrl.Service.Install(); err != nil {
-		logger.Warn("failed to install daemon:" + ctrl.Service.ID)
-		return err
+		return fmt.Errorf("failed to install daemon: %v", err)
 	}
-	logger.Info("start daemon")
 	if err := ctrl.Service.Start(); err != nil {
 		// retry attempt to start service
 		if err := ctrl.Service.Start(); err != nil {
-			logger.Warn("failed to start daemon:" + ctrl.Service.ID)
-			return err
+			return fmt.Errorf("failed to start daemon: %v", err)
 		}
 	}
 
 	_, installer := filepath.Split(os.Args[0])
-	return util.CopyFile(os.Args[0],
-		filepath.Join(d.InstallPath, installer))
+	return util.CopyFile(os.Args[0], filepath.Join(d.Path, installer))
 }
 
-func (d *Dapp) prepareToInstall(logger log.Logger) error {
-	return nil
-}
-
-func (d *Dapp) removeFinalize(logger log.Logger) error {
+func (d *Dapp) removeFinalize() error {
 	return nil
 }
 

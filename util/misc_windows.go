@@ -14,35 +14,30 @@ import (
 	"unsafe"
 
 	"github.com/lxn/win"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 // MinWindowsVersion is supported min windows version (Windows7 and newer)
 const MinWindowsVersion byte = 6
 
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
+func CheckSystemPrerequisites(volume string) error {
 	if runtime.GOOS != "windows" {
-		logger.Warn("software install only to Windows platform")
-		return false
+		return fmt.Errorf("software install only to Windows platform")
 	}
 
 	if !checkWindowsVersion() {
-		logger.Warn("Windows version does not meet the requirements")
-		return false
+		return fmt.Errorf("Windows version does not meet the requirements")
 	}
 
 	if !checkMemory() {
-		logger.Warn("RAM does not meet the requirements")
-		return false
+		return fmt.Errorf("RAM does not meet the requirements")
 	}
 
 	if !checkStorage(volume) {
-		logger.Warn("available size of disk does not meet the requirements")
-		return false
+		return fmt.Errorf("available size of disk does not meet the requirements")
 	}
 
-	return true
+	return nil
 }
 
 func checkWindowsVersion() bool {

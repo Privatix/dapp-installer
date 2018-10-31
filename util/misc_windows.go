@@ -12,8 +12,6 @@ import (
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
-
-	"github.com/lxn/win"
 )
 
 // MinWindowsVersion is supported min windows version (Windows7 and newer)
@@ -41,9 +39,10 @@ func CheckSystemPrerequisites(volume string) error {
 }
 
 func checkWindowsVersion() bool {
-	v := win.GetVersion()
-	major := byte(v)
-	return major >= MinWindowsVersion
+	h := syscall.MustLoadDLL("kernel32.dll")
+	c := h.MustFindProc("GetVersion")
+	r, _, _ := c.Call()
+	return byte(r) >= MinWindowsVersion
 }
 
 func checkStorage(volume string) bool {
@@ -57,9 +56,25 @@ func checkStorage(volume string) bool {
 }
 
 func checkMemory() bool {
-	var totalMemoryInKilobytes uint64
-	win.GetPhysicallyInstalledSystemMemory(&totalMemoryInKilobytes)
-	return totalMemoryInKilobytes*1024 > MinMemorySize
+	h := syscall.MustLoadDLL("kernel32.dll")
+	c := h.MustFindProc("GlobalMemoryStatusEx")
+
+	type memoryStatus struct {
+		Length               uint32
+		MemoryLoad           uint32
+		TotalPhys            uint64
+		AvailPhys            uint64
+		TotalPageFile        uint64
+		AvailPageFile        uint64
+		TotalVirtual         uint64
+		AvailVirtual         uint64
+		AvailExtendedVirtual uint64
+	}
+
+	var buf memoryStatus
+	buf.Length = uint32(unsafe.Sizeof(buf))
+	c.Call(uintptr(unsafe.Pointer(&buf)))
+	return buf.TotalPhys >= MinMemorySize
 }
 
 // GrantAccess grants access to directory.

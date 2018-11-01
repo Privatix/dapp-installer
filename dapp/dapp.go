@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/tor"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -24,6 +25,7 @@ type Dapp struct {
 	TempPath   string
 	BackupPath string
 	Version    string
+	Tor        *tor.Tor
 }
 
 // InstallerEntity has a config for install entity.
@@ -51,6 +53,7 @@ func NewDapp() *Dapp {
 			Shortcuts:  true,
 		},
 		DBEngine: dbengine.NewConfig(),
+		Tor:      tor.NewTor(),
 	}
 }
 

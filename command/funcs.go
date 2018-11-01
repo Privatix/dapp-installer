@@ -288,3 +288,21 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	d.Path = *p
 	return nil
 }
+
+func installTor(d *dapp.Dapp) error {
+	if err := d.Tor.Install(d.Path); err != nil {
+		return fmt.Errorf("failed to install tor: %v", err)
+	}
+
+	return nil
+}
+
+func removeTor(d *dapp.Dapp) error {
+	d.Tor.Stop(d.Path)
+
+	if err := d.Tor.Remove(d.Path); err != nil {
+		return fmt.Errorf("failed to remove tor: %v", err)
+	}
+
+	return nil
+}

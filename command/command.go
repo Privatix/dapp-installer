@@ -56,6 +56,7 @@ func installFlow() pipeline.Flow {
 		newOperator("validate", validateToInstall, nil),
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("extract", extract, removeDapp),
+		newOperator("install tor", installTor, removeTor),
 		newOperator("install", install, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
@@ -77,6 +78,7 @@ func removeFlow() pipeline.Flow {
 		newOperator("validate", checkInstallation, nil),
 		newOperator("stop services", stopServices, nil),
 		newOperator("remove services", removeServices, nil),
+		newOperator("remove tor", removeTor, nil),
 		newOperator("remove dapp", removeDapp, nil),
 	}
 }

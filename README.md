@@ -15,28 +15,34 @@ Install [Golang](https://golang.org/doc/install). Make sure that `$GOPATH/bin` i
 Clone the `dapp-installer` repository using git:
 
 ```bash
-git clone https://github.com/Privatix/dapp-installer.git
+git clone https://github.com/privatix/dapp-installer.git
 cd dapp-installer
 git checkout master
+```
+
+Prepare to build:
+
+```bash
+go get -d github.com/privatix/dapp-installer/...
+go get -u github.com/rakyll/statik
+```
+
+**Windows** platform:
+
+```
+go get -u github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 ```
 
 Build `dapp-installer` package:
 
 ```bash
-git clone https://github.com/Privatix/dapp-installer.git
-cd dapp-installer
-
-go get -d github.com/Privatix/dapp-installer
-go get -u github.com/rakyll/statik
-```
-
-#### Windows platform
-
-```bash
-go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
-
 go generate ./...
-``` 
+
+GIT_COMMIT=$(git rev-list -1 HEAD)
+GIT_RELEASE=$(git tag -l --points-at HEAD)
+
+go build -ldflags "-X main.Commit=$GIT_COMMIT -X main.Version=$GIT_RELEASE"
+```
 
 # Usage
 

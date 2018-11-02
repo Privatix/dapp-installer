@@ -24,6 +24,10 @@ func newService() *service {
 	}
 }
 
+func (d *Dapp) controllerHash() string {
+	return fmt.Sprintf("ctrl_%s", util.Hash(d.Path))
+}
+
 // Configurate configurates installed dapp.
 func (d *Dapp) Configurate() error {
 	if err := d.modifyDappConfig(); err != nil {

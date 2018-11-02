@@ -4,10 +4,18 @@ package dbengine
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/privatix/dapp-installer/util"
 )
+
+// Hash returns db engine service unique ID.
+func Hash(path string) string {
+	return fmt.Sprintf("Privatix DB %s", util.Hash(path))
+}
 
 func runService(service string) error {
 	checkServiceCmd := exec.Command("sc", "queryex", service)

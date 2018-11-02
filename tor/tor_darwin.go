@@ -7,8 +7,8 @@ import (
 	"github.com/privatix/dapp-installer/util"
 )
 
-func serviceName(path string) string {
-	return "tor_" + util.Hash(path)
+func (t Tor) serviceName() string {
+	return "tor_" + util.Hash(t.RootPath)
 }
 
 func installService(daemon, path string) error {

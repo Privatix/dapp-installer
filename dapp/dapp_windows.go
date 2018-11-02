@@ -26,6 +26,10 @@ func newService() *service {
 	}
 }
 
+func (d *Dapp) controllerHash() string {
+	return fmt.Sprintf("Privatix Controller %s", util.Hash(d.Path))
+}
+
 func (d *Dapp) createShortcut() {
 	target := filepath.Join(d.Path, d.Gui.EntryPoint)
 	gui := path.Base(d.Gui.EntryPoint)

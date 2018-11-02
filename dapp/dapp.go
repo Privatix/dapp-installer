@@ -185,11 +185,6 @@ func (d *Dapp) Remove() error {
 	return nil
 }
 
-func (d *Dapp) controllerHash() string {
-	hash := util.Hash(d.Path)
-	return fmt.Sprintf("dapp_ctrl_%s", hash)
-}
-
 // Exists returns existing dapp in the host.
 func (d *Dapp) Exists() error {
 	dappCtrl := filepath.Join(d.Path, "dappctrl")
@@ -229,6 +224,11 @@ func (d *Dapp) merge(s *Dapp) error {
 	// Copy data.
 	util.CopyDir(filepath.Join(s.Path, "pgsql/data"),
 		filepath.Join(d.Path, "pgsql/data"))
+	// Copy tor settings.
+	util.CopyDir(filepath.Join(s.Path, "tor/settings"),
+		filepath.Join(d.Path, "tor/settings"))
+	util.CopyDir(filepath.Join(s.Path, s.Tor.HiddenServiceDir),
+		filepath.Join(d.Path, d.Tor.HiddenServiceDir))
 
 	// Merge dappctrl config.
 	dstConfig := filepath.Join(d.Path, d.Controller.Configuration)

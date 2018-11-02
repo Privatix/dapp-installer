@@ -8,8 +8,8 @@ import (
 	"github.com/privatix/dapp-installer/util"
 )
 
-func serviceName(path string) string {
-	return "Privatix Tor " + util.Hash(path)
+func (t Tor) serviceName() string {
+	return "Privatix Tor " + util.Hash(t.RootPath)
 }
 
 func installService(service, path string) error {

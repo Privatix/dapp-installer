@@ -152,12 +152,6 @@ func (engine *DBEngine) Stop(installPath string) error {
 	return stopService(installPath)
 }
 
-// Hash returns db engine service unique ID.
-func Hash(installPath string) string {
-	hash := util.Hash(installPath)
-	return fmt.Sprintf("dapp_db_%s", hash)
-}
-
 func (engine *DBEngine) checkRunning() error {
 	done := make(chan bool)
 	go func() {

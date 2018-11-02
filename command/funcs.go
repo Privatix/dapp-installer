@@ -277,7 +277,7 @@ func printStatus(d *dapp.Dapp) error {
 
 func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
-	p := flag.String("workdir", ".", "Dapp install directory")
+	p := flag.String("workdir", "", "Dapp install directory")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -286,6 +286,9 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 		os.Exit(0)
 	}
 
+	if len(*p) == 0 {
+		*p = filepath.Dir(os.Args[0])
+	}
 	d.Path = *p
 	return nil
 }

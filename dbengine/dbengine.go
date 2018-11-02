@@ -70,11 +70,7 @@ func (engine *DBEngine) Install(installPath string) error {
 	defer close(ch)
 	go util.InteractiveWorker("installation db engine", ch)
 
-	// installs run-time components (the Visual C++ Redistributable Packages
-	// for VS 2013) that are required to run postgresql database engine.
-	vcredist := filepath.Join(installPath, "util/vcredist_x64.exe")
-	args := []string{"/install", "/quiet", "/norestart"}
-	if err := util.ExecuteCommand(vcredist, args); err != nil {
+	if err := prepareToInstall(installPath); err != nil {
 		ch <- true
 		return err
 	}

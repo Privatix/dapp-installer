@@ -8,7 +8,8 @@ import (
 	"github.com/privatix/dapp-installer/util"
 )
 
-func (t Tor) serviceName() string {
+// ServiceName returns tor service name.
+func (t Tor) ServiceName() string {
 	return "Privatix Tor " + util.Hash(t.RootPath)
 }
 

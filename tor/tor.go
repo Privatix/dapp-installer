@@ -113,23 +113,23 @@ func (t *Tor) Install() error {
 		return err
 	}
 
-	return installService(t.serviceName(), t.RootPath)
+	return installService(t.ServiceName(), t.RootPath)
 }
 
 // Start starts tor process.
 func (t *Tor) Start() error {
-	return startService(t.serviceName())
+	return startService(t.ServiceName())
 }
 
 // Stop stops tor process.
 func (t *Tor) Stop() error {
-	if util.IsServiceStopped(t.serviceName()) {
+	if util.IsServiceStopped(t.ServiceName()) {
 		return nil
 	}
-	return stopService(t.serviceName())
+	return stopService(t.ServiceName())
 }
 
 // Remove removes tor process.
 func (t *Tor) Remove() error {
-	return removeService(t.serviceName())
+	return removeService(t.ServiceName())
 }

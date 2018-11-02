@@ -36,3 +36,7 @@ func removeService(installPath string) error {
 func stopService(installPath string) error {
 	return unix.NewDaemon(Hash(installPath)).Stop()
 }
+
+func prepareToInstall(installPath string) error {
+	return nil
+}

@@ -272,6 +272,9 @@ func printStatus(d *dapp.Dapp) error {
 	fmt.Printf(status, "db user", d.DBEngine.DB.User)
 	fmt.Printf(status, "db password", d.DBEngine.DB.Password)
 
+	fmt.Printf(status, "dapp tor", d.Tor.ServiceName())
+	fmt.Printf(status, "tor name", d.Tor.Hostname)
+
 	return nil
 }
 

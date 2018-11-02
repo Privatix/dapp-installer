@@ -7,7 +7,8 @@ import (
 	"github.com/privatix/dapp-installer/util"
 )
 
-func (t Tor) serviceName() string {
+// ServiceName returns tor daemon name.
+func (t Tor) ServiceName() string {
 	return "tor_" + util.Hash(t.RootPath)
 }
 

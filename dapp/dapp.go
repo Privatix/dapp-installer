@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -152,6 +153,8 @@ func (d *Dapp) modifyDappConfig() error {
 	settings := d.Controller.Settings
 
 	settings["Role"] = d.Role
+	settings["TorHostname"] = d.Tor.Hostname
+	settings["TorSocksListener"] = d.Tor.SocksPort
 	settings["FileLog.Filename"] = filepath.Join(d.Path,
 		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
@@ -197,9 +200,7 @@ func (d *Dapp) Exists() error {
 		return err
 	}
 
-	configFile := filepath.Join(d.Path, d.Controller.Configuration)
-	role, db, err := roleAndDBConnFromConfig(configFile)
-	if err != nil {
+	if err := d.fromConfig(); err != nil {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
@@ -208,9 +209,6 @@ func (d *Dapp) Exists() error {
 	hash := d.controllerHash()
 	d.Controller.Service.ID = hash
 	d.Controller.Service.GUID = filepath.Join(dappCtrl, hash)
-
-	d.Role = role
-	d.DBEngine.DB = db
 
 	return nil
 }
@@ -261,4 +259,59 @@ func (d *Dapp) Stop(ch chan bool) {
 		break
 	}
 	ch <- true
+}
+
+func (d *Dapp) fromConfig() error {
+	configFile := filepath.Join(d.Path, d.Controller.Configuration)
+	read, err := os.Open(configFile)
+	if err != nil {
+		return err
+	}
+	defer read.Close()
+
+	jsonMap := make(map[string]interface{})
+
+	json.NewDecoder(read).Decode(&jsonMap)
+
+	db, ok := jsonMap["DB"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("DB params not found")
+	}
+	conn, ok := db["Conn"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Conn params not found")
+	}
+
+	if dbname, ok := conn["dbname"]; ok {
+		d.DBEngine.DB.DBName = dbname.(string)
+	}
+
+	if user, ok := conn["user"]; ok {
+		d.DBEngine.DB.User = user.(string)
+	}
+
+	if pwd, ok := conn["password"]; ok {
+		d.DBEngine.DB.Password = pwd.(string)
+	}
+
+	if port, ok := conn["port"]; ok {
+		d.DBEngine.DB.Port = port.(string)
+	}
+
+	if hostname, ok := jsonMap["TorHostname"]; ok {
+		d.Tor.Hostname = hostname.(string)
+	}
+
+	if port, ok := jsonMap["TorSocksListener"]; ok {
+		d.Tor.SocksPort, _ = strconv.Atoi(fmt.Sprintf("%v", port))
+	}
+
+	role, ok := jsonMap["Role"]
+	if !ok {
+		return fmt.Errorf("Role not found")
+	}
+
+	d.Role = role.(string)
+
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -97,4 +98,10 @@ func IsServiceStopped(service string) bool {
 		return false
 	}
 	return strings.Contains(checkServiceStdOut.String(), "STOPPED")
+}
+
+// DesktopPath returns windows desktop path.
+func DesktopPath() string {
+	u, _ := user.Current()
+	return filepath.Join(u.HomeDir, "Desktop")
 }

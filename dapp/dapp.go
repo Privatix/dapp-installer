@@ -33,7 +33,7 @@ type Dapp struct {
 type InstallerEntity struct {
 	EntryPoint    string
 	Configuration string
-	Shortcuts     bool
+	Symlink       bool
 	Service       *service
 	Settings      map[string]interface{}
 }
@@ -51,7 +51,7 @@ func NewDapp() *Dapp {
 		},
 		Gui: &InstallerEntity{
 			EntryPoint: "dappgui/dapp-gui",
-			Shortcuts:  true,
+			Symlink:    true,
 		},
 		DBEngine: dbengine.NewConfig(),
 		Tor:      tor.NewTor(),
@@ -152,9 +152,9 @@ func (d *Dapp) modifyDappConfig() error {
 
 	settings := d.Controller.Settings
 
-	settings["Role"] = d.Role
-	settings["TorHostname"] = d.Tor.Hostname
-	settings["TorSocksListener"] = d.Tor.SocksPort
+	settings[role] = d.Role
+	settings[torHostname] = d.Tor.Hostname
+	settings[torSocksListener] = d.Tor.SocksPort
 	settings["FileLog.Filename"] = filepath.Join(d.Path,
 		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
@@ -179,7 +179,12 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	d.removeFinalize()
+	if d.Gui.Symlink {
+		linkName := path.Base(d.Gui.EntryPoint)
+		link := filepath.Join(util.DesktopPath(),
+			fmt.Sprintf("%s %s", linkName, d.Role))
+		os.Remove(link)
+	}
 
 	if err := os.RemoveAll(d.Path); err != nil {
 		time.Sleep(10 * time.Second)
@@ -282,31 +287,31 @@ func (d *Dapp) fromConfig() error {
 		return fmt.Errorf("Conn params not found")
 	}
 
-	if dbname, ok := conn["dbname"]; ok {
+	if dbname, ok := conn[dbName]; ok {
 		d.DBEngine.DB.DBName = dbname.(string)
 	}
 
-	if user, ok := conn["user"]; ok {
+	if user, ok := conn[dbUser]; ok {
 		d.DBEngine.DB.User = user.(string)
 	}
 
-	if pwd, ok := conn["password"]; ok {
+	if pwd, ok := conn[dbPassword]; ok {
 		d.DBEngine.DB.Password = pwd.(string)
 	}
 
-	if port, ok := conn["port"]; ok {
+	if port, ok := conn[dbPort]; ok {
 		d.DBEngine.DB.Port = port.(string)
 	}
 
-	if hostname, ok := jsonMap["TorHostname"]; ok {
+	if hostname, ok := jsonMap[torHostname]; ok {
 		d.Tor.Hostname = hostname.(string)
 	}
 
-	if port, ok := jsonMap["TorSocksListener"]; ok {
+	if port, ok := jsonMap[torSocksListener]; ok {
 		d.Tor.SocksPort, _ = strconv.Atoi(fmt.Sprintf("%v", port))
 	}
 
-	role, ok := jsonMap["Role"]
+	role, ok := jsonMap[role]
 	if !ok {
 		return fmt.Errorf("Role not found")
 	}

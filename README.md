@@ -36,6 +36,8 @@ go get -u github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 Build `dapp-installer` package:
 
 ```bash
+curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+dep ensure
 go generate ./...
 
 GIT_COMMIT=$(git rev-list -1 HEAD)

@@ -7,9 +7,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/tor"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -24,13 +26,14 @@ type Dapp struct {
 	TempPath   string
 	BackupPath string
 	Version    string
+	Tor        *tor.Tor
 }
 
 // InstallerEntity has a config for install entity.
 type InstallerEntity struct {
 	EntryPoint    string
 	Configuration string
-	Shortcuts     bool
+	Symlink       bool
 	Service       *service
 	Settings      map[string]interface{}
 }
@@ -48,9 +51,10 @@ func NewDapp() *Dapp {
 		},
 		Gui: &InstallerEntity{
 			EntryPoint: "dappgui/dapp-gui",
-			Shortcuts:  true,
+			Symlink:    true,
 		},
 		DBEngine: dbengine.NewConfig(),
+		Tor:      tor.NewTor(),
 	}
 }
 
@@ -148,7 +152,9 @@ func (d *Dapp) modifyDappConfig() error {
 
 	settings := d.Controller.Settings
 
-	settings["Role"] = d.Role
+	settings[role] = d.Role
+	settings[torHostname] = d.Tor.Hostname
+	settings[torSocksListener] = d.Tor.SocksPort
 	settings["FileLog.Filename"] = filepath.Join(d.Path,
 		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
@@ -173,18 +179,18 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	d.removeFinalize()
+	if d.Gui.Symlink {
+		linkName := path.Base(d.Gui.EntryPoint)
+		link := filepath.Join(util.DesktopPath(),
+			fmt.Sprintf("%s %s", linkName, d.Role))
+		os.Remove(link)
+	}
 
 	if err := os.RemoveAll(d.Path); err != nil {
 		time.Sleep(10 * time.Second)
 		return os.RemoveAll(d.Path)
 	}
 	return nil
-}
-
-func (d *Dapp) controllerHash() string {
-	hash := util.Hash(d.Path)
-	return fmt.Sprintf("dapp_ctrl_%s", hash)
 }
 
 // Exists returns existing dapp in the host.
@@ -199,9 +205,7 @@ func (d *Dapp) Exists() error {
 		return err
 	}
 
-	configFile := filepath.Join(d.Path, d.Controller.Configuration)
-	role, db, err := roleAndDBConnFromConfig(configFile)
-	if err != nil {
+	if err := d.fromConfig(); err != nil {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
@@ -210,9 +214,6 @@ func (d *Dapp) Exists() error {
 	hash := d.controllerHash()
 	d.Controller.Service.ID = hash
 	d.Controller.Service.GUID = filepath.Join(dappCtrl, hash)
-
-	d.Role = role
-	d.DBEngine.DB = db
 
 	return nil
 }
@@ -226,6 +227,11 @@ func (d *Dapp) merge(s *Dapp) error {
 	// Copy data.
 	util.CopyDir(filepath.Join(s.Path, "pgsql/data"),
 		filepath.Join(d.Path, "pgsql/data"))
+	// Copy tor settings.
+	util.CopyDir(filepath.Join(s.Path, "tor/settings"),
+		filepath.Join(d.Path, "tor/settings"))
+	util.CopyDir(filepath.Join(s.Path, s.Tor.HiddenServiceDir),
+		filepath.Join(d.Path, d.Tor.HiddenServiceDir))
 
 	// Merge dappctrl config.
 	dstConfig := filepath.Join(d.Path, d.Controller.Configuration)
@@ -258,4 +264,59 @@ func (d *Dapp) Stop(ch chan bool) {
 		break
 	}
 	ch <- true
+}
+
+func (d *Dapp) fromConfig() error {
+	configFile := filepath.Join(d.Path, d.Controller.Configuration)
+	read, err := os.Open(configFile)
+	if err != nil {
+		return err
+	}
+	defer read.Close()
+
+	jsonMap := make(map[string]interface{})
+
+	json.NewDecoder(read).Decode(&jsonMap)
+
+	db, ok := jsonMap["DB"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("DB params not found")
+	}
+	conn, ok := db["Conn"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Conn params not found")
+	}
+
+	if dbname, ok := conn[dbName]; ok {
+		d.DBEngine.DB.DBName = dbname.(string)
+	}
+
+	if user, ok := conn[dbUser]; ok {
+		d.DBEngine.DB.User = user.(string)
+	}
+
+	if pwd, ok := conn[dbPassword]; ok {
+		d.DBEngine.DB.Password = pwd.(string)
+	}
+
+	if port, ok := conn[dbPort]; ok {
+		d.DBEngine.DB.Port = port.(string)
+	}
+
+	if hostname, ok := jsonMap[torHostname]; ok {
+		d.Tor.Hostname = hostname.(string)
+	}
+
+	if port, ok := jsonMap[torSocksListener]; ok {
+		d.Tor.SocksPort, _ = strconv.Atoi(fmt.Sprintf("%v", port))
+	}
+
+	role, ok := jsonMap[role]
+	if !ok {
+		return fmt.Errorf("Role not found")
+	}
+
+	d.Role = role.(string)
+
+	return nil
 }

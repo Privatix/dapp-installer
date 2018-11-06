@@ -223,7 +223,7 @@ func Unzip(src string, dest string) ([]string, error) {
 		filenames = append(filenames, fpath)
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(fpath, FullPermission)
+			os.MkdirAll(fpath, f.Mode())
 		} else {
 			if err := extractFile(fpath, rc, f); err != nil {
 				return filenames, err
@@ -234,12 +234,12 @@ func Unzip(src string, dest string) ([]string, error) {
 }
 
 func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
-	err := os.MkdirAll(filepath.Dir(fpath), FullPermission)
+	err := os.MkdirAll(filepath.Dir(fpath), f.Mode())
 	if err != nil {
 		return err
 	}
 	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		FullPermission)
+		f.Mode())
 	if err != nil {
 		return err
 	}

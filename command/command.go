@@ -56,6 +56,8 @@ func installFlow() pipeline.Flow {
 		newOperator("validate", validateToInstall, nil),
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("extract", extract, removeDapp),
+		newOperator("install tor", installTor, removeTor),
+		newOperator("start tor", startTor, stopTor),
 		newOperator("install", install, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
@@ -66,7 +68,9 @@ func updateFlow() pipeline.Flow {
 		newOperator("processed flags", processedUpdateFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("init temp", initTemp, removeTemp),
+		newOperator("stop tor", stopTor, startTor),
 		newOperator("update", update, nil),
+		newOperator("start tor", startTor, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
 }
@@ -76,7 +80,9 @@ func removeFlow() pipeline.Flow {
 		newOperator("processed flags", processedRemoveFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("stop services", stopServices, nil),
+		newOperator("stop tor", stopTor, nil),
 		newOperator("remove services", removeServices, nil),
+		newOperator("remove tor", removeTor, nil),
 		newOperator("remove dapp", removeDapp, nil),
 	}
 }

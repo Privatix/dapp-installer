@@ -54,3 +54,8 @@ func GrantAccess(path string) error {
 func IsServiceStopped(id string) bool {
 	return unix.NewDaemon(id).IsStopped()
 }
+
+// DesktopPath returns unix app path.
+func DesktopPath() string {
+	return "/Applications"
+}

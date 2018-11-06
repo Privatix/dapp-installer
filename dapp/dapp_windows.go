@@ -5,6 +5,7 @@ package dapp
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 
@@ -26,25 +27,27 @@ func newService() *service {
 	}
 }
 
-func (d *Dapp) createShortcut() {
-	target := filepath.Join(d.Path, d.Gui.EntryPoint)
-	gui := path.Base(d.Gui.EntryPoint)
-	extension := filepath.Ext(gui)
-	linkName := gui[0 : len(gui)-len(extension)]
-	link := filepath.Join(util.DesktopPath(),
-		fmt.Sprintf("%s-%s.lnk", linkName, d.Role))
+func (d *Dapp) controllerHash() string {
+	return fmt.Sprintf("Privatix Controller %s", util.Hash(d.Path))
+}
 
-	if len(extension) == 0 {
+func (d *Dapp) createSymlink() {
+	target := filepath.Join(d.Path, d.Gui.EntryPoint)
+	linkName := path.Base(d.Gui.EntryPoint)
+	link := filepath.Join(util.DesktopPath(),
+		fmt.Sprintf(`%s %s`, linkName, d.Role))
+
+	if len(filepath.Ext(linkName)) == 0 {
 		target += ".exe"
 	}
 
-	windows.CreateShortcut(target, "Privatix Dapp", "", link)
+	exec.Command("cmd", "/C", "mklink", link, target).Run()
 }
 
 // Configurate configurates installed dapp.
 func (d *Dapp) Configurate() error {
-	if d.Gui.Shortcuts {
-		d.createShortcut()
+	if d.Gui.Symlink {
+		d.createSymlink()
 	}
 
 	if err := d.modifyDappConfig(); err != nil {
@@ -75,19 +78,6 @@ func (d *Dapp) Configurate() error {
 		if err := ctrl.Service.Start(); err != nil {
 			return fmt.Errorf("failed to start service: %v", err)
 		}
-	}
-
-	return nil
-}
-
-func (d *Dapp) removeFinalize() error {
-	if d.Gui.Shortcuts {
-		gui := path.Base(d.Gui.EntryPoint)
-		extension := filepath.Ext(gui)
-		linkName := gui[0 : len(gui)-len(extension)]
-		link := filepath.Join(util.DesktopPath(),
-			fmt.Sprintf("%s-%s.lnk", linkName, d.Role))
-		os.Remove(link)
 	}
 
 	return nil

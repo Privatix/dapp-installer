@@ -81,6 +81,7 @@ func validatePath(d *dapp.Dapp) error {
 		return err
 	}
 	d.Path = filepath.ToSlash(strings.ToLower(path))
+	d.Tor.RootPath = d.Path
 	return nil
 }
 
@@ -271,12 +272,15 @@ func printStatus(d *dapp.Dapp) error {
 	fmt.Printf(status, "db user", d.DBEngine.DB.User)
 	fmt.Printf(status, "db password", d.DBEngine.DB.Password)
 
+	fmt.Printf(status, "dapp tor", d.Tor.ServiceName())
+	fmt.Printf(status, "tor name", d.Tor.Hostname)
+
 	return nil
 }
 
 func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
-	p := flag.String("workdir", ".", "Dapp install directory")
+	p := flag.String("workdir", "", "Dapp install directory")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -285,6 +289,40 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 		os.Exit(0)
 	}
 
+	if len(*p) == 0 {
+		*p = filepath.Dir(os.Args[0])
+	}
 	d.Path = *p
+	return nil
+}
+
+func installTor(d *dapp.Dapp) error {
+	if err := d.Tor.Install(); err != nil {
+		return fmt.Errorf("failed to install tor: %v", err)
+	}
+	return nil
+}
+
+func removeTor(d *dapp.Dapp) error {
+	if err := d.Tor.Remove(); err != nil {
+		return fmt.Errorf("failed to remove tor: %v", err)
+	}
+
+	return nil
+}
+
+func stopTor(d *dapp.Dapp) error {
+	if err := d.Tor.Stop(); err != nil {
+		return fmt.Errorf("failed to stop tor: %v", err)
+	}
+
+	return nil
+}
+
+func startTor(d *dapp.Dapp) error {
+	if err := d.Tor.Start(); err != nil {
+		return fmt.Errorf("failed to start tor: %v", err)
+	}
+
 	return nil
 }

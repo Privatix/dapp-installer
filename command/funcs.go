@@ -11,6 +11,7 @@ import (
 	dapputil "github.com/privatix/dappctrl/util"
 
 	"github.com/privatix/dapp-installer/dapp"
+	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
 )
@@ -322,6 +323,14 @@ func stopTor(d *dapp.Dapp) error {
 func startTor(d *dapp.Dapp) error {
 	if err := d.Tor.Start(); err != nil {
 		return fmt.Errorf("failed to start tor: %v", err)
+	}
+
+	return nil
+}
+
+func writeVersion(d *dapp.Dapp) error {
+	if err := data.WriteAppVersion(d.DBEngine.DB, d.Version); err != nil {
+		return fmt.Errorf("failed to write app version: %v", err)
 	}
 
 	return nil

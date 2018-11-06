@@ -59,6 +59,7 @@ func installFlow() pipeline.Flow {
 		newOperator("install tor", installTor, removeTor),
 		newOperator("start tor", startTor, stopTor),
 		newOperator("install", install, nil),
+		newOperator("write version", writeVersion, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
 }
@@ -70,6 +71,7 @@ func updateFlow() pipeline.Flow {
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("stop tor", stopTor, startTor),
 		newOperator("update", update, nil),
+		newOperator("write version", writeVersion, nil),
 		newOperator("start tor", startTor, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}

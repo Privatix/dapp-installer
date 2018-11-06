@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/tor"
 	"github.com/privatix/dapp-installer/util"
@@ -209,8 +210,12 @@ func (d *Dapp) Exists() error {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
-	d.Version = util.DappCtrlVersion(filepath.Join(d.Path,
-		d.Controller.EntryPoint))
+	version, ok := data.ReadAppVersion(d.DBEngine.DB)
+	if !ok {
+		return fmt.Errorf("failed to read app version")
+	}
+
+	d.Version = version
 	hash := d.controllerHash()
 	d.Controller.Service.ID = hash
 	d.Controller.Service.GUID = filepath.Join(dappCtrl, hash)

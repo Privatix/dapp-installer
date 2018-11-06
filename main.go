@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/privatix/dappctrl/util/log"
+	"github.com/privatix/dappctrl/version"
 
 	"github.com/privatix/dapp-installer/command"
 )
@@ -19,7 +20,7 @@ var (
 )
 
 func printVersion() {
-	fmt.Printf("dapp-installer %s %s", Version, Commit)
+	version.Print(true, Commit, Version)
 }
 
 func createLogger() (log.Logger, io.Closer, error) {

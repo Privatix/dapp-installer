@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dapp-installer/windows"
 )
@@ -80,7 +81,29 @@ func (d *Dapp) Configurate() error {
 		}
 	}
 
-	return nil
+	return setServiceDescription(d)
+}
+
+func setServiceDescription(d *Dapp) error {
+	args := func(name, descr string) []string {
+		role := d.Role
+		hash := util.Hash(d.Path)
+		return []string{"description", name,
+			fmt.Sprintf("Privatix %s %s %s", role, descr, hash)}
+	}
+
+	if err := util.ExecuteCommand("sc",
+		args(d.Controller.Service.ID, "controller")); err != nil {
+		return err
+	}
+
+	if err := util.ExecuteCommand("sc",
+		args(dbengine.Hash(d.Path), "database")); err != nil {
+		return err
+	}
+
+	return util.ExecuteCommand("sc",
+		args(d.Tor.ServiceName(), "Tor transport"))
 }
 
 func copyServiceWrapper(d, s *Dapp) {

@@ -3,6 +3,8 @@ SocksPort {{.SocksPort}}
 HiddenServiceDir "{{.RootPath}}/{{.HiddenServiceDir}}"
 HiddenServicePort {{.VirtPort}} 127.0.0.1:{{.TargetPort}}
 
+DataDirectory "{{.RootPath}}/tor/data"
+
 GeoIPFile /settings/geoip
 GeoIPv6File /settings/geoip6
 

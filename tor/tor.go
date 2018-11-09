@@ -73,6 +73,10 @@ func (t *Tor) generateKey() error {
 	t.Hostname = strings.ToLower(onion) + ".onion"
 
 	path := filepath.Join(t.RootPath, t.HiddenServiceDir)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.MkdirAll(path, 0700)
+	}
+
 	keyOut, err := os.OpenFile(filepath.Join(path, "private_key"),
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {

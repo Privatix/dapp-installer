@@ -1,5 +1,9 @@
 {
     "Role" : "agent",
     "Path" : "/Users/bozov/Desktop/DappTest/agent",
-    "Source":"/Users/bozov/Desktop/Dapp/mac/dapp_mac.zip"
+    "Source":"/Users/bozov/Desktop/Dapp/mac/dapp_mac.zip",
+    "Gui" : {
+        "EntryPoint" : "dappgui/dapp-gui",
+        "Configuration": "dappgui/resources/app/build/settings.json"
+    }
  }

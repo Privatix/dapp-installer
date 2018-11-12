@@ -6,33 +6,30 @@ package util
 import "C"
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"syscall"
 
 	"github.com/privatix/dapp-installer/unix"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
+func CheckSystemPrerequisites(volume string) error {
 	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
-		logger.Warn("software install only to unix based platform")
-		return false
+		return fmt.Errorf("software install only to unix based platform")
 	}
 
 	// TODO (ubozov) check platform version?
 
 	if !checkMemory() {
-		logger.Warn("RAM does not meet the requirements")
-		return false
+		return fmt.Errorf("RAM does not meet the requirements")
 	}
 
 	if !checkStorage() {
-		logger.Warn("available size of disk does not meet the requirements")
-		return false
+		return fmt.Errorf("available size of disk does not meet the requirements")
 	}
-	return true
+	return nil
 }
 
 func checkStorage() bool {
@@ -56,4 +53,9 @@ func GrantAccess(path string) error {
 // IsServiceStopped returns service stopped status.
 func IsServiceStopped(id string) bool {
 	return unix.NewDaemon(id).IsStopped()
+}
+
+// DesktopPath returns unix app path.
+func DesktopPath() string {
+	return "/Applications"
 }

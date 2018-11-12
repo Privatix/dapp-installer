@@ -17,3 +17,10 @@ statik.go
 *.out
 .idea/*
 .vscode/*
+
+\.DS_Store
+
+# Go dependency management tool files
+/vendor
+Gopkg.lock
+

@@ -1,17 +1,13 @@
 package dapp
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 func setConfigurationValues(jsonMap map[string]interface{},
@@ -34,7 +30,7 @@ func setConfigurationValues(jsonMap map[string]interface{},
 	return nil
 }
 
-func setDynamicPorts(configFile string, logger log.Logger) error {
+func setDynamicPorts(configFile string) error {
 	read, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
@@ -70,53 +66,6 @@ func setDynamicPorts(configFile string, logger log.Logger) error {
 			fmt.Sprintf(":%s", port), -1)
 		contents = strings.Replace(contents, addr.Address,
 			newAddress, -1)
-		logger.Info(fmt.Sprintf("%s -> %s", addr.Address, newAddress))
 	}
 	return ioutil.WriteFile(configFile, []byte(contents), 0)
-}
-
-func roleAndDBConnFromConfig(configFile string) (string, *data.DB, error) {
-	read, err := os.Open(configFile)
-	if err != nil {
-		return "", nil, err
-	}
-	defer read.Close()
-
-	jsonMap := make(map[string]interface{})
-
-	json.NewDecoder(read).Decode(&jsonMap)
-
-	db, ok := jsonMap["DB"].(map[string]interface{})
-	if !ok {
-		return "", nil, fmt.Errorf("DB params not found")
-	}
-	conn, ok := db["Conn"].(map[string]interface{})
-	if !ok {
-		return "", nil, fmt.Errorf("Conn params not found")
-	}
-
-	res := data.NewConfig()
-
-	if dbname, ok := conn["dbname"]; ok {
-		res.DBName = dbname.(string)
-	}
-
-	if user, ok := conn["user"]; ok {
-		res.User = user.(string)
-	}
-
-	if pwd, ok := conn["password"]; ok {
-		res.Password = pwd.(string)
-	}
-
-	if port, ok := conn["port"]; ok {
-		res.Port = port.(string)
-	}
-
-	role, ok := jsonMap["Role"]
-	if !ok {
-		return "", nil, fmt.Errorf("Role not found")
-	}
-
-	return role.(string), res, nil
 }

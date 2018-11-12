@@ -12,7 +12,6 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 // DBEngine has a db engine configuration.
@@ -65,11 +64,16 @@ func (engine DBEngine) databaseInit(fileName string) error {
 }
 
 // Install installs a DB engine.
-func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
+func (engine *DBEngine) Install(installPath string) error {
 	// install db engine
 	ch := make(chan bool)
 	defer close(ch)
-	go util.InteractiveWorker("Installation DB Engine", ch)
+	go util.InteractiveWorker("installation db engine", ch)
+
+	if err := prepareToInstall(installPath); err != nil {
+		ch <- true
+		return err
+	}
 
 	// init db
 	dataPath := filepath.Join(installPath, `pgsql/data`)
@@ -90,19 +94,16 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
-	err := configDBEngine(pgconf, engine.DB.Port)
-	if err != nil {
+	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
 		ch <- true
 		return err
 	}
 
 	// start service
-	err = engine.Start(installPath)
-	if err != nil {
+	if err := engine.Start(installPath); err != nil {
 		ch <- true
 		return err
 	}
-	logger.Info("service was successfully started")
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
 	if err := exec.Command(fileName, "-p", engine.DB.Port,
@@ -112,8 +113,7 @@ func (engine *DBEngine) Install(installPath string, logger log.Logger) error {
 	}
 
 	ch <- true
-	fmt.Printf("\r%s\n", "DB Engine successfully installed")
-	logger.Info("dbengine successfully installed")
+	fmt.Printf("\r%s\n", "db engine was successfully installed")
 
 	return nil
 }
@@ -131,7 +131,7 @@ func configDBEngine(pgconf, port string) error {
 }
 
 // Remove removes the DB engine.
-func (engine *DBEngine) Remove(installPath string, logger log.Logger) error {
+func (engine *DBEngine) Remove(installPath string) error {
 	return removeService(installPath)
 }
 
@@ -146,12 +146,6 @@ func (engine *DBEngine) Start(installPath string) error {
 // Stop stops the DB engine.
 func (engine *DBEngine) Stop(installPath string) error {
 	return stopService(installPath)
-}
-
-// Hash returns db engine service unique ID.
-func Hash(installPath string) string {
-	hash := util.Hash(installPath)
-	return fmt.Sprintf("dapp_db_%s", hash)
 }
 
 func (engine *DBEngine) checkRunning() error {

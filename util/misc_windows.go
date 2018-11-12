@@ -7,48 +7,43 @@ import (
 	"fmt"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
-
-	"github.com/lxn/win"
-	"github.com/privatix/dappctrl/util/log"
 )
 
 // MinWindowsVersion is supported min windows version (Windows7 and newer)
 const MinWindowsVersion byte = 6
 
 // CheckSystemPrerequisites does checked system to prerequisites.
-func CheckSystemPrerequisites(volume string, logger log.Logger) bool {
+func CheckSystemPrerequisites(volume string) error {
 	if runtime.GOOS != "windows" {
-		logger.Warn("software install only to Windows platform")
-		return false
+		return fmt.Errorf("software install only to Windows platform")
 	}
 
 	if !checkWindowsVersion() {
-		logger.Warn("Windows version does not meet the requirements")
-		return false
+		return fmt.Errorf("Windows version does not meet the requirements")
 	}
 
 	if !checkMemory() {
-		logger.Warn("RAM does not meet the requirements")
-		return false
+		return fmt.Errorf("RAM does not meet the requirements")
 	}
 
 	if !checkStorage(volume) {
-		logger.Warn("available size of disk does not meet the requirements")
-		return false
+		return fmt.Errorf("available size of disk does not meet the requirements")
 	}
 
-	return true
+	return nil
 }
 
 func checkWindowsVersion() bool {
-	v := win.GetVersion()
-	major := byte(v)
-	return major >= MinWindowsVersion
+	h := syscall.MustLoadDLL("kernel32.dll")
+	c := h.MustFindProc("GetVersion")
+	r, _, _ := c.Call()
+	return byte(r) >= MinWindowsVersion
 }
 
 func checkStorage(volume string) bool {
@@ -62,9 +57,25 @@ func checkStorage(volume string) bool {
 }
 
 func checkMemory() bool {
-	var totalMemoryInKilobytes uint64
-	win.GetPhysicallyInstalledSystemMemory(&totalMemoryInKilobytes)
-	return totalMemoryInKilobytes*1024 > MinMemorySize
+	h := syscall.MustLoadDLL("kernel32.dll")
+	c := h.MustFindProc("GlobalMemoryStatusEx")
+
+	type memoryStatus struct {
+		Length               uint32
+		MemoryLoad           uint32
+		TotalPhys            uint64
+		AvailPhys            uint64
+		TotalPageFile        uint64
+		AvailPageFile        uint64
+		TotalVirtual         uint64
+		AvailVirtual         uint64
+		AvailExtendedVirtual uint64
+	}
+
+	var buf memoryStatus
+	buf.Length = uint32(unsafe.Sizeof(buf))
+	c.Call(uintptr(unsafe.Pointer(&buf)))
+	return buf.TotalPhys >= MinMemorySize
 }
 
 // GrantAccess grants access to directory.
@@ -87,4 +98,10 @@ func IsServiceStopped(service string) bool {
 		return false
 	}
 	return strings.Contains(checkServiceStdOut.String(), "STOPPED")
+}
+
+// DesktopPath returns windows desktop path.
+func DesktopPath() string {
+	u, _ := user.Current()
+	return filepath.Join(u.HomeDir, "Desktop")
 }

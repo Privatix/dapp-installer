@@ -4,10 +4,18 @@ package dbengine
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/privatix/dapp-installer/util"
 )
+
+// Hash returns db engine service unique ID.
+func Hash(path string) string {
+	return fmt.Sprintf("Privatix DB %s", util.Hash(path))
+}
 
 func runService(service string) error {
 	checkServiceCmd := exec.Command("sc", "queryex", service)
@@ -59,4 +67,12 @@ func stopService(installPath string) error {
 	checkServiceCmd := exec.Command("sc", "stop", serviceName)
 
 	return checkServiceCmd.Run()
+}
+
+func prepareToInstall(installPath string) error {
+	// installs run-time components (the Visual C++ Redistributable Packages
+	// for VS 2013) that are required to run postgresql database engine.
+	vcredist := filepath.Join(installPath, "util/vcredist_x64.exe")
+	args := []string{"/install", "/quiet", "/norestart"}
+	return util.ExecuteCommand(vcredist, args)
 }

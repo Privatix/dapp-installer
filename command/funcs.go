@@ -131,8 +131,7 @@ func extract(d *dapp.Dapp) error {
 		defer close(ch)
 		go util.InteractiveWorker("extracting dapp", ch)
 
-		_, err := util.Unzip(path, d.Path)
-		if err != nil {
+		if err := util.Unzip(path, d.Path); err != nil {
 			ch <- true
 			return fmt.Errorf("failed to extract dapp: %v", err)
 		}

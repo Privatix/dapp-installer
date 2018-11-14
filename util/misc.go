@@ -1,7 +1,6 @@
 package util
 
 import (
-	"archive/zip"
 	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
@@ -195,59 +194,6 @@ func ParseVersion(s string) int64 {
 		return 0
 	}
 	return result
-}
-
-// Unzip will decompress a zip archive, moving all files and folders
-// within the zip file (parameter 1) to an output directory (parameter 2).
-func Unzip(src string, dest string) ([]string, error) {
-	var filenames []string
-	r, err := zip.OpenReader(src)
-	if err != nil {
-		return filenames, err
-	}
-	defer r.Close()
-
-	for _, f := range r.File {
-		rc, err := f.Open()
-		if err != nil {
-			return filenames, err
-		}
-		defer rc.Close()
-		fpath := filepath.Join(dest, f.Name)
-
-		if !strings.HasPrefix(fpath,
-			filepath.Clean(dest)+string(os.PathSeparator)) {
-			return filenames, fmt.Errorf("%s: illegal file path", fpath)
-		}
-
-		filenames = append(filenames, fpath)
-
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(fpath, f.Mode())
-		} else {
-			if err := extractFile(fpath, rc, f); err != nil {
-				return filenames, err
-			}
-		}
-	}
-	return filenames, nil
-}
-
-func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
-	err := os.MkdirAll(filepath.Dir(fpath), f.Mode())
-	if err != nil {
-		return err
-	}
-	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		f.Mode())
-	if err != nil {
-		return err
-	}
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, rc)
-
-	return err
 }
 
 // CopyDir copies data from source directory to desctination directory.

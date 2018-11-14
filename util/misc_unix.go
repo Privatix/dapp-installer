@@ -59,3 +59,9 @@ func IsServiceStopped(id string) bool {
 func DesktopPath() string {
 	return "/Applications"
 }
+
+// Unzip will decompress a zip archive, moving all files and folders
+// within the zip file (parameter 1) to an output directory (parameter 2).
+func Unzip(src string, dest string) error {
+	return ExecuteCommand("unzip", []string{src, "-d", dest})
+}

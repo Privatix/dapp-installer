@@ -30,8 +30,13 @@ func (d *Dapp) controllerHash() string {
 }
 func (d *Dapp) createSymlink() {
 	target := filepath.Join(d.Path, d.Gui.EntryPoint)
+	linkName := path.Base(d.Gui.EntryPoint)
 	link := filepath.Join(util.DesktopPath(),
-		fmt.Sprintf("%s %s", path.Base(d.Gui.EntryPoint), d.Role))
+		fmt.Sprintf("%s %s", linkName, d.Role))
+
+	if len(filepath.Ext(linkName)) == 0 {
+		target += ".app"
+	}
 
 	os.Symlink(target, link)
 }

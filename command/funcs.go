@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	dapputil "github.com/privatix/dappctrl/util"
@@ -81,7 +80,7 @@ func validatePath(d *dapp.Dapp) error {
 	if err != nil {
 		return err
 	}
-	d.Path = filepath.ToSlash(strings.ToLower(path))
+	d.Path = filepath.ToSlash(path)
 	d.Tor.RootPath = d.Path
 	return nil
 }

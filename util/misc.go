@@ -228,7 +228,7 @@ func CopyDir(src string, dst string) error {
 // Hash returns string hash.
 func Hash(s string) string {
 	h := sha1.New()
-	h.Write([]byte(s))
+	h.Write([]byte(strings.ToLower(s)))
 	return hex.EncodeToString(h.Sum(nil))
 }
 

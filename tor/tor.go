@@ -89,7 +89,17 @@ func (t *Tor) generateKey() error {
 }
 
 func (t *Tor) createSettings() error {
-	file, err := os.Create(filepath.Join(t.RootPath, "tor/settings/torrc"))
+	path := filepath.Join(t.RootPath, "tor/settings")
+	if _, err := os.Stat(path); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		if err := os.MkdirAll(path, 0644); err != nil {
+			return err
+		}
+	}
+
+	file, err := os.Create(filepath.Join(path, "torrc"))
 	if err != nil {
 		return err
 	}

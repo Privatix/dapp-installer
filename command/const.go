@@ -7,6 +7,8 @@ const (
 	failed  = "[FAILED]"
 )
 
+const envFile = ".env"
+
 const rootHelp = `
 Usage:
   dapp-installer [command] [flags]

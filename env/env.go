@@ -7,8 +7,8 @@ import (
 	dapputil "github.com/privatix/dappctrl/util"
 )
 
-// Variables has a store environment variables.
-type Variables struct {
+// Config has a store environment variables.
+type Config struct {
 	Schema  string
 	Role    string
 	WorkDir string
@@ -32,9 +32,9 @@ type tor struct {
 	Service string
 }
 
-// NewVariables creates a default Varibales configuration.
-func NewVariables() *Variables {
-	return &Variables{
+// NewConfig creates a default Configs configuration.
+func NewConfig() *Config {
+	return &Config{
 		Schema: "1.0",
 		Dapp:   &dapp{},
 		DB:     &db{},
@@ -42,18 +42,18 @@ func NewVariables() *Variables {
 	}
 }
 
-// Write saves the variables to json file.
-func (v *Variables) Write(path string) error {
+// Write saves the configs to json file.
+func (c *Config) Write(path string) error {
 	write, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer write.Close()
 
-	return json.NewEncoder(write).Encode(v)
+	return json.NewEncoder(write).Encode(c)
 }
 
-// Read reads the variables from json file.
-func (v *Variables) Read(path string) error {
-	return dapputil.ReadJSONFile(path, &v)
+// Read reads the configs from json file.
+func (c *Config) Read(path string) error {
+	return dapputil.ReadJSONFile(path, &c)
 }

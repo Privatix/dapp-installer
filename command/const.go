@@ -7,7 +7,7 @@ const (
 	failed  = "[FAILED]"
 )
 
-const envFile = ".env"
+const envFile = ".env.config.json"
 
 const rootHelp = `
 Usage:

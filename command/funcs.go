@@ -336,7 +336,7 @@ func writeVersion(d *dapp.Dapp) error {
 }
 
 func writeEnvironmentVariable(d *dapp.Dapp) error {
-	v := env.NewVariables()
+	v := env.NewConfig()
 
 	v.Role = d.Role
 	v.Version = d.Version

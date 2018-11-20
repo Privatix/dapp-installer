@@ -53,7 +53,4 @@ func main() {
 	defer closer.Close()
 
 	command.Execute(logger, printVersion, os.Args[1:])
-
-	fmt.Println("\nPress the Enter Key to close the console screen!")
-	fmt.Scanln()
 }

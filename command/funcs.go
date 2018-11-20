@@ -12,6 +12,7 @@ import (
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/env"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -332,4 +333,22 @@ func writeVersion(d *dapp.Dapp) error {
 	}
 
 	return nil
+}
+
+func writeEnvironmentVariable(d *dapp.Dapp) error {
+	v := env.NewConfig()
+
+	v.Role = d.Role
+	v.Version = d.Version
+	v.WorkDir = d.Path
+	v.Dapp.Controller = d.Controller.EntryPoint
+	v.Dapp.Gui = d.Gui.EntryPoint
+	v.Dapp.Service = d.Controller.Service.ID
+
+	v.DB.Service = dbengine.Hash(d.Path)
+
+	v.Tor.Service = d.Tor.ServiceName()
+
+	path := filepath.Join(d.Path, envFile)
+	return v.Write(path)
 }

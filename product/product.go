@@ -1,7 +1,6 @@
 package product
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
@@ -9,8 +8,13 @@ import (
 	"runtime"
 	"strings"
 
+	"gopkg.in/reform.v1"
+
+	dappdata "github.com/privatix/dappctrl/data"
 	dapputil "github.com/privatix/dappctrl/util"
 )
+
+//go:generate go generate ../vendor/github.com/privatix/dappctrl/data/schema.go
 
 type product struct {
 	CoreDapp bool
@@ -25,7 +29,7 @@ type command struct {
 }
 
 // Install installs the products.
-func Install(role, path string) error {
+func Install(role, path, conn string) error {
 	path = filepath.Join(path, productDir)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -42,25 +46,31 @@ func Install(role, path string) error {
 
 		if !imported {
 			// todo import
-			// err := writeVariable(envPath, productImport, "true")
+			templatePath := filepath.Join(path, "template")
+			if err := addProduct(templatePath, conn); err != nil {
+				return err
+			}
+			// err := writeVariable(envPath, productImport, true)
 			// if err != nil {
 			// 	return err
 			// }
 		}
 
-		if !installed {
-			if coreDapp, err := install(role, productPath); err != nil {
-				if coreDapp {
-					return err
-				}
+		if installed {
+			continue
+		}
 
-				continue
-			}
-
-			err := writeVariable(envPath, productInstall, "true")
-			if err != nil {
+		coreDapp, err := run(role, productPath, "install")
+		if err != nil {
+			if coreDapp {
 				return err
 			}
+			continue
+		}
+
+		err = writeVariable(envPath, productInstall, true)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -82,7 +92,8 @@ func Update(role, path string) error {
 		_, _, installed := getParameters(productPath)
 
 		if installed {
-			if err := update(role, productPath); err != nil {
+			_, err := run(role, productPath, "update")
+			if err != nil {
 				return err
 			}
 		}
@@ -103,75 +114,23 @@ func Remove(role, path string) error {
 			continue
 		}
 		productPath := filepath.Join(path, f.Name())
-		_, _, installed := getParameters(productPath)
+		envPath, imported, installed := getParameters(productPath)
 
 		if installed {
-			if err := remove(role, productPath); err != nil {
+			_, err := run(role, productPath, "remove")
+			if err != nil {
 				return err
+			}
+
+			if imported {
+				err := writeVariable(envPath, productInstall, false)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 	return nil
-}
-
-func install(role, path string) (bool, error) {
-	return run(role, path, "install")
-
-	// configPath, err := findFile(path, configFile)
-	// if err != nil {
-	// 	return true, err
-	// }
-
-	// if len(configPath) == 0 {
-	// 	return true, fmt.Errorf("%s not found in %s", configFile, path)
-	// }
-
-	// p := &product{}
-	// if err := dapputil.ReadJSONFile(configPath, &p); err != nil {
-	// 	return true, err
-	// }
-
-	// for _, v := range p.Install {
-	// 	if err := v.execute(path); err != nil {
-	// 		return p.CoreDapp, err
-	// 	}
-	// }
-
-	// return p.CoreDapp, nil
-}
-
-func update(role, path string) error {
-	_, err := run(role, path, "update")
-
-	return err
-}
-
-func remove(role, path string) error {
-	_, err := run(role, path, "remove")
-
-	return err
-
-	// configPath, err := findFile(path, configFile)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if len(configPath) == 0 {
-	// 	return fmt.Errorf("%s not found in %s", configFile, path)
-	// }
-
-	// p := &product{}
-	// if err := dapputil.ReadJSONFile(configPath, &p); err != nil {
-	// 	return err
-	// }
-
-	// for _, v := range p.Remove {
-	// 	if err := v.execute(path); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// return nil
 }
 
 func run(role, path, cmd string) (bool, error) {
@@ -212,30 +171,38 @@ func run(role, path, cmd string) (bool, error) {
 }
 
 func (v command) execute(path string) error {
+	n := strings.Split(strings.Replace(v.Command, "..",
+		path, -1), " ")
+	file := filepath.Join(path, n[0])
+
+	cmd := exec.Command(file, n[1:]...)
+
 	if v.Admin && runtime.GOOS == "darwin" {
 		txt := `with prompt "Privatix wants to make changes"`
 		evelate := "with administrator privileges"
-		script := fmt.Sprintf(`'do shell script "%s" %s %s'`,
-			v.Command, txt, evelate)
+		command := fmt.Sprintf("%s %s", file, strings.Join(n[1:], " "))
+		script := fmt.Sprintf(`do shell script "sudo %s" %s %s`,
+			command, txt, evelate)
 
-		cmd := exec.Command("osascript", "-e", script)
-		return cmd.Run()
+		cmd = exec.Command("osascript", "-e", script)
 	}
-
-	cmds := strings.Split(strings.Replace(v.Command, "..",
-		path, -1), " ")
-	file := filepath.Join(path, cmds[0])
-	cmd := exec.Command(file, cmds[1:]...)
-
-	var outb, errb bytes.Buffer
-	cmd.Stdout = &outb
-	cmd.Stderr = &errb
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println("out:", outb.String())
-		fmt.Println("err:", errb.String())
-		fmt.Println(file, v.Command, "error", err.Error())
-		return err
+		return fmt.Errorf("failed to execute %s: %v", v.Command, err)
 	}
 	return nil
+}
+
+func addProduct(path, conn string) error {
+	db, err := dappdata.NewDBFromConnStr(conn)
+	if err != nil {
+		return err
+	}
+	defer dappdata.CloseDB(db)
+
+	err = db.InTransaction(func(t *reform.TX) error {
+		return processor(path, true, t)
+	})
+
+	return err
 }

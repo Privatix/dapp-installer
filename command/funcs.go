@@ -363,7 +363,8 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 }
 
 func installProducts(d *dapp.Dapp) error {
-	if err := product.Install(d.Role, d.Path); err != nil {
+	conn := d.DBEngine.DB.ConnectionString()
+	if err := product.Install(d.Role, d.Path, conn); err != nil {
 		return fmt.Errorf("failed to install products: %v", err)
 	}
 

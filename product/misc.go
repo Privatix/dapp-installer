@@ -1,21 +1,18 @@
 package product
 
 import (
-	"fmt"
+	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
-
-	"github.com/joho/godotenv"
 )
 
 const (
 	productDir     = "product"
-	envFile        = ".env"
+	envFile        = ".env.config.json"
 	configFile     = "install.config.json"
-	productImport  = "PRODUCT_IMPORT"
-	productInstall = "PRODUCT_INSTALL"
+	productImport  = "ProductImport"
+	productInstall = "ProductInstall"
 )
 
 func findFile(dir, file string) (string, error) {
@@ -31,30 +28,38 @@ func findFile(dir, file string) (string, error) {
 	return filePath, err
 }
 
-func writeVariable(envFile, key string, value string) error {
-
-	env, err := godotenv.Read(envFile)
+func writeVariable(envFile, key string, value interface{}) error {
+	read, err := os.Open(envFile)
 	if err != nil {
 		return err
 	}
-
-	env[key] = value
-
-	if err := godotenv.Write(env, envFile); err != nil {
-		return fmt.Errorf("failed to write env file: %v", err)
+	defer read.Close()
+	jsonMap := make(map[string]interface{})
+	json.NewDecoder(read).Decode(&jsonMap)
+	jsonMap[key] = value
+	write, err := os.Create(envFile)
+	if err != nil {
+		return err
 	}
+	defer write.Close()
 
-	return nil
+	return json.NewEncoder(write).Encode(jsonMap)
 }
 
-func readVariable(envFile, key string) (string, bool) {
-	env, err := godotenv.Read(envFile)
+func readVariable(envFile, key string) (interface{}, bool) {
+	read, err := os.Open(envFile)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
+	defer read.Close()
+	jsonMap := make(map[string]interface{})
+	json.NewDecoder(read).Decode(&jsonMap)
 
-	value, ok := env[key]
-	return value, ok
+	value, ok := jsonMap[key]
+	if !ok {
+		return nil, false
+	}
+	return value, true
 }
 
 func getParameters(path string) (string, bool, bool) {
@@ -67,12 +72,12 @@ func getParameters(path string) (string, bool, bool) {
 
 	v, ok := readVariable(envPath, productImport)
 	if ok {
-		imported, _ = strconv.ParseBool(v)
+		imported, _ = v.(bool)
 	}
 
 	v, ok = readVariable(envPath, productInstall)
 	if ok {
-		installed, _ = strconv.ParseBool(v)
+		installed, _ = v.(bool)
 	}
 	return envPath, imported, installed
 }

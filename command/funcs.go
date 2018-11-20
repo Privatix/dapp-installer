@@ -13,6 +13,7 @@ import (
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/env"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -159,6 +160,14 @@ func install(d *dapp.Dapp) error {
 	}
 
 	return nil
+}
+
+func remove(d *dapp.Dapp) error {
+	if err := stopServices(d); err != nil {
+		return err
+	}
+
+	return removeServices(d)
 }
 
 func update(d *dapp.Dapp) error {
@@ -351,4 +360,20 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 
 	path := filepath.Join(d.Path, envFile)
 	return v.Write(path)
+}
+
+func installProducts(d *dapp.Dapp) error {
+	if err := product.Install(d.Role, d.Path); err != nil {
+		return fmt.Errorf("failed to install products: %v", err)
+	}
+
+	return nil
+}
+
+func removeProducts(d *dapp.Dapp) error {
+	if err := product.Remove(d.Role, d.Path); err != nil {
+		return fmt.Errorf("failed to remove products: %v", err)
+	}
+
+	return nil
 }

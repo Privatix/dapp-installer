@@ -49,7 +49,7 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
 
-	flag.Bool("output", false, "Display log to console output")
+	flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -286,7 +286,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 
-	flag.Bool("output", false, "Display log to console output")
+	flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 

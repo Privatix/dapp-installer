@@ -29,13 +29,13 @@ func findFile(dir, file string) (string, error) {
 }
 
 func writeVariable(envFile, key string, value interface{}) error {
-	read, err := os.Open(envFile)
-	if err != nil {
-		return err
-	}
-	defer read.Close()
 	jsonMap := make(map[string]interface{})
-	json.NewDecoder(read).Decode(&jsonMap)
+
+	if read, err := os.Open(envFile); err == nil {
+		json.NewDecoder(read).Decode(&jsonMap)
+		defer read.Close()
+	}
+
 	jsonMap[key] = value
 	write, err := os.Create(envFile)
 	if err != nil {

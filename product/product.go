@@ -12,6 +12,8 @@ import (
 
 	dappdata "github.com/privatix/dappctrl/data"
 	dapputil "github.com/privatix/dappctrl/util"
+
+	"github.com/privatix/dapp-installer/util"
 )
 
 //go:generate go generate ../vendor/github.com/privatix/dappctrl/data/schema.go
@@ -45,15 +47,25 @@ func Install(role, path, conn string) error {
 		envPath, imported, installed := getParameters(productPath)
 
 		if !imported {
-			// todo import
-			templatePath := filepath.Join(path, "template")
+			templatePath := filepath.Join(productPath, "template")
 			if err := addProduct(templatePath, conn); err != nil {
 				return err
 			}
-			// err := writeVariable(envPath, productImport, true)
-			// if err != nil {
-			// 	return err
-			// }
+			err := writeVariable(envPath, productImport, true)
+			if err != nil {
+				return err
+			}
+
+			src := agentAdapterConfig
+			if role == "client" {
+				src = clientAdapterConfig
+			}
+			src = filepath.Join(templatePath, src)
+			configPath := filepath.Join(productPath, "config")
+			dest := filepath.Join(configPath, adapterConfig)
+			if err := util.CopyFile(src, dest); err != nil {
+				return err
+			}
 		}
 
 		if installed {
@@ -114,20 +126,19 @@ func Remove(role, path string) error {
 			continue
 		}
 		productPath := filepath.Join(path, f.Name())
-		envPath, imported, installed := getParameters(productPath)
+		envPath, _, installed := getParameters(productPath)
 
-		if installed {
-			_, err := run(role, productPath, "remove")
-			if err != nil {
-				return err
-			}
+		if !installed {
+			continue
+		}
 
-			if imported {
-				err := writeVariable(envPath, productInstall, false)
-				if err != nil {
-					return err
-				}
-			}
+		if _, err := run(role, productPath, "remove"); err != nil {
+			return err
+		}
+
+		err := writeVariable(envPath, productInstall, false)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

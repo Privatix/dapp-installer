@@ -37,7 +37,7 @@ func createLogger() (log.Logger, io.Closer, error) {
 	logger := flog
 
 	for _, value := range os.Args[1:] {
-		if value == "-output" || value == "--output" {
+		if value == "-verbose" || value == "--verbose" {
 			elog, err := log.NewStderrLogger(log.NewWriterConfig())
 			if err != nil {
 				return nil, nil, err

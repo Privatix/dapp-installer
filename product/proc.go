@@ -26,8 +26,9 @@ const (
 	serverProduct = "server.json"
 	clientProduct = "client.json"
 
-	agentAdapterConfig  = "agent.config.json"
-	clientAdapterConfig = "client.config.json"
+	adapterConfig       = "adapter.config.json"
+	agentAdapterConfig  = "adapter.agent.config.json"
+	clientAdapterConfig = "adapter.client.config.json"
 
 	jsonIdent = "    "
 

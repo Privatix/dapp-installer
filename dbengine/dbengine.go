@@ -96,12 +96,8 @@ func (engine *DBEngine) Install(installPath string) error {
 	}
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
-	if err := exec.Command(fileName, "-p", engine.DB.Port,
-		"-s", engine.DB.User).Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return exec.Command(fileName, "-p", engine.DB.Port,
+		"-s", engine.DB.User).Run()
 }
 
 func configDBEngine(pgconf, port string) error {

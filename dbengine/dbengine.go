@@ -2,7 +2,6 @@ package dbengine
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -65,13 +64,7 @@ func (engine DBEngine) databaseInit(fileName string) error {
 
 // Install installs a DB engine.
 func (engine *DBEngine) Install(installPath string) error {
-	// install db engine
-	ch := make(chan bool)
-	defer close(ch)
-	go util.InteractiveWorker("installation db engine", ch)
-
 	if err := prepareToInstall(installPath); err != nil {
-		ch <- true
 		return err
 	}
 
@@ -87,7 +80,6 @@ func (engine *DBEngine) Install(installPath string) error {
 	cmd := exec.Command(fileName, "-E UTF8", "-D", dataPath)
 
 	if err := cmd.Run(); err != nil {
-		ch <- true
 		return err
 	}
 
@@ -95,25 +87,19 @@ func (engine *DBEngine) Install(installPath string) error {
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
 	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
-		ch <- true
 		return err
 	}
 
 	// start service
 	if err := engine.Start(installPath); err != nil {
-		ch <- true
 		return err
 	}
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
 	if err := exec.Command(fileName, "-p", engine.DB.Port,
 		"-s", engine.DB.User).Run(); err != nil {
-		ch <- true
 		return err
 	}
-
-	ch <- true
-	fmt.Printf("\r%s\n", "db engine was successfully installed")
 
 	return nil
 }

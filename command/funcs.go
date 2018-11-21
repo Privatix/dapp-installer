@@ -49,6 +49,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
 
+	flag.Bool("output", false, "Display log to console output")
+
 	flag.CommandLine.Parse(os.Args[2:])
 
 	if *h {
@@ -128,16 +130,9 @@ func extract(d *dapp.Dapp) error {
 	}
 
 	if len(path) > 0 {
-		ch := make(chan bool)
-		defer close(ch)
-		go util.InteractiveWorker("extracting dapp", ch)
-
 		if err := util.Unzip(path, d.Path); err != nil {
-			ch <- true
 			return fmt.Errorf("failed to extract dapp: %v", err)
 		}
-		ch <- true
-		fmt.Printf("\r%s\n", "dapp was successfully extracted")
 	}
 	fileName := filepath.Join(d.Path, d.Controller.EntryPoint)
 	d.Version = util.DappCtrlVersion(fileName)
@@ -290,6 +285,8 @@ func printStatus(d *dapp.Dapp) error {
 func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
+
+	flag.Bool("output", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 

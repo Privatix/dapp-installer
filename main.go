@@ -24,11 +24,6 @@ func printVersion() {
 }
 
 func createLogger() (log.Logger, io.Closer, error) {
-	elog, err := log.NewStderrLogger(log.NewWriterConfig())
-	if err != nil {
-		return nil, nil, err
-	}
-
 	logConfig := &log.FileConfig{
 		WriterConfig: log.NewWriterConfig(),
 		Filename:     "dapp-installer-%Y-%m-%d.log",
@@ -39,8 +34,18 @@ func createLogger() (log.Logger, io.Closer, error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	logger := flog
 
-	logger := log.NewMultiLogger(elog, flog)
+	for _, value := range os.Args[1:] {
+		if value == "-output" || value == "--output" {
+			elog, err := log.NewStderrLogger(log.NewWriterConfig())
+			if err != nil {
+				return nil, nil, err
+			}
+			logger = log.NewMultiLogger(elog, flog)
+			break
+		}
+	}
 
 	return logger, closer, nil
 }

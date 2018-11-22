@@ -81,29 +81,42 @@ func (d *Dapp) Configurate() error {
 		}
 	}
 
-	return setServiceDescription(d)
+	return configurateService(d)
 }
 
-func setServiceDescription(d *Dapp) error {
-	args := func(name, descr string) []string {
+func configurateService(d *Dapp) error {
+	fail := func(name string) error {
+		args := []string{"failure", name, "reset=", "0",
+			"actions=", "restart/1000/restart/2000/restart/5000"}
+		return util.ExecuteCommand("sc", args)
+	}
+
+	descr := func(name, descr string) error {
 		role := d.Role
 		hash := util.Hash(d.Path)
-		return []string{"description", name,
+		args := []string{"description", name,
 			fmt.Sprintf("Privatix %s %s %s", role, descr, hash)}
+		return util.ExecuteCommand("sc", args)
 	}
 
-	if err := util.ExecuteCommand("sc",
-		args(d.Controller.Service.ID, "controller")); err != nil {
-		return err
+	services := []string{
+		d.Controller.Service.ID,
+		dbengine.Hash(d.Path),
+		d.Tor.ServiceName(),
+	}
+	suffixes := []string{"controller", "database", "Tor transport"}
+
+	for i, v := range services {
+		if err := fail(v); err != nil {
+			return err
+		}
+
+		if err := descr(v, suffixes[i]); err != nil {
+			return err
+		}
 	}
 
-	if err := util.ExecuteCommand("sc",
-		args(dbengine.Hash(d.Path), "database")); err != nil {
-		return err
-	}
-
-	return util.ExecuteCommand("sc",
-		args(d.Tor.ServiceName(), "Tor transport"))
+	return nil
 }
 
 func copyServiceWrapper(d, s *Dapp) {

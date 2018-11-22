@@ -28,11 +28,7 @@ func NewConfig() *DBEngine {
 
 // CreateDatabase creates new database.
 func (engine *DBEngine) CreateDatabase(fileName string) error {
-	if err := data.CreateDatabase(engine.DB); err != nil {
-		return err
-	}
-
-	if err := data.ConfigurateDatabase(engine.DB); err != nil {
+	if err := engine.createDatabase(fileName); err != nil {
 		return err
 	}
 
@@ -46,6 +42,20 @@ func (engine *DBEngine) CreateDatabase(fileName string) error {
 // UpdateDatabase executes db migrations scripts.
 func (engine DBEngine) UpdateDatabase(fileName string) error {
 	return engine.databaseMigrate(fileName)
+}
+
+func (engine DBEngine) createDatabase(fileName string) error {
+	db := &data.DB{
+		Host:     engine.DB.Host,
+		User:     engine.DB.User,
+		Password: engine.DB.Password,
+		DBName:   "postgres",
+		Port:     engine.DB.Port,
+	}
+	conn := db.ConnectionString()
+
+	args := []string{"db-create", "-conn", conn}
+	return util.ExecuteCommand(fileName, args)
 }
 
 func (engine DBEngine) databaseMigrate(fileName string) error {

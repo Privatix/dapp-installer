@@ -1,5 +1,8 @@
 // +build windows
 
+// Go generate creates a syso file which contains manifest and icon
+// flags	-64=true: generate 64-bit binaries
+//			-o="../resource_windows_amd64.syso": output file name
 //go:generate goversioninfo -64 -o ../resource_windows_amd64.syso
 
 package windows

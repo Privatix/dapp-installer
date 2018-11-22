@@ -182,10 +182,11 @@ func run(role, path, cmd string) (bool, error) {
 }
 
 func (v command) execute(path string) error {
-	n := strings.Split(strings.Replace(v.Command, "..",
-		path, -1), " ")
+	n := strings.Split(v.Command, " ")
+	for i, s := range n {
+		n[i] = strings.Replace(s, "..", path, -1)
+	}
 	file := filepath.Join(path, n[0])
-
 	cmd := exec.Command(file, n[1:]...)
 
 	if v.Admin && runtime.GOOS == "darwin" {

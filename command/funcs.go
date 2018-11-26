@@ -230,8 +230,14 @@ func removeServices(d *dapp.Dapp) error {
 }
 
 func removeDapp(d *dapp.Dapp) error {
+	if err := util.KillProcess(d.Path); err != nil {
+		return fmt.Errorf("failed to kill process: %v", err)
+	}
+
 	if err := d.Remove(); err != nil {
-		return fmt.Errorf("failed to remove folder: %v", err)
+		if err := util.SelfRemove(d.Path); err != nil {
+			return fmt.Errorf("failed to remove folder: %v", err)
+		}
 	}
 	return nil
 }

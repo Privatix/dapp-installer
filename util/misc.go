@@ -16,9 +16,12 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/keybase/go-ps"
 )
 
 const (
@@ -290,4 +293,52 @@ func MatchAddr(str string) []Addr {
 		})
 	}
 	return addrs
+}
+
+// KillProcess kills all processes at dir path.
+func KillProcess(dir string) error {
+	processes, err := ps.Processes()
+	if err != nil {
+		return err
+	}
+	execFile := filepath.Base(os.Args[0])
+
+	for _, v := range processes {
+		path, _ := v.Path()
+		if path == "" || strings.EqualFold(execFile, filepath.Base(path)) {
+			continue
+		}
+		processPath := filepath.ToSlash(strings.ToLower(path))
+		if strings.HasPrefix(processPath, strings.ToLower(dir)) {
+			proc, err := os.FindProcess(v.Pid())
+			if err != nil {
+				return err
+			}
+
+			if err := proc.Kill(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// SelfRemove removes itself execute file.
+func SelfRemove(dir string) error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+
+	path, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return err
+	}
+	exePath := filepath.ToSlash(strings.ToLower(path))
+
+	if strings.HasPrefix(exePath, strings.ToLower(dir)) {
+		cmd := fmt.Sprintf(`ping localhost -n 3 > nul & del %s`,
+			filepath.Base(path))
+		return exec.Command("cmd", "/c", cmd).Start()
+	}
+	return nil
 }

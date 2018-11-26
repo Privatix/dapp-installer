@@ -1,7 +1,6 @@
 package util
 
 import (
-	"archive/zip"
 	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
@@ -197,59 +196,6 @@ func ParseVersion(s string) int64 {
 	return result
 }
 
-// Unzip will decompress a zip archive, moving all files and folders
-// within the zip file (parameter 1) to an output directory (parameter 2).
-func Unzip(src string, dest string) ([]string, error) {
-	var filenames []string
-	r, err := zip.OpenReader(src)
-	if err != nil {
-		return filenames, err
-	}
-	defer r.Close()
-
-	for _, f := range r.File {
-		rc, err := f.Open()
-		if err != nil {
-			return filenames, err
-		}
-		defer rc.Close()
-		fpath := filepath.Join(dest, f.Name)
-
-		if !strings.HasPrefix(fpath,
-			filepath.Clean(dest)+string(os.PathSeparator)) {
-			return filenames, fmt.Errorf("%s: illegal file path", fpath)
-		}
-
-		filenames = append(filenames, fpath)
-
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(fpath, f.Mode())
-		} else {
-			if err := extractFile(fpath, rc, f); err != nil {
-				return filenames, err
-			}
-		}
-	}
-	return filenames, nil
-}
-
-func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
-	err := os.MkdirAll(filepath.Dir(fpath), f.Mode())
-	if err != nil {
-		return err
-	}
-	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		f.Mode())
-	if err != nil {
-		return err
-	}
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, rc)
-
-	return err
-}
-
 // CopyDir copies data from source directory to desctination directory.
 func CopyDir(src string, dst string) error {
 	var err error
@@ -282,27 +228,8 @@ func CopyDir(src string, dst string) error {
 // Hash returns string hash.
 func Hash(s string) string {
 	h := sha1.New()
-	h.Write([]byte(s))
+	h.Write([]byte(strings.ToLower(s)))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-// InteractiveWorker shows display text for imitate interactive mode.
-func InteractiveWorker(s string, quit chan bool) {
-	i := 0
-	for {
-		select {
-		case <-quit:
-			return
-		default:
-			i++
-			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
-			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
-			if i >= 10 {
-				i = 0
-			}
-			time.Sleep(time.Millisecond * 250)
-		}
-	}
 }
 
 // FreePort returns available free port number.

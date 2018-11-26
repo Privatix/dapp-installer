@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	dapputil "github.com/privatix/dappctrl/util"
@@ -13,6 +12,8 @@ import (
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/env"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -48,6 +49,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
 
+	flag.Bool("verbose", false, "Display log to console output")
+
 	flag.CommandLine.Parse(os.Args[2:])
 
 	if *h {
@@ -81,7 +84,7 @@ func validatePath(d *dapp.Dapp) error {
 	if err != nil {
 		return err
 	}
-	d.Path = filepath.ToSlash(strings.ToLower(path))
+	d.Path = filepath.ToSlash(path)
 	d.Tor.RootPath = d.Path
 	return nil
 }
@@ -127,17 +130,9 @@ func extract(d *dapp.Dapp) error {
 	}
 
 	if len(path) > 0 {
-		ch := make(chan bool)
-		defer close(ch)
-		go util.InteractiveWorker("extracting dapp", ch)
-
-		_, err := util.Unzip(path, d.Path)
-		if err != nil {
-			ch <- true
+		if err := util.Unzip(path, d.Path); err != nil {
 			return fmt.Errorf("failed to extract dapp: %v", err)
 		}
-		ch <- true
-		fmt.Printf("\r%s\n", "dapp was successfully extracted")
 	}
 	fileName := filepath.Join(d.Path, d.Controller.EntryPoint)
 	d.Version = util.DappCtrlVersion(fileName)
@@ -160,6 +155,14 @@ func install(d *dapp.Dapp) error {
 	}
 
 	return nil
+}
+
+func remove(d *dapp.Dapp) error {
+	if err := stopServices(d); err != nil {
+		return err
+	}
+
+	return removeServices(d)
 }
 
 func update(d *dapp.Dapp) error {
@@ -283,6 +286,8 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 
+	flag.Bool("verbose", false, "Display log to console output")
+
 	flag.CommandLine.Parse(os.Args[2:])
 
 	if *h {
@@ -331,6 +336,41 @@ func startTor(d *dapp.Dapp) error {
 func writeVersion(d *dapp.Dapp) error {
 	if err := data.WriteAppVersion(d.DBEngine.DB, d.Version); err != nil {
 		return fmt.Errorf("failed to write app version: %v", err)
+	}
+
+	return nil
+}
+
+func writeEnvironmentVariable(d *dapp.Dapp) error {
+	v := env.NewConfig()
+
+	v.Role = d.Role
+	v.Version = d.Version
+	v.WorkDir = d.Path
+	v.Dapp.Controller = d.Controller.EntryPoint
+	v.Dapp.Gui = d.Gui.EntryPoint
+	v.Dapp.Service = d.Controller.Service.ID
+
+	v.DB.Service = dbengine.Hash(d.Path)
+
+	v.Tor.Service = d.Tor.ServiceName()
+
+	path := filepath.Join(d.Path, envFile)
+	return v.Write(path)
+}
+
+func installProducts(d *dapp.Dapp) error {
+	conn := d.DBEngine.DB.ConnectionString()
+	if err := product.Install(d.Role, d.Path, conn); err != nil {
+		return fmt.Errorf("failed to install products: %v", err)
+	}
+
+	return nil
+}
+
+func removeProducts(d *dapp.Dapp) error {
+	if err := product.Remove(d.Role, d.Path); err != nil {
+		return fmt.Errorf("failed to remove products: %v", err)
 	}
 
 	return nil

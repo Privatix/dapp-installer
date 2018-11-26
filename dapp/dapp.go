@@ -51,8 +51,10 @@ func NewDapp() *Dapp {
 			Settings:      make(map[string]interface{}),
 		},
 		Gui: &InstallerEntity{
-			EntryPoint: "dappgui/dapp-gui",
-			Symlink:    true,
+			EntryPoint:    "dappgui/dapp-gui",
+			Configuration: "dappgui/resources/app/build/settings.json",
+			Settings:      make(map[string]interface{}),
+			Symlink:       true,
 		},
 		DBEngine: dbengine.NewConfig(),
 		Tor:      tor.NewTor(),
@@ -75,11 +77,6 @@ func (d *Dapp) Download() string {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
-	// Install db engine.
-	ch := make(chan bool)
-	defer close(ch)
-	go util.InteractiveWorker("upgrading dapp", ch)
-
 	// Stop services.
 	done := make(chan bool)
 	go oldDapp.Stop(done)
@@ -89,7 +86,6 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 
 	case <-time.After(util.Timeout):
 		os.RemoveAll(d.Path)
-		ch <- true
 		return errors.New("failed to stopped services. timeout expired")
 	}
 
@@ -99,7 +95,6 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		if len(oldDapp.BackupPath) > 0 {
 			os.Rename(oldDapp.BackupPath, oldDapp.Path)
 		}
-		ch <- true
 		return err
 	}
 
@@ -114,7 +109,6 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		d.DBEngine.Stop(d.Path)
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
-		ch <- true
 		return err
 	}
 
@@ -123,14 +117,11 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		d.DBEngine.Stop(d.Path)
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
-		ch <- true
 		return err
 	}
 
 	d.Controller.Service.Start()
 	os.RemoveAll(oldDapp.BackupPath)
-	ch <- true
-	fmt.Printf("\r%s\n", "dapp was successfully upgraded")
 	return nil
 }
 
@@ -166,6 +157,13 @@ func (d *Dapp) modifyDappConfig() error {
 	}
 
 	if err := setConfigurationValues(jsonMap, settings); err != nil {
+		return err
+	}
+
+	addr := jsonMap["UI"].(map[string]interface{})["Addr"].(string)
+	d.Gui.Settings["wsEndpoint"] = fmt.Sprintf("ws://%s/ws", addr)
+
+	if err := d.setUIConfig(); err != nil {
 		return err
 	}
 
@@ -324,4 +322,28 @@ func (d *Dapp) fromConfig() error {
 	d.Role = role.(string)
 
 	return nil
+}
+
+func (d *Dapp) setUIConfig() error {
+	configFile := filepath.Join(d.Path, d.Gui.Configuration)
+	read, err := os.Open(configFile)
+	if err != nil {
+		return err
+	}
+	defer read.Close()
+
+	jsonMap := make(map[string]interface{})
+	json.NewDecoder(read).Decode(&jsonMap)
+
+	if err := setConfigurationValues(jsonMap, d.Gui.Settings); err != nil {
+		return err
+	}
+
+	write, err := os.Create(configFile)
+	if err != nil {
+		return err
+	}
+	defer write.Close()
+
+	return json.NewEncoder(write).Encode(jsonMap)
 }

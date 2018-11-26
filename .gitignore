@@ -24,3 +24,5 @@ statik.go
 /vendor
 Gopkg.lock
 
+
+*.iml

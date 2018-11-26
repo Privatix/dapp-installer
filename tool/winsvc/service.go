@@ -125,6 +125,9 @@ func registerService(svcConf *serviceConfig, exepath string) error {
 		return err
 	}
 	defer s.Close()
+
+	eventlog.Remove(svcConf.ID)
+
 	err = eventlog.InstallAsEventCreate(svcConf.ID,
 		eventlog.Error|eventlog.Warning|eventlog.Info)
 	if err != nil {

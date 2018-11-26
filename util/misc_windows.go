@@ -3,8 +3,11 @@
 package util
 
 import (
+	"archive/zip"
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -104,4 +107,51 @@ func IsServiceStopped(service string) bool {
 func DesktopPath() string {
 	u, _ := user.Current()
 	return filepath.Join(u.HomeDir, "Desktop")
+}
+
+// Unzip will decompress a zip archive, moving all files and folders
+// within the zip file (parameter 1) to an output directory (parameter 2).
+func Unzip(src string, dest string) error {
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+		fpath := filepath.Join(dest, f.Name)
+
+		if f.FileInfo().IsDir() {
+			if err := os.MkdirAll(fpath, f.Mode()); err != nil {
+				return err
+			}
+		} else {
+			if err := extractFile(fpath, rc, f); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
+	err := os.MkdirAll(filepath.Dir(fpath), f.Mode())
+	if err != nil {
+		return err
+	}
+	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		f.Mode())
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	_, err = io.Copy(outFile, rc)
+
+	return err
 }

@@ -232,25 +232,6 @@ func Hash(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// InteractiveWorker shows display text for imitate interactive mode.
-func InteractiveWorker(s string, quit chan bool) {
-	i := 0
-	for {
-		select {
-		case <-quit:
-			return
-		default:
-			i++
-			fmt.Printf("\r%s", strings.Repeat(" ", len(s)+15))
-			fmt.Printf("\r%s%s", s, strings.Repeat(".", i))
-			if i >= 10 {
-				i = 0
-			}
-			time.Sleep(time.Millisecond * 250)
-		}
-	}
-}
-
 // FreePort returns available free port number.
 func FreePort(host, port string) (string, error) {
 	p, err := strconv.Atoi(port)

@@ -22,6 +22,7 @@ Available Commands:
 Flags:
 	--help		Display help information
 	--version	Display the current version of this CLI
+	--verbose	Display log to console log
 
 Use "dapp-installer [command] --help" for more information about a command.
 `
@@ -34,6 +35,7 @@ Flags:
 	--config	Configuration file
 	--workdir	Dapp install directory
 	--source	Dapp install source
+	--verbose	Display log to console log
 	--help		Display help information
 `
 
@@ -44,6 +46,7 @@ Usage:
 Flags:
 	--help		Display help information
 	--workdir	Dapp install directory
+	--verbose	Display log to console log
 `
 
 const installHelp = `
@@ -55,6 +58,7 @@ Flags:
 	--role		Dapp user role
 	--workdir	Dapp install directory
 	--source	Dapp install source
+	--verbose	Display log to console log
 	--help		Display help information
 `
 
@@ -65,4 +69,5 @@ Usage:
 Flags:
 	--help		Display help information
 	--workdir	Dapp install directory
+	--verbose	Display log to console log
 `

@@ -13,6 +13,7 @@ import (
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/env"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -47,6 +48,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	role := flag.String("role", "", "Dapp user role")
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
+
+	flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -127,16 +130,9 @@ func extract(d *dapp.Dapp) error {
 	}
 
 	if len(path) > 0 {
-		ch := make(chan bool)
-		defer close(ch)
-		go util.InteractiveWorker("extracting dapp", ch)
-
 		if err := util.Unzip(path, d.Path); err != nil {
-			ch <- true
 			return fmt.Errorf("failed to extract dapp: %v", err)
 		}
-		ch <- true
-		fmt.Printf("\r%s\n", "dapp was successfully extracted")
 	}
 	fileName := filepath.Join(d.Path, d.Controller.EntryPoint)
 	d.Version = util.DappCtrlVersion(fileName)
@@ -159,6 +155,14 @@ func install(d *dapp.Dapp) error {
 	}
 
 	return nil
+}
+
+func remove(d *dapp.Dapp) error {
+	if err := stopServices(d); err != nil {
+		return err
+	}
+
+	return removeServices(d)
 }
 
 func update(d *dapp.Dapp) error {
@@ -282,6 +286,8 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 
+	flag.Bool("verbose", false, "Display log to console output")
+
 	flag.CommandLine.Parse(os.Args[2:])
 
 	if *h {
@@ -351,4 +357,21 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 
 	path := filepath.Join(d.Path, envFile)
 	return v.Write(path)
+}
+
+func installProducts(d *dapp.Dapp) error {
+	conn := d.DBEngine.DB.ConnectionString()
+	if err := product.Install(d.Role, d.Path, conn); err != nil {
+		return fmt.Errorf("failed to install products: %v", err)
+	}
+
+	return nil
+}
+
+func removeProducts(d *dapp.Dapp) error {
+	if err := product.Remove(d.Role, d.Path); err != nil {
+		return fmt.Errorf("failed to remove products: %v", err)
+	}
+
+	return nil
 }

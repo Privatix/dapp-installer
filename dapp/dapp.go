@@ -77,11 +77,6 @@ func (d *Dapp) Download() string {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
-	// Install db engine.
-	ch := make(chan bool)
-	defer close(ch)
-	go util.InteractiveWorker("upgrading dapp", ch)
-
 	// Stop services.
 	done := make(chan bool)
 	go oldDapp.Stop(done)
@@ -91,7 +86,6 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 
 	case <-time.After(util.Timeout):
 		os.RemoveAll(d.Path)
-		ch <- true
 		return errors.New("failed to stopped services. timeout expired")
 	}
 
@@ -101,7 +95,6 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		if len(oldDapp.BackupPath) > 0 {
 			os.Rename(oldDapp.BackupPath, oldDapp.Path)
 		}
-		ch <- true
 		return err
 	}
 
@@ -116,7 +109,6 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		d.DBEngine.Stop(d.Path)
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
-		ch <- true
 		return err
 	}
 
@@ -125,14 +117,11 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		d.DBEngine.Stop(d.Path)
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
-		ch <- true
 		return err
 	}
 
 	d.Controller.Service.Start()
 	os.RemoveAll(oldDapp.BackupPath)
-	ch <- true
-	fmt.Printf("\r%s\n", "dapp was successfully upgraded")
 	return nil
 }
 

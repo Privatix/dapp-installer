@@ -3,9 +3,6 @@ package data
 import (
 	"database/sql"
 	"fmt"
-	"strings"
-
-	"github.com/privatix/dapp-installer/statik"
 
 	// Load Go Postgres driver.
 	_ "github.com/lib/pq"
@@ -48,59 +45,6 @@ func ping(connStr string) error {
 		err = conn.Ping()
 	}
 	return err
-}
-
-// CreateDatabase creates a new database.
-func CreateDatabase(conf *DB) error {
-	file, err := statik.ReadFile("/scripts/create_database.sql")
-	if err != nil {
-		return err
-	}
-	connStr := getConnectionString(conf.Host, "postgres", conf.User,
-		conf.Password, conf.Port)
-
-	conn, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	queries := strings.Split(string(file), ";")
-
-	for _, q := range queries {
-		q = strings.Replace(q, "dappctrl", conf.DBName, -1)
-		if _, err := conn.Exec(q); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// ConfigurateDatabase does configurate new database.
-func ConfigurateDatabase(db *DB) error {
-	file, err := statik.ReadFile("/scripts/config_database.sql")
-	if err != nil {
-		return err
-	}
-
-	connStr := db.ConnectionString()
-
-	conn, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	queries := strings.Split(string(file), ";")
-
-	for _, q := range queries {
-		if _, err := conn.Exec(q); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // WriteAppVersion writes AppVersion.

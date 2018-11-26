@@ -2,7 +2,6 @@ package dbengine
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -29,11 +28,7 @@ func NewConfig() *DBEngine {
 
 // CreateDatabase creates new database.
 func (engine *DBEngine) CreateDatabase(fileName string) error {
-	if err := data.CreateDatabase(engine.DB); err != nil {
-		return err
-	}
-
-	if err := data.ConfigurateDatabase(engine.DB); err != nil {
+	if err := engine.createDatabase(fileName); err != nil {
 		return err
 	}
 
@@ -47,6 +42,20 @@ func (engine *DBEngine) CreateDatabase(fileName string) error {
 // UpdateDatabase executes db migrations scripts.
 func (engine DBEngine) UpdateDatabase(fileName string) error {
 	return engine.databaseMigrate(fileName)
+}
+
+func (engine DBEngine) createDatabase(fileName string) error {
+	db := &data.DB{
+		Host:     engine.DB.Host,
+		User:     engine.DB.User,
+		Password: engine.DB.Password,
+		DBName:   "postgres",
+		Port:     engine.DB.Port,
+	}
+	conn := db.ConnectionString()
+
+	args := []string{"db-create", "-conn", conn}
+	return util.ExecuteCommand(fileName, args)
 }
 
 func (engine DBEngine) databaseMigrate(fileName string) error {
@@ -65,13 +74,7 @@ func (engine DBEngine) databaseInit(fileName string) error {
 
 // Install installs a DB engine.
 func (engine *DBEngine) Install(installPath string) error {
-	// install db engine
-	ch := make(chan bool)
-	defer close(ch)
-	go util.InteractiveWorker("installation db engine", ch)
-
 	if err := prepareToInstall(installPath); err != nil {
-		ch <- true
 		return err
 	}
 
@@ -87,7 +90,6 @@ func (engine *DBEngine) Install(installPath string) error {
 	cmd := exec.Command(fileName, "-E UTF8", "-D", dataPath)
 
 	if err := cmd.Run(); err != nil {
-		ch <- true
 		return err
 	}
 
@@ -95,27 +97,17 @@ func (engine *DBEngine) Install(installPath string) error {
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
 	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
-		ch <- true
 		return err
 	}
 
 	// start service
 	if err := engine.Start(installPath); err != nil {
-		ch <- true
 		return err
 	}
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
-	if err := exec.Command(fileName, "-p", engine.DB.Port,
-		"-s", engine.DB.User).Run(); err != nil {
-		ch <- true
-		return err
-	}
-
-	ch <- true
-	fmt.Printf("\r%s\n", "db engine was successfully installed")
-
-	return nil
+	return exec.Command(fileName, "-p", engine.DB.Port,
+		"-s", engine.DB.User).Run()
 }
 
 func configDBEngine(pgconf, port string) error {

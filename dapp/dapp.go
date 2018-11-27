@@ -32,6 +32,7 @@ type Dapp struct {
 
 // InstallerEntity has a config for install entity.
 type InstallerEntity struct {
+	DisplayName   string
 	EntryPoint    string
 	Configuration string
 	Symlink       bool
@@ -51,6 +52,7 @@ func NewDapp() *Dapp {
 			Settings:      make(map[string]interface{}),
 		},
 		Gui: &InstallerEntity{
+			DisplayName:   "Privatix",
 			EntryPoint:    "dappgui/dapp-gui",
 			Configuration: "dappgui/resources/app/build/settings.json",
 			Settings:      make(map[string]interface{}),
@@ -179,9 +181,8 @@ func (d *Dapp) modifyDappConfig() error {
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
 	if d.Gui.Symlink {
-		linkName := path.Base(d.Gui.EntryPoint)
 		link := filepath.Join(util.DesktopPath(),
-			fmt.Sprintf("%s %s", linkName, d.Role))
+			fmt.Sprintf("%s %s", d.Gui.DisplayName, d.Role))
 		os.Remove(link)
 	}
 

@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	productDir     = "product"
-	envFile        = ".env.config.json"
-	configFile     = "install.config.json"
-	productImport  = "ProductImport"
-	productInstall = "ProductInstall"
+	productDir       = "product"
+	envFile          = ".env.config.json"
+	agentConfigFile  = "install.agent.config.json"
+	clientConfigFile = "install.client.config.json"
+	productImport    = "ProductImport"
+	productInstall   = "ProductInstall"
 )
 
 func findFile(dir, file string) (string, error) {

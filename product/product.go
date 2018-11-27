@@ -145,6 +145,10 @@ func Remove(role, path string) error {
 }
 
 func run(role, path, cmd string) (bool, error) {
+	configFile := agentConfigFile
+	if strings.EqualFold(role, "client") {
+		configFile = clientConfigFile
+	}
 	configPath, err := findFile(path, configFile)
 	if err != nil {
 		return true, err

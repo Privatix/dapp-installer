@@ -84,17 +84,15 @@ func (d *Dapp) Configurate() error {
 
 func configurateService(d *Dapp) error {
 	fail := func(name string) error {
-		args := []string{"failure", name, "reset=", "0",
-			"actions=", "restart/1000/restart/2000/restart/5000"}
-		return util.ExecuteCommand("sc", args)
+		return util.ExecuteCommand("sc", "failure", name, "reset=", "0",
+			"actions=", "restart/1000/restart/2000/restart/5000")
 	}
 
 	descr := func(name, descr string) error {
 		role := d.Role
 		hash := util.Hash(d.Path)
-		args := []string{"description", name,
-			fmt.Sprintf("Privatix %s %s %s", role, descr, hash)}
-		return util.ExecuteCommand("sc", args)
+		return util.ExecuteCommand("sc", "description", name,
+			fmt.Sprintf("Privatix %s %s %s", role, descr, hash))
 	}
 
 	services := []string{

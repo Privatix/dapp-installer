@@ -169,6 +169,11 @@ func (d *Dapp) modifyDappConfig() error {
 		return err
 	}
 
+	addr = jsonMap["PayServer"].(map[string]interface{})["Addr"].(string)
+	if err := createFirewallRule(d, addr); err != nil {
+		return err
+	}
+
 	write, err := os.Create(configFile)
 	if err != nil {
 		return err

@@ -49,10 +49,6 @@ func (d *Dapp) Configurate() error {
 		d.createSymlink()
 	}
 
-	if err := d.modifyDappConfig(); err != nil {
-		return err
-	}
-
 	_, installer := filepath.Split(os.Args[0])
 	util.CopyFile(os.Args[0], filepath.Join(d.Path, installer))
 
@@ -70,6 +66,10 @@ func (d *Dapp) Configurate() error {
 
 	if err := ctrl.Service.Install(); err != nil {
 		return fmt.Errorf("failed to install service: %v", err)
+	}
+
+	if err := d.modifyDappConfig(); err != nil {
+		return err
 	}
 
 	if err := ctrl.Service.Start(); err != nil {

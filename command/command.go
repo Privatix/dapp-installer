@@ -64,6 +64,7 @@ func installFlow() pipeline.Flow {
 		newOperator("extract", extract, removeDapp),
 		newOperator("install tor", installTor, removeTor),
 		newOperator("start tor", startTor, stopTor),
+		newOperator("install dbengine", installDBEngine, removeDBEngine),
 		newOperator("install", install, remove),
 		newOperator("install products", installProducts, removeProducts),
 		newOperator("write version", writeVersion, nil),

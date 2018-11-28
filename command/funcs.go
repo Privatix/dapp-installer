@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	dapputil "github.com/privatix/dappctrl/util"
@@ -140,7 +141,7 @@ func extract(d *dapp.Dapp) error {
 	return nil
 }
 
-func install(d *dapp.Dapp) error {
+func installDBEngine(d *dapp.Dapp) error {
 	if err := d.DBEngine.Install(d.Path); err != nil {
 		return fmt.Errorf("failed to install dbengine: %v", err)
 	}
@@ -150,6 +151,18 @@ func install(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to create db: %v", err)
 	}
 
+	return nil
+}
+
+func removeDBEngine(d *dapp.Dapp) error {
+	if err := d.DBEngine.Remove(d.Path); err != nil {
+		return fmt.Errorf("failed to remove dbengine: %v", err)
+	}
+
+	return nil
+}
+
+func install(d *dapp.Dapp) error {
 	if err := d.Configurate(); err != nil {
 		return fmt.Errorf("failed to configurate dapp: %v", err)
 	}
@@ -219,6 +232,17 @@ func stopServices(d *dapp.Dapp) error {
 }
 
 func removeServices(d *dapp.Dapp) error {
+	if runtime.GOOS == "windows" {
+		// Removes firewall rule for payment reciever of dappctrl.
+		args := []string{"-ExecutionPolicy", "Bypass", "-File",
+			filepath.Join(d.Path, "dappctrl/set-ctrlfirewall.ps1"),
+			"-Remove", "-ServiceName", d.Controller.Service.ID}
+		err := util.ExecuteCommand("powershell", args...)
+		if err != nil {
+			return fmt.Errorf("failed to remove firewall rule: %v", err)
+		}
+	}
+
 	if err := d.Controller.Service.Remove(); err != nil {
 		return fmt.Errorf("failed to remove dappctrl service: %v", err)
 	}

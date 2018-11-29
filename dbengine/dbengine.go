@@ -53,23 +53,17 @@ func (engine DBEngine) createDatabase(fileName string) error {
 		Port:     engine.DB.Port,
 	}
 	conn := db.ConnectionString()
-
-	args := []string{"db-create", "-conn", conn}
-	return util.ExecuteCommand(fileName, args)
+	return util.ExecuteCommand(fileName, "db-create", "-conn", conn)
 }
 
 func (engine DBEngine) databaseMigrate(fileName string) error {
 	conn := engine.DB.ConnectionString()
-
-	args := []string{"db-migrate", "-conn", conn}
-	return util.ExecuteCommand(fileName, args)
+	return util.ExecuteCommand(fileName, "db-migrate", "-conn", conn)
 }
 
 func (engine DBEngine) databaseInit(fileName string) error {
 	conn := engine.DB.ConnectionString()
-
-	args := []string{"db-init-data", "-conn", conn}
-	return util.ExecuteCommand(fileName, args)
+	return util.ExecuteCommand(fileName, "db-init-data", "-conn", conn)
 }
 
 // Install installs a DB engine.

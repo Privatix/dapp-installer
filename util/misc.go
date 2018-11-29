@@ -260,9 +260,8 @@ func FreePort(host, port string) (string, error) {
 }
 
 // ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args []string) error {
-	cmd := exec.Command(filename, args...)
-	return cmd.Run()
+func ExecuteCommand(filename string, args ...string) error {
+	return exec.Command(filename, args...).Run()
 }
 
 // RenamePath changes folder name and returns it

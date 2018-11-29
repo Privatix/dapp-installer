@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -34,11 +33,10 @@ func (d *Dapp) controllerHash() string {
 
 func (d *Dapp) createSymlink() {
 	target := filepath.Join(d.Path, d.Gui.EntryPoint)
-	linkName := path.Base(d.Gui.EntryPoint)
 	link := filepath.Join(util.DesktopPath(),
-		fmt.Sprintf(`%s %s`, linkName, d.Role))
+		fmt.Sprintf(`%s %s`, d.Gui.DisplayName, d.Role))
 
-	if len(filepath.Ext(linkName)) == 0 {
+	if len(filepath.Ext(target)) == 0 {
 		target += ".exe"
 	}
 
@@ -49,10 +47,6 @@ func (d *Dapp) createSymlink() {
 func (d *Dapp) Configurate() error {
 	if d.Gui.Symlink {
 		d.createSymlink()
-	}
-
-	if err := d.modifyDappConfig(); err != nil {
-		return err
 	}
 
 	_, installer := filepath.Split(os.Args[0])
@@ -74,6 +68,10 @@ func (d *Dapp) Configurate() error {
 		return fmt.Errorf("failed to install service: %v", err)
 	}
 
+	if err := d.modifyDappConfig(); err != nil {
+		return err
+	}
+
 	if err := ctrl.Service.Start(); err != nil {
 		// retry attempt to start service
 		if err := ctrl.Service.Start(); err != nil {
@@ -86,17 +84,15 @@ func (d *Dapp) Configurate() error {
 
 func configurateService(d *Dapp) error {
 	fail := func(name string) error {
-		args := []string{"failure", name, "reset=", "0",
-			"actions=", "restart/1000/restart/2000/restart/5000"}
-		return util.ExecuteCommand("sc", args)
+		return util.ExecuteCommand("sc", "failure", name, "reset=", "0",
+			"actions=", "restart/1000/restart/2000/restart/5000")
 	}
 
 	descr := func(name, descr string) error {
 		role := d.Role
 		hash := util.Hash(d.Path)
-		args := []string{"description", name,
-			fmt.Sprintf("Privatix %s %s %s", role, descr, hash)}
-		return util.ExecuteCommand("sc", args)
+		return util.ExecuteCommand("sc", "description", name,
+			fmt.Sprintf("Privatix %s %s %s", role, descr, hash))
 	}
 
 	services := []string{

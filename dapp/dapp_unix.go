@@ -5,7 +5,6 @@ package dapp
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/unix"
@@ -30,11 +29,10 @@ func (d *Dapp) controllerHash() string {
 }
 func (d *Dapp) createSymlink() {
 	target := filepath.Join(d.Path, d.Gui.EntryPoint)
-	linkName := path.Base(d.Gui.EntryPoint)
 	link := filepath.Join(util.DesktopPath(),
-		fmt.Sprintf("%s %s", linkName, d.Role))
+		fmt.Sprintf("%s %s", d.Gui.DisplayName, d.Role))
 
-	if len(filepath.Ext(linkName)) == 0 {
+	if len(filepath.Ext(target)) == 0 {
 		target += ".app"
 	}
 

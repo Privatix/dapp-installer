@@ -73,6 +73,5 @@ func prepareToInstall(installPath string) error {
 	// installs run-time components (the Visual C++ Redistributable Packages
 	// for VS 2013) that are required to run postgresql database engine.
 	vcredist := filepath.Join(installPath, "util/vcredist_x64.exe")
-	args := []string{"/install", "/quiet", "/norestart"}
-	return util.ExecuteCommand(vcredist, args)
+	return util.ExecuteCommand(vcredist, "/install", "/quiet", "/norestart")
 }

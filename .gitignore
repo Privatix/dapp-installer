@@ -26,3 +26,9 @@ Gopkg.lock
 
 
 *.iml
+/installbuilder/mac-dapp-installer/*
+/installbuilder/win-dapp-installer/*
+/installbuilder/project/out/*
+/installbuilder/project/*.backup
+# don't ignore keep files
+!.keep

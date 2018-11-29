@@ -112,7 +112,8 @@ func configurateService(d *Dapp) error {
 		}
 	}
 
-	return nil
+	return util.ExecuteCommand("sc", "config", services[0],
+		"depend=", services[1])
 }
 
 func copyServiceWrapper(d, s *Dapp) {

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -42,6 +43,12 @@ type InstallerEntity struct {
 
 // NewDapp creates a default Dapp configuration.
 func NewDapp() *Dapp {
+	gc := "dappgui/dapp-gui.app/Contents/Resources/app/build/settings.json"
+
+	if runtime.GOOS == "windows" {
+		gc = "dappgui/resources/app/build/settings.json"
+	}
+
 	return &Dapp{
 		Role: "agent",
 		Path: ".",
@@ -54,7 +61,7 @@ func NewDapp() *Dapp {
 		Gui: &InstallerEntity{
 			DisplayName:   "Privatix",
 			EntryPoint:    "dappgui/dapp-gui",
-			Configuration: "dappgui/resources/app/build/settings.json",
+			Configuration: gc,
 			Settings:      make(map[string]interface{}),
 			Symlink:       true,
 		},

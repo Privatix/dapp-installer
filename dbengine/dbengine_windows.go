@@ -3,9 +3,7 @@
 package dbengine
 
 import (
-	"bytes"
 	"fmt"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -18,35 +16,31 @@ func Hash(path string) string {
 }
 
 func runService(service string) error {
-	checkServiceCmd := exec.Command("sc", "queryex", service)
-
-	var checkServiceStdOut bytes.Buffer
-	checkServiceCmd.Stdout = &checkServiceStdOut
-
-	if err := checkServiceCmd.Run(); err != nil {
+	out, err := util.ExecuteCommandOutput("sc", "queryex", service)
+	if err != nil {
 		return err
 	}
 
 	// service is running
-	if strings.Contains(checkServiceStdOut.String(), "RUNNING") {
+	if strings.Contains(out, "RUNNING") {
 		return nil
 	}
 
 	// trying start service
-	return exec.Command("net", "start", service).Run()
+	return util.ExecuteCommand("net", "start", service)
 }
 
 func startService(installPath string) error {
 	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
 	serviceName := Hash(installPath)
 
-	exec.Command(fileName, "unregister", "-N", serviceName).Run()
+	_ = util.ExecuteCommand(fileName, "unregister", "-N", serviceName)
 
 	dataPath := filepath.Join(installPath, `pgsql/data`)
-	cmd := exec.Command(fileName, "register",
+	err := util.ExecuteCommand(fileName, "register",
 		"-N", serviceName, "-D", dataPath)
 
-	if err := cmd.Run(); err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -59,14 +53,12 @@ func removeService(installPath string) error {
 
 	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
 
-	return exec.Command(fileName, "unregister", "-N", serviceName).Run()
+	return util.ExecuteCommand(fileName, "unregister", "-N", serviceName)
 }
 
 func stopService(installPath string) error {
 	serviceName := Hash(installPath)
-	checkServiceCmd := exec.Command("sc", "stop", serviceName)
-
-	return checkServiceCmd.Run()
+	return util.ExecuteCommand("sc", "stop", serviceName)
 }
 
 func prepareToInstall(installPath string) error {

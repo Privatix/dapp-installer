@@ -156,6 +156,8 @@ func (d *Dapp) modifyDappConfig() error {
 	settings[role] = d.Role
 	settings[torHostname] = d.Tor.Hostname
 	settings[torSocksListener] = d.Tor.SocksPort
+	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
+		d.Tor.TargetPort)
 	settings["FileLog.Filename"] = filepath.Join(d.Path,
 		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User

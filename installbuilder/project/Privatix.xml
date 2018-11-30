@@ -111,7 +111,7 @@
     </readyToInstallActionList>
     <postInstallationActionList>
         <showProgressDialog>
-            <title>Wait</title>
+            <title>${msg(Installer.showProgressDialog.Title)}</title>
             <actionList>
                 <runProgram>
                     <abortOnError>0</abortOnError>
@@ -135,7 +135,7 @@
             <path>${installdir}/version</path>
         </readFile>
         <showProgressDialog>
-            <title>Wait</title>
+            <title>${msg(Installer.showProgressDialog.Title)}</title>
             <actionList>
                 <runProgram>
                     <program>${installdir}/dapp-installer</program>

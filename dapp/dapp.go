@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/denisbrodbeck/machineid"
+
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/tor"
@@ -29,6 +31,7 @@ type Dapp struct {
 	BackupPath string
 	Version    string
 	Tor        *tor.Tor
+	UserID     string
 }
 
 // InstallerEntity has a config for install entity.
@@ -151,6 +154,10 @@ func (d *Dapp) modifyDappConfig() error {
 
 	json.NewDecoder(read).Decode(&jsonMap)
 
+	d.UserID, err = machineid.ProtectedID("privatix")
+	if err != nil {
+		return err
+	}
 	settings := d.Controller.Settings
 
 	settings[role] = d.Role
@@ -158,6 +165,7 @@ func (d *Dapp) modifyDappConfig() error {
 	settings[torSocksListener] = d.Tor.SocksPort
 	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
 		d.Tor.TargetPort)
+	settings["Report.userid"] = d.UserID
 	settings["FileLog.Filename"] = filepath.Join(d.Path,
 		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
@@ -173,7 +181,7 @@ func (d *Dapp) modifyDappConfig() error {
 
 	addr := jsonMap["UI"].(map[string]interface{})["Addr"].(string)
 	d.Gui.Settings["wsEndpoint"] = fmt.Sprintf("ws://%s/ws", addr)
-
+	d.Gui.Settings["bugsnag.userid"] = d.UserID
 	if err := d.setUIConfig(); err != nil {
 		return err
 	}

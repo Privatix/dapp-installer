@@ -11,6 +11,7 @@ cd "${DAPPINST_DIR}" && dep ensure
 go get -d ${DAPPINST}/...
 go get -u github.com/rakyll/statik
 go get -u github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+go get -u github.com/denisbrodbeck/machineid
 go get -u gopkg.in/reform.v1/reform
 
 go generate ${DAPPINST}/...

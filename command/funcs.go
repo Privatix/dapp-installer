@@ -377,6 +377,7 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 	v.Role = d.Role
 	v.Version = d.Version
 	v.WorkDir = d.Path
+	v.UserID = d.UserID
 	v.Dapp.Controller = d.Controller.EntryPoint
 	v.Dapp.Gui = d.Gui.EntryPoint
 	v.Dapp.Service = d.Controller.Service.ID

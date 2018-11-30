@@ -25,4 +25,4 @@ statik.go
 Gopkg.lock
 
 
-*.iml
+dapp-installer\.iml

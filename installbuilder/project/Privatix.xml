@@ -134,10 +134,17 @@
             <name>install_type</name>
             <path>${installdir}/version</path>
         </readFile>
-        <runProgram>
-            <program>${installdir}/dapp-installer</program>
-            <programArguments>remove -workdir ./${install_type}</programArguments>
-        </runProgram>
+        <showProgressDialog>
+            <title>Wait</title>
+            <actionList>
+                <runProgram>
+                    <program>${installdir}/dapp-installer</program>
+                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                    <workingDirectory>${installdir}</workingDirectory>
+                </runProgram>
+            </actionList>
+        </showProgressDialog>
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>

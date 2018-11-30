@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -81,9 +80,9 @@ func (engine *DBEngine) Install(installPath string) error {
 	util.GrantAccess(installPath)
 
 	fileName := filepath.Join(installPath, `pgsql/bin/initdb`)
-	cmd := exec.Command(fileName, "-E UTF8", "-D", dataPath)
+	err := util.ExecuteCommand(fileName, "-E UTF8", "-D", dataPath)
 
-	if err := cmd.Run(); err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -100,8 +99,8 @@ func (engine *DBEngine) Install(installPath string) error {
 	}
 
 	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
-	return exec.Command(fileName, "-p", engine.DB.Port,
-		"-s", engine.DB.User).Run()
+	return util.ExecuteCommand(fileName, "-p", engine.DB.Port,
+		"-s", engine.DB.User)
 }
 
 func configDBEngine(pgconf, port string) error {

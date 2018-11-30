@@ -1,7 +1,6 @@
 package util
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
@@ -121,14 +120,10 @@ func humanateBytes(s uint64) string {
 
 // DappCtrlVersion returns dappctrl version.
 func DappCtrlVersion(filename string) string {
-	cmd := exec.Command(filename, "-version")
-	var output bytes.Buffer
-	cmd.Stdout = &output
-	if err := cmd.Run(); err != nil {
+	version, err := ExecuteCommandOutput(filename, "-version")
+	if err != nil {
 		return ""
 	}
-
-	version := output.String()
 	if i := strings.Index(version, " "); i > 0 {
 		version = version[:i]
 	}
@@ -257,11 +252,6 @@ func FreePort(host, port string) (string, error) {
 	}
 
 	return port, nil
-}
-
-// ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args ...string) error {
-	return exec.Command(filename, args...).Run()
 }
 
 // RenamePath changes folder name and returns it

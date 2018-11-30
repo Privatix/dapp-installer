@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/privatix/dappctrl/util/log"
@@ -231,6 +232,7 @@ func exePath() (string, error) {
 
 func runServiceCommand(conf *serviceConfig, logger log.Logger) {
 	cmd := exec.Command(conf.Command, conf.Args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if err := cmd.Start(); err != nil {
 		logger.Error(fmt.Sprintf("failed to start child process: %v", err))
 		return

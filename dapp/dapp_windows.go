@@ -5,7 +5,6 @@ package dapp
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -40,7 +39,7 @@ func (d *Dapp) createSymlink() {
 		target += ".exe"
 	}
 
-	exec.Command("cmd", "/C", "mklink", link, target).Run()
+	util.ExecuteCommand("cmd", "/C", "mklink", link, target)
 }
 
 // Configurate configurates installed dapp.

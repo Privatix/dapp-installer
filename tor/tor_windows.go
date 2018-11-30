@@ -2,7 +2,6 @@ package tor
 
 import (
 	"fmt"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/util"
@@ -18,18 +17,18 @@ func installService(service, path string) error {
 	torConf := filepath.Join(path, `tor/settings/torrc`)
 	binPath := fmt.Sprintf(`"%s" -nt-service -f "%s"`, torExe, torConf)
 
-	return exec.Command("sc", "create", service, "start=auto",
-		"binPath="+binPath).Run()
+	return util.ExecuteCommand("sc", "create", service, "start=auto",
+		"binPath="+binPath)
 }
 
 func startService(service string) error {
-	return exec.Command("sc", "start", service).Run()
+	return util.ExecuteCommand("sc", "start", service)
 }
 
 func stopService(service string) error {
-	return exec.Command("sc", "stop", service).Run()
+	return util.ExecuteCommand("sc", "stop", service)
 }
 
 func removeService(service string) error {
-	return exec.Command("sc", "delete", service).Run()
+	return util.ExecuteCommand("sc", "delete", service)
 }

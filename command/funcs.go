@@ -164,7 +164,7 @@ func removeDBEngine(d *dapp.Dapp) error {
 
 func install(d *dapp.Dapp) error {
 	if err := d.Configurate(); err != nil {
-		return fmt.Errorf("failed to configurate dapp: %v", err)
+		return fmt.Errorf("failed to configure dapp: %v", err)
 	}
 
 	return nil

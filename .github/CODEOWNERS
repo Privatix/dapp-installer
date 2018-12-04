@@ -5,7 +5,7 @@
 *               @ubozov @lart5
 
 # notify go-team about changes in go files
-*.go            @privatix/go
+*.go            @ubozov @furkhat @ababo @dzeckelev
 
 # notify drew2a about changes in scripts and settings
 /.github/       @drew2a

@@ -27,15 +27,20 @@ installbuilder/mac-dapp-installer/dapp-installer.config.json
 
 Windows: 
 ```
-installbuilder/mac-dapp-installer/app.zip
-installbuilder/mac-dapp-installer/dapp-installer.exe
-installbuilder/mac-dapp-installer/dapp-installer.config.json
+installbuilder/win-dapp-installer/app.zip
+installbuilder/win-dapp-installer/dapp-installer.exe
+installbuilder/win-dapp-installer/dapp-installer.config.json
 ```
 
 Run build Bitrock Installer:
 
+Linux, Mac OS:
 ```
 cd installbuilder/project
 [Path to InstallBuilder]/bin/builder build Privatix.xml windows  
 ```
-
+Windows: 
+```
+cd installbuilder/project
+[Path to InstallBuilder]/bin/builder-cli.exe build Privatix.xml windows
+```

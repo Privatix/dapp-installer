@@ -258,6 +258,11 @@ func removeDapp(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to kill process: %v", err)
 	}
 
+	// Removes unremoved services.
+	d.Controller.Service.Remove()
+	d.DBEngine.Remove(d.Path)
+	d.Tor.Remove()
+
 	if err := d.Remove(); err != nil {
 		if err := util.SelfRemove(d.Path); err != nil {
 			return fmt.Errorf("failed to remove folder: %v", err)

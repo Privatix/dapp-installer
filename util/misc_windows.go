@@ -154,10 +154,18 @@ func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
 }
 
 // ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args ...string) error {
+func ExecuteCommand(filename string, args ...string) (err error) {
 	cmd := exec.Command(filename, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	return cmd.Run()
+
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	if err = cmd.Run(); err != nil {
+		outStr, errStr := outbuf.String(), errbuf.String()
+		err = fmt.Errorf("%v\nout:\n%s\nerr:\n%s", err, outStr, errStr)
+	}
+	return err
 }
 
 // ExecuteCommandOutput does executing file and returns output.

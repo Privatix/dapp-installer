@@ -46,23 +46,8 @@ func Install(role, path, conn string) error {
 		envPath, imported, installed := getParameters(productPath)
 
 		if !imported {
-			templatePath := filepath.Join(productPath, "template")
-			if err := addProduct(templatePath, conn); err != nil {
-				return err
-			}
-			err := writeVariable(envPath, productImport, true)
+			err := importsProduct(role, envPath, productPath, conn)
 			if err != nil {
-				return err
-			}
-
-			src := agentAdapterConfig
-			if role == "client" {
-				src = clientAdapterConfig
-			}
-			src = filepath.Join(templatePath, src)
-			configPath := filepath.Join(productPath, "config")
-			dest := filepath.Join(configPath, adapterConfig)
-			if err := util.CopyFile(src, dest); err != nil {
 				return err
 			}
 		}
@@ -81,7 +66,8 @@ func Install(role, path, conn string) error {
 
 		err = writeVariable(envPath, productInstall, true)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to write %s after install: %v",
+				envPath, err)
 		}
 	}
 	return nil
@@ -222,4 +208,26 @@ func addProduct(path, conn string) error {
 	})
 
 	return err
+}
+
+func importsProduct(role, envPath, productPath, conn string) error {
+	templatePath := filepath.Join(productPath, "template")
+	if err := addProduct(templatePath, conn); err != nil {
+		return err
+	}
+	err := writeVariable(envPath, productImport, true)
+	if err != nil {
+		return fmt.Errorf("failed to write %s after import: %v",
+			envPath, err)
+	}
+
+	src := agentAdapterConfig
+	if role == "client" {
+		src = clientAdapterConfig
+	}
+	src = filepath.Join(templatePath, src)
+	configPath := filepath.Join(productPath, "config")
+	dest := filepath.Join(configPath, adapterConfig)
+
+	return util.CopyFile(src, dest)
 }

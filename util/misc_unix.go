@@ -73,8 +73,16 @@ func Unzip(src string, dest string) error {
 }
 
 // ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args ...string) error {
-	return exec.Command(filename, args...).Run()
+func ExecuteCommand(filename string, args ...string) (err error) {
+	cmd := exec.Command(filename, args...)
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	if err = cmd.Run(); err != nil {
+		outStr, errStr := outbuf.String(), errbuf.String()
+		err = fmt.Errorf("%v\nout:\n%s\nerr:\n%s", err, outStr, errStr)
+	}
+	return err
 }
 
 // ExecuteCommandOutput does executing file and returns output.

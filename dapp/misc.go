@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/rdegges/go-ipify"
+
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -74,7 +76,7 @@ func setDynamicPorts(configFile string) error {
 
 // createFirewallRule creates firewall rule for payment reciever of dappctrl.
 func createFirewallRule(d *Dapp, addr string) error {
-	if !strings.EqualFold(d.Role, "agent") || runtime.GOOS != "windows" {
+	if runtime.GOOS != "windows" {
 		return nil
 	}
 
@@ -88,4 +90,8 @@ func createFirewallRule(d *Dapp, addr string) error {
 		"-ProgramPath", filepath.Join(d.Path, "dappctrl/dappctrl.exe"),
 		"-Port", s[1], "-Protocol", "tcp"}
 	return util.ExecuteCommand("powershell", args...)
+}
+
+func externalIP() (string, error) {
+	return ipify.GetIp()
 }

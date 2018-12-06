@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/denisbrodbeck/machineid"
@@ -175,6 +176,21 @@ func (d *Dapp) modifyDappConfig() error {
 		settings["DB.Conn.password"] = d.DBEngine.DB.Password
 	}
 
+	if strings.EqualFold(d.Role, "agent") {
+		ip, err := externalIP()
+		if err != nil {
+			return err
+		}
+		addr := jsonMap["PayServer"].(map[string]interface{})["Addr"].(string)
+		payServerAddr := strings.Replace(addr, "0.0.0.0", ip, 1)
+		settings["PayAddress"] = strings.Replace(jsonMap["PayAddress"].(string),
+			addr, payServerAddr, 1)
+
+		if err := createFirewallRule(d, addr); err != nil {
+			return err
+		}
+	}
+
 	if err := setConfigurationValues(jsonMap, settings); err != nil {
 		return err
 	}
@@ -183,11 +199,6 @@ func (d *Dapp) modifyDappConfig() error {
 	d.Gui.Settings["wsEndpoint"] = fmt.Sprintf("ws://%s/ws", addr)
 	d.Gui.Settings["bugsnag.userid"] = d.UserID
 	if err := d.setUIConfig(); err != nil {
-		return err
-	}
-
-	addr = jsonMap["PayServer"].(map[string]interface{})["Addr"].(string)
-	if err := createFirewallRule(d, addr); err != nil {
 		return err
 	}
 

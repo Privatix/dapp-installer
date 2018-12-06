@@ -74,7 +74,7 @@ func setDynamicPorts(configFile string) error {
 
 // createFirewallRule creates firewall rule for payment reciever of dappctrl.
 func createFirewallRule(d *Dapp, addr string) error {
-	if runtime.GOOS != "windows" {
+	if !strings.EqualFold(d.Role, "agent") || runtime.GOOS != "windows" {
 		return nil
 	}
 

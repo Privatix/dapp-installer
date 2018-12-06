@@ -232,7 +232,7 @@ func stopServices(d *dapp.Dapp) error {
 }
 
 func removeServices(d *dapp.Dapp) error {
-	if runtime.GOOS == "windows" {
+	if d.Role == "agent" && runtime.GOOS == "windows" {
 		// Removes firewall rule for payment reciever of dappctrl.
 		args := []string{"-ExecutionPolicy", "Bypass", "-File",
 			filepath.Join(d.Path, "dappctrl/set-ctrlfirewall.ps1"),

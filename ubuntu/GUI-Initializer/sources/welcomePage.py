@@ -37,7 +37,7 @@ fh.setFormatter(form_file)
 logging.getLogger().addHandler(fh)
 
 ch = logging.StreamHandler()  # console debug
-ch.setLevel('DEBUG')
+ch.setLevel('INFO')
 ch.setFormatter(form_console)
 logging.getLogger().addHandler(ch)
 
@@ -272,8 +272,9 @@ class UpdaterThread(RollbackThread):
     def __init__(self, initial):
         RollbackThread.__init__(self, initial)
         logging.debug('UpdaterThread init')
-        self.dwnldUpdateLink = 'http://artdev.privatix.net/binary/'
-        self.dwnldFiles = ['dappctrl', 'dappvpn']
+        self.dwnldUpdateLink = 'http://art.privatix.net/binary/'
+        self.dwnldFiles = {'dappctrl': ['common'],
+                           'dappvpn': ['common', 'vpn']}
 
     def dumpContainerData(self):
         logging.debug('Prepare to dump data')
@@ -290,7 +291,6 @@ class UpdaterThread(RollbackThread):
                 logging.debug('Trouble when try dump data')
                 return False, cmd
         return True, ''
-
 
     def downloadNewData(self):
         logging.debug('Download new data')
@@ -318,23 +318,15 @@ class UpdaterThread(RollbackThread):
 
     def migrationNewData(self):
         logging.debug('Migrate container data')
-        for cont in self.dwnldFiles:
-            if 'vpn' in cont:
-                logging.debug('Migrate container data vpn')
-                p_dest = self.initial.p_contr + self.initial.path_vpn + 'root/go/bin/'
+
+        for f, contrs in self.dwnldFiles.items():
+            for con in contrs:
+                logging.debug('Migrate {} in {}'.format(f, con))
+                p_dest = self.initial.p_contr + con + '/root/go/bin/'
                 p_src = self.contTmp + '/' + f
                 cmd = 'sudo cp -f {} {}'.format(p_src, p_dest)
                 if int(system(cmd)):
                     return False
-            else:
-                logging.debug('Migrate container data common')
-                for f in self.dwnldFiles:
-                    p_dest = self.initial.p_contr + self.initial.path_com + 'root/go/bin/'
-                    p_src = self.contTmp + '/' + f
-                    cmd = 'sudo cp -f {} {}'.format(p_src, p_dest)
-                    if int(system(cmd)):
-                        return False
-
 
         logging.debug('Migrate DB')
         # todo
@@ -362,6 +354,7 @@ class UpdaterThread(RollbackThread):
             if self.updateNewData():
                 self.initial.run_service(comm=True)
                 self.initial.run_service()
+                self.initial._sys_call('sudo rm -rf {}'.format(self.contTmp))
                 self.signal.emit(('0', '0'))
             else:
                 logging.debug('Trouble when try update data.Rollback.')
@@ -622,7 +615,7 @@ class UpdateReinstall(InitGUI):
         self.show_mess.setGeometry(QtCore.QRect(5, 150, 350, 100))
 
         task = dict(
-            # Update=prepUpdate,
+            Update=prepUpdate,
             Reinstall=prepReinstall,
             Delete=prepDelete)
 

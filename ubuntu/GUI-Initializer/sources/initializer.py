@@ -4,7 +4,7 @@
 """
         Initializer on pure Python 2.7
 
-        Version 0.2.2
+        Version 0.2.3
 
         mode:
     python initializer.py  -h                              get help information

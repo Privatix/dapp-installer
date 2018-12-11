@@ -20,30 +20,10 @@ cd dapp-installer
 git checkout master
 ```
 
-Prepare to build:
-
-```bash
-go get -d github.com/privatix/dapp-installer/...
-go get -u github.com/rakyll/statik
-```
-
-**Windows** platform:
-
-```
-go get -u github.com/josephspurrier/goversioninfo/cmd/goversioninfo
-```
-
 Build `dapp-installer` package:
 
 ```bash
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-dep ensure
-go generate ./...
-
-GIT_COMMIT=$(git rev-list -1 HEAD)
-GIT_RELEASE=$(git tag -l --points-at HEAD)
-
-go build -ldflags "-X main.Commit=$GIT_COMMIT -X main.Version=$GIT_RELEASE"
+/scripts/build.sh
 ```
 
 # Usage

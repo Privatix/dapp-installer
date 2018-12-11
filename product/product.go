@@ -3,7 +3,6 @@ package product
 import (
 	"fmt"
 	"io/ioutil"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -47,23 +46,8 @@ func Install(role, path, conn string) error {
 		envPath, imported, installed := getParameters(productPath)
 
 		if !imported {
-			templatePath := filepath.Join(productPath, "template")
-			if err := addProduct(templatePath, conn); err != nil {
-				return err
-			}
-			err := writeVariable(envPath, productImport, true)
+			err := importsProduct(role, envPath, productPath, conn)
 			if err != nil {
-				return err
-			}
-
-			src := agentAdapterConfig
-			if role == "client" {
-				src = clientAdapterConfig
-			}
-			src = filepath.Join(templatePath, src)
-			configPath := filepath.Join(productPath, "config")
-			dest := filepath.Join(configPath, adapterConfig)
-			if err := util.CopyFile(src, dest); err != nil {
 				return err
 			}
 		}
@@ -82,7 +66,8 @@ func Install(role, path, conn string) error {
 
 		err = writeVariable(envPath, productInstall, true)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to write %s after install: %v",
+				envPath, err)
 		}
 	}
 	return nil
@@ -145,6 +130,10 @@ func Remove(role, path string) error {
 }
 
 func run(role, path, cmd string) (bool, error) {
+	configFile := agentConfigFile
+	if strings.EqualFold(role, "client") {
+		configFile = clientConfigFile
+	}
 	configPath, err := findFile(path, configFile)
 	if err != nil {
 		return true, err
@@ -187,8 +176,8 @@ func (v command) execute(path string) error {
 		n[i] = strings.Replace(s, "..", path, -1)
 	}
 	file := filepath.Join(path, n[0])
-	cmd := exec.Command(file, n[1:]...)
 
+	var err error
 	if v.Admin && runtime.GOOS == "darwin" {
 		txt := `with prompt "Privatix wants to make changes"`
 		evelate := "with administrator privileges"
@@ -196,10 +185,12 @@ func (v command) execute(path string) error {
 		script := fmt.Sprintf(`do shell script "sudo %s" %s %s`,
 			command, txt, evelate)
 
-		cmd = exec.Command("osascript", "-e", script)
+		err = util.ExecuteCommand("osascript", "-e", script)
+	} else {
+		err = util.ExecuteCommand(file, n[1:]...)
 	}
 
-	if err := cmd.Run(); err != nil {
+	if err != nil {
 		return fmt.Errorf("failed to execute %s: %v", v.Command, err)
 	}
 	return nil
@@ -217,4 +208,26 @@ func addProduct(path, conn string) error {
 	})
 
 	return err
+}
+
+func importsProduct(role, envPath, productPath, conn string) error {
+	templatePath := filepath.Join(productPath, "template")
+	if err := addProduct(templatePath, conn); err != nil {
+		return err
+	}
+	err := writeVariable(envPath, productImport, true)
+	if err != nil {
+		return fmt.Errorf("failed to write %s after import: %v",
+			envPath, err)
+	}
+
+	src := agentAdapterConfig
+	if role == "client" {
+		src = clientAdapterConfig
+	}
+	src = filepath.Join(templatePath, src)
+	configPath := filepath.Join(productPath, "config")
+	dest := filepath.Join(configPath, adapterConfig)
+
+	return util.CopyFile(src, dest)
 }

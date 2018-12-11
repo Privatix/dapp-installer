@@ -25,4 +25,10 @@ statik.go
 Gopkg.lock
 
 
-*.iml
+dapp-installer\.iml
+/installbuilder/mac-dapp-installer/*
+/installbuilder/win-dapp-installer/*
+/installbuilder/project/out/*
+/installbuilder/project/*.backup
+# don't ignore keep files
+!.keep

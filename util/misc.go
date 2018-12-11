@@ -1,7 +1,6 @@
 package util
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
@@ -16,9 +15,12 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/keybase/go-ps"
 )
 
 const (
@@ -118,14 +120,10 @@ func humanateBytes(s uint64) string {
 
 // DappCtrlVersion returns dappctrl version.
 func DappCtrlVersion(filename string) string {
-	cmd := exec.Command(filename, "-version")
-	var output bytes.Buffer
-	cmd.Stdout = &output
-	if err := cmd.Run(); err != nil {
+	version, err := ExecuteCommandOutput(filename, "-version")
+	if err != nil {
 		return ""
 	}
-
-	version := output.String()
 	if i := strings.Index(version, " "); i > 0 {
 		version = version[:i]
 	}
@@ -256,12 +254,6 @@ func FreePort(host, port string) (string, error) {
 	return port, nil
 }
 
-// ExecuteCommand does executing file.
-func ExecuteCommand(filename string, args []string) error {
-	cmd := exec.Command(filename, args...)
-	return cmd.Run()
-}
-
 // RenamePath changes folder name and returns it
 func RenamePath(path, folder string) string {
 	dir, _ := filepath.Split(path)
@@ -290,4 +282,52 @@ func MatchAddr(str string) []Addr {
 		})
 	}
 	return addrs
+}
+
+// KillProcess kills all processes at dir path.
+func KillProcess(dir string) error {
+	processes, err := ps.Processes()
+	if err != nil {
+		return err
+	}
+	execFile := filepath.Base(os.Args[0])
+
+	for _, v := range processes {
+		path, _ := v.Path()
+		if path == "" || strings.EqualFold(execFile, filepath.Base(path)) {
+			continue
+		}
+		processPath := filepath.ToSlash(strings.ToLower(path))
+		if strings.HasPrefix(processPath, strings.ToLower(dir)) {
+			proc, err := os.FindProcess(v.Pid())
+			if err != nil {
+				return err
+			}
+
+			if err := proc.Kill(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// SelfRemove removes itself execute file.
+func SelfRemove(dir string) error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+
+	path, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return err
+	}
+	exePath := filepath.ToSlash(strings.ToLower(path))
+
+	if strings.HasPrefix(exePath, strings.ToLower(dir)) {
+		cmd := fmt.Sprintf(`ping localhost -n 3 > nul & del %s`,
+			filepath.Base(path))
+		return exec.Command("cmd", "/c", cmd).Start()
+	}
+	return nil
 }

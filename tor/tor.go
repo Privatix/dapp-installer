@@ -37,7 +37,7 @@ func NewTor() *Tor {
 		HiddenServiceDir: "tor/hidden_service",
 		SocksPort:        9999,
 		VirtPort:         80,
-		TargetPort:       80,
+		TargetPort:       5555,
 	}
 }
 
@@ -117,6 +117,9 @@ func (t *Tor) createSettings() error {
 
 	p, _ := util.FreePort(t.Addr, strconv.Itoa(t.SocksPort))
 	t.SocksPort, _ = strconv.Atoi(p)
+
+	p, _ = util.FreePort(t.Addr, strconv.Itoa(t.TargetPort))
+	t.TargetPort, _ = strconv.Atoi(p)
 
 	return templ.Execute(file, &t)
 }

@@ -6,8 +6,10 @@ package util
 import "C"
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 	"syscall"
 
@@ -63,5 +65,34 @@ func DesktopPath() string {
 // Unzip will decompress a zip archive, moving all files and folders
 // within the zip file (parameter 1) to an output directory (parameter 2).
 func Unzip(src string, dest string) error {
-	return ExecuteCommand("unzip", []string{src, "-d", dest})
+	if err := ExecuteCommand("unzip", src, "-d", dest); err != nil {
+		return err
+	}
+	// Removes all extended attributes recursively.
+	return ExecuteCommand("xattr", "-rc", dest)
+}
+
+// ExecuteCommand does executing file.
+func ExecuteCommand(filename string, args ...string) (err error) {
+	cmd := exec.Command(filename, args...)
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	if err = cmd.Run(); err != nil {
+		outStr, errStr := outbuf.String(), errbuf.String()
+		err = fmt.Errorf("%v\nout:\n%s\nerr:\n%s", err, outStr, errStr)
+	}
+	return err
+}
+
+// ExecuteCommandOutput does executing file and returns output.
+func ExecuteCommandOutput(filename string, args ...string) (string, error) {
+	cmd := exec.Command(filename, args...)
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
 }

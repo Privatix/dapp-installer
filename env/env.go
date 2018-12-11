@@ -12,6 +12,7 @@ type Config struct {
 	Schema  string
 	Role    string
 	WorkDir string
+	UserID  string
 	Version string
 	Dapp    *dapp
 	DB      *db

@@ -31,22 +31,22 @@ type Service struct {
 
 // Install installs windows service.
 func (s *Service) Install() error {
-	return util.ExecuteCommand(s.GUID, []string{"install"})
+	return util.ExecuteCommand(s.GUID, "install")
 }
 
 // Start starts windows service.
 func (s *Service) Start() error {
-	return util.ExecuteCommand(s.GUID, []string{"start"})
+	return util.ExecuteCommand(s.GUID, "start")
 }
 
 // Stop stops windows service.
 func (s *Service) Stop() error {
-	return util.ExecuteCommand(s.GUID, []string{"stop"})
+	return util.ExecuteCommand(s.GUID, "stop")
 }
 
 // Remove removes windows service.
 func (s *Service) Remove() error {
-	return util.ExecuteCommand(s.GUID, []string{"remove"})
+	return util.ExecuteCommand(s.GUID, "remove")
 }
 
 // CreateWrapper creates service wrapper.

@@ -87,20 +87,17 @@ func GrantAccess(path string) error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("icacls", path, "/t", "/grant",
+	return ExecuteCommand("icacls", path, "/t", "/grant",
 		fmt.Sprintf("%s:F", u.Username))
-	return cmd.Run()
 }
 
 // IsServiceStopped returns service stopped status.
 func IsServiceStopped(service string) bool {
-	checkServiceCmd := exec.Command("sc", "queryex", service)
-	var checkServiceStdOut bytes.Buffer
-	checkServiceCmd.Stdout = &checkServiceStdOut
-	if err := checkServiceCmd.Run(); err != nil {
+	out, err := ExecuteCommandOutput("sc", "queryex", service)
+	if err != nil {
 		return false
 	}
-	return strings.Contains(checkServiceStdOut.String(), "STOPPED")
+	return strings.Contains(out, "STOPPED")
 }
 
 // DesktopPath returns windows desktop path.
@@ -154,4 +151,32 @@ func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
 	_, err = io.Copy(outFile, rc)
 
 	return err
+}
+
+// ExecuteCommand does executing file.
+func ExecuteCommand(filename string, args ...string) (err error) {
+	cmd := exec.Command(filename, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	if err = cmd.Run(); err != nil {
+		outStr, errStr := outbuf.String(), errbuf.String()
+		err = fmt.Errorf("%v\nout:\n%s\nerr:\n%s", err, outStr, errStr)
+	}
+	return err
+}
+
+// ExecuteCommandOutput does executing file and returns output.
+func ExecuteCommandOutput(filename string, args ...string) (string, error) {
+	cmd := exec.Command(filename, args...)
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
 }

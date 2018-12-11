@@ -3,9 +3,13 @@ package dapp
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/rdegges/go-ipify"
 
 	"github.com/privatix/dapp-installer/util"
 )
@@ -68,4 +72,26 @@ func setDynamicPorts(configFile string) error {
 			newAddress, -1)
 	}
 	return ioutil.WriteFile(configFile, []byte(contents), 0)
+}
+
+// createFirewallRule creates firewall rule for payment reciever of dappctrl.
+func createFirewallRule(d *Dapp, addr string) error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+
+	s := strings.Split(addr, ":")
+	if len(s) < 2 {
+		return fmt.Errorf("failed to read payment reciever address")
+	}
+	args := []string{"-ExecutionPolicy", "Bypass",
+		"-File", filepath.Join(d.Path, "dappctrl/set-ctrlfirewall.ps1"),
+		"-Create", "-ServiceName", d.Controller.Service.ID,
+		"-ProgramPath", filepath.Join(d.Path, "dappctrl/dappctrl.exe"),
+		"-Port", s[1], "-Protocol", "tcp"}
+	return util.ExecuteCommand("powershell", args...)
+}
+
+func externalIP() (string, error) {
+	return ipify.GetIp()
 }

@@ -7,8 +7,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/denisbrodbeck/machineid"
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
@@ -28,10 +32,12 @@ type Dapp struct {
 	BackupPath string
 	Version    string
 	Tor        *tor.Tor
+	UserID     string
 }
 
 // InstallerEntity has a config for install entity.
 type InstallerEntity struct {
+	DisplayName   string
 	EntryPoint    string
 	Configuration string
 	Symlink       bool
@@ -41,6 +47,12 @@ type InstallerEntity struct {
 
 // NewDapp creates a default Dapp configuration.
 func NewDapp() *Dapp {
+	gc := "dappgui/dapp-gui.app/Contents/Resources/app/build/settings.json"
+
+	if runtime.GOOS == "windows" {
+		gc = "dappgui/resources/app/build/settings.json"
+	}
+
 	return &Dapp{
 		Role: "agent",
 		Path: ".",
@@ -51,8 +63,9 @@ func NewDapp() *Dapp {
 			Settings:      make(map[string]interface{}),
 		},
 		Gui: &InstallerEntity{
+			DisplayName:   "Privatix",
 			EntryPoint:    "dappgui/dapp-gui",
-			Configuration: "dappgui/resources/app/build/settings.json",
+			Configuration: gc,
 			Settings:      make(map[string]interface{}),
 			Symlink:       true,
 		},
@@ -142,11 +155,18 @@ func (d *Dapp) modifyDappConfig() error {
 
 	json.NewDecoder(read).Decode(&jsonMap)
 
+	d.UserID, err = machineid.ProtectedID("privatix")
+	if err != nil {
+		return err
+	}
 	settings := d.Controller.Settings
 
 	settings[role] = d.Role
 	settings[torHostname] = d.Tor.Hostname
 	settings[torSocksListener] = d.Tor.SocksPort
+	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
+		d.Tor.TargetPort)
+	settings["Report.userid"] = d.UserID
 	settings["FileLog.Filename"] = filepath.Join(d.Path,
 		"log/dappctrl-%Y-%m-%d.log")
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
@@ -156,13 +176,28 @@ func (d *Dapp) modifyDappConfig() error {
 		settings["DB.Conn.password"] = d.DBEngine.DB.Password
 	}
 
+	if strings.EqualFold(d.Role, "agent") {
+		ip, err := externalIP()
+		if err != nil {
+			return err
+		}
+		addr := jsonMap["PayServer"].(map[string]interface{})["Addr"].(string)
+		payServerAddr := strings.Replace(addr, "0.0.0.0", ip, 1)
+		settings["PayAddress"] = strings.Replace(jsonMap["PayAddress"].(string),
+			addr, payServerAddr, 1)
+
+		if err := createFirewallRule(d, addr); err != nil {
+			return err
+		}
+	}
+
 	if err := setConfigurationValues(jsonMap, settings); err != nil {
 		return err
 	}
 
 	addr := jsonMap["UI"].(map[string]interface{})["Addr"].(string)
 	d.Gui.Settings["wsEndpoint"] = fmt.Sprintf("ws://%s/ws", addr)
-
+	d.Gui.Settings["bugsnag.userid"] = d.UserID
 	if err := d.setUIConfig(); err != nil {
 		return err
 	}
@@ -179,9 +214,8 @@ func (d *Dapp) modifyDappConfig() error {
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
 	if d.Gui.Symlink {
-		linkName := path.Base(d.Gui.EntryPoint)
 		link := filepath.Join(util.DesktopPath(),
-			fmt.Sprintf("%s %s", linkName, d.Role))
+			fmt.Sprintf("%s %s", d.Gui.DisplayName, d.Role))
 		os.Remove(link)
 	}
 

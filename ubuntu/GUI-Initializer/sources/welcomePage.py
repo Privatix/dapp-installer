@@ -154,6 +154,7 @@ class ServicesThread(QThread):
                     (True, 'Reboot the common to apply the settings.<br>Please wait.'))
 
                 if self.initial.dappctrl_role == 'agent':
+                    self.change_perm(cycle='tor')
                     self.initial.get_onion_key()
                 else:
                     self.initial.set_socks_list()
@@ -407,7 +408,7 @@ class InitGUI(QWidget):
         self.initial = mainInitialCycle(log=logging)
         self.rollbackEvent = None
         self._updateRollback = _updtRck  # declared in UpdateReinstall class
-        
+
 
     def progrBar(self, on=False):
         if on:
@@ -534,7 +535,7 @@ class InitGUI(QWidget):
         # layout.addWidget(self.interLayout)
         # self.setLayout(layout)
         self.interLayout.hide()
-        
+
     def showStreamInterLayout(self, proc):
         mess = str(proc.readAllStandardOutput())
         self.interLayout.append(mess)
@@ -556,7 +557,7 @@ class UpdateReinstall(InitGUI):
 
     def __choisePage(self):
         logging.debug('Show __choisePage on second start')
-        
+
         def prepUpdate():
             self.rollbackEvent = 'update'
             mess = "You have chosen to update the software.<br>" \
@@ -773,7 +774,7 @@ class Prepare(UpdateReinstall):
                 return True
         logging.debug('Clean installing')
         return False
-    
+
 
     def startCycle(self, purge=False):
 
@@ -987,6 +988,7 @@ class Prepare(UpdateReinstall):
         path_dapcom_conf = p_cont + self.initial.path_com + self.initial.p_dapvpn_conf
         path_vpn_conf = p_cont + self.initial.path_vpn + self.initial.ovpn_conf
         path_vpn_unit = p_cont + self.initial.unit_f_vpn
+        path_tor_conf = p_cont + self.initial.path_com + self.initial.tor_hostname_config
 
         if cycle == 'dapp':
             perm_files = {
@@ -1005,6 +1007,12 @@ class Prepare(UpdateReinstall):
         elif cycle == 'gui':
             perm_files = {
                 self.initial.dappctrlgui: ''
+            }
+            perm(perm_files)
+
+        elif cycle == 'tor':
+            perm_files = {
+                path_tor_conf: ''
             }
             perm(perm_files)
         else:

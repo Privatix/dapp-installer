@@ -643,7 +643,7 @@ class CommonCMD(Init):
     def _sys_call(self, cmd, rolback=True, s_exit=4):
         resp = Popen(cmd, shell=True, stdout=PIPE,
                      stderr=STDOUT).communicate()
-        logging.debug('Sys call cmd: {}. Stdout: {}'.format(cmd, resp))
+        logging.debug('Sys call cmd: {} . Stdout: {}'.format(cmd, resp))
         if resp[1]:
             logging.debug('Error in sys call: {}'.format(resp[1]))
             if rolback:
@@ -996,9 +996,10 @@ class Tor(CommonCMD):
     def get_onion_key(self):
         logging.debug('TOR. Get onion key')
         hostname_config = self.p_contr + self.path_com + self.tor_hostname_config
-        onion_key = self.file_rw(
-            p=hostname_config,
-            log='TOR. Read hostname conf')
+        # onion_key = self.file_rw(
+        #     p=hostname_config,
+        #     log='TOR. Read hostname conf')
+        onion_key = self._sys_call('sudo cat {}'.format(hostname_config))
         logging.debug('TOR. Onion key: {}'.format(onion_key))
 
         data = self.file_rw(

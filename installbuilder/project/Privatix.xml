@@ -238,8 +238,8 @@
             <title>${msg(Installer.TypeOfInstallation)}</title>
             <description></description>
             <explanation>${msg(Installer.TypeOfInstallation.description)}</explanation>
-            <value>agent</value>
-            <default>agent</default>
+            <value>client</value>
+            <default>client</default>
             <allowEmptyValue>0</allowEmptyValue>
             <displayType>radiobuttons</displayType>
             <ordering>default</ordering>
@@ -249,14 +249,14 @@
                 <option>
                     <description></description>
                     <image></image>
-                    <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
-                    <value>agent</value>
+                    <text>${msg(Installer.TypeOfInstallation.Client)}</text>
+                    <value>client</value>
                 </option>
                 <option>
                     <description></description>
                     <image></image>
-                    <text>${msg(Installer.TypeOfInstallation.Client)}</text>
-                    <value>client</value>
+                    <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
+                    <value>agent</value>
                 </option>
             </optionList>
         </choiceParameter>

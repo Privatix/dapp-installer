@@ -336,6 +336,8 @@ class Init:
         self.dns_sect = dnsmasq['section']
         self.dns_disable = dnsmasq['disable']
 
+        self.contTmp = '/var/lib/container_tmp'
+
     def re_init(self):
         self.__init__()
 

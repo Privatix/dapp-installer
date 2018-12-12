@@ -154,7 +154,7 @@ class ServicesThread(QThread):
                     (True, 'Reboot the common to apply the settings.<br>Please wait.'))
 
                 if self.initial.dappctrl_role == 'agent':
-                    self.change_perm(cycle='tor')
+                    # self.change_perm(cycle='tor_host')
                     self.initial.get_onion_key()
                 else:
                     self.initial.set_socks_list()
@@ -166,7 +166,7 @@ class ServicesThread(QThread):
                 self.signal.emit((True, 'Install GUI.<br>Please wait.'))
                 res = self.initial.install_gui(self.change_perm)
                 if res[0]:
-                    self.signal.emit((True, 'end cycle',res[1]))
+                    self.signal.emit((True, 'end cycle', res[1]))
                 else:
                     self.signal.emit((False, res[1]))
 
@@ -971,7 +971,7 @@ class Prepare(UpdateReinstall):
 
         def perm(perm_files):
             for path in perm_files:
-                cmd = "stat -c '%a %n' {}".format(path)
+                cmd = "sudo stat -c '%a %n' {}".format(path)
                 res = self.initial._sys_call(cmd=cmd)
                 if res:
                     perm_code = res.split(' ')[0]
@@ -988,7 +988,8 @@ class Prepare(UpdateReinstall):
         path_dapcom_conf = p_cont + self.initial.path_com + self.initial.p_dapvpn_conf
         path_vpn_conf = p_cont + self.initial.path_vpn + self.initial.ovpn_conf
         path_vpn_unit = p_cont + self.initial.unit_f_vpn
-        path_tor_conf = p_cont + self.initial.path_com + self.initial.tor_hostname_config
+        path_tor_h_conf = p_cont + self.initial.path_com + self.initial.tor_hostname_config
+        path_tor_conf = p_cont + self.initial.path_com + self.initial.tor_config
 
         if cycle == 'dapp':
             perm_files = {
@@ -1010,7 +1011,13 @@ class Prepare(UpdateReinstall):
             }
             perm(perm_files)
 
-        elif cycle == 'tor':
+        elif cycle == 'tor_host':
+            perm_files = {
+                path_tor_h_conf: '',
+            }
+            perm(perm_files)
+
+        elif cycle == 'tor_conf':
             perm_files = {
                 path_tor_conf: ''
             }
@@ -1019,6 +1026,7 @@ class Prepare(UpdateReinstall):
             for path, code in self.perm_files.items():
                 cmd = 'sudo chmod {} {}'.format(code, path)
                 self.initial._sys_call(cmd=cmd)
+                del self.perm_files[path]
 
     def finish(self, upt=False):
         ''' upt for rolback when update or reinstall'''
@@ -1098,6 +1106,7 @@ class Prepare(UpdateReinstall):
         self.initial._clear_db_log()
 
         self.initial.conf_dappctrl_json()
+        self.change_perm(cycle='tor_conf')
         self.initial.check_tor_port()
 
         self.thr = ServicesThread(initial=self.initial,

@@ -121,6 +121,9 @@
                     <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>
+                <deleteFile>
+                    <path>${installdir}/app.zip</path>
+                </deleteFile>
             </actionList>
         </showProgressDialog>
         <propertiesFileSet>

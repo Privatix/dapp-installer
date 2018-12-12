@@ -67,8 +67,7 @@ func (d *Dapp) Configurate() error {
 		}
 	}
 
-	_, installer := filepath.Split(os.Args[0])
-	return util.CopyFile(os.Args[0], filepath.Join(d.Path, installer))
+	return nil
 }
 
 func copyServiceWrapper(d, s *Dapp) {

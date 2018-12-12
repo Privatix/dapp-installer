@@ -4,7 +4,6 @@ package dapp
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -47,9 +46,6 @@ func (d *Dapp) Configurate() error {
 	if d.Gui.Symlink {
 		d.createSymlink()
 	}
-
-	_, installer := filepath.Split(os.Args[0])
-	util.CopyFile(os.Args[0], filepath.Join(d.Path, installer))
 
 	ctrl := d.Controller
 	ctrlPath := filepath.Join(d.Path, filepath.Dir(ctrl.EntryPoint))

@@ -850,8 +850,7 @@ class CommonCMD(Init):
         """Check ip addr, free ports and replace it in
         common dappctrl.config.local.json"""
         logging.debug('Check IP, Port in common dappctrl.local.json')
-        # search_keys = ['AgentServer', 'PayAddress', 'PayServer',
-        #                'SessionServer']
+
         pay_port = dict(old=None, new=None)
         p = self.p_contr + self.path_com
         if old_vers:
@@ -956,8 +955,8 @@ class Tor(CommonCMD):
 
     def check_tor_port(self):
         logging.info('TOR. Check config')
-        self.tor_socks_port = self.check_port(port=self.tor_socks_port,
-                                     auto=True)
+        self.tor_socks_port = int(self.check_port(port=self.tor_socks_port,
+                                     auto=True))
         full_comm_p = self.p_contr + self.path_com
         data = self.file_rw(p=full_comm_p + self.p_dapctrl_conf,
                             json_r=True,
@@ -1002,6 +1001,7 @@ class Tor(CommonCMD):
         #     p=hostname_config,
         #     log='TOR. Read hostname conf')
         onion_key = self._sys_call('sudo cat {}'.format(hostname_config))
+        onion_key = onion_key.replace('\n', '')
         logging.debug('TOR. Onion key: {}'.format(onion_key))
 
         data = self.file_rw(

@@ -235,7 +235,7 @@ func removeServices(d *dapp.Dapp) error {
 	if d.Role == "agent" && runtime.GOOS == "windows" {
 		// Removes firewall rule for payment reciever of dappctrl.
 		args := []string{"-ExecutionPolicy", "Bypass", "-File",
-			filepath.Join(d.Path, "dappctrl/set-ctrlfirewall.ps1"),
+			filepath.Join(d.Path, "dappctrl", "set-ctrlfirewall.ps1"),
 			"-Remove", "-ServiceName", d.Controller.Service.ID}
 		err := util.ExecuteCommand("powershell", args...)
 		if err != nil {

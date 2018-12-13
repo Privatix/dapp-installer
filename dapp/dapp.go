@@ -233,7 +233,7 @@ func (d *Dapp) Exists() error {
 		return err
 	}
 
-	dappData := filepath.Join(d.Path, "pgsql/data")
+	dappData := filepath.Join(d.Path, "pgsql", "data")
 	if _, err := os.Stat(dappData); os.IsNotExist(err) {
 		return err
 	}
@@ -262,11 +262,11 @@ func (d *Dapp) merge(s *Dapp) error {
 	copyServiceWrapper(d, s)
 
 	// Copy data.
-	util.CopyDir(filepath.Join(s.Path, "pgsql/data"),
-		filepath.Join(d.Path, "pgsql/data"))
+	util.CopyDir(filepath.Join(s.Path, "pgsql", "data"),
+		filepath.Join(d.Path, "pgsql", "data"))
 	// Copy tor settings.
-	util.CopyDir(filepath.Join(s.Path, "tor/settings"),
-		filepath.Join(d.Path, "tor/settings"))
+	util.CopyDir(filepath.Join(s.Path, "tor", "settings"),
+		filepath.Join(d.Path, "tor", "settings"))
 	util.CopyDir(filepath.Join(s.Path, s.Tor.HiddenServiceDir),
 		filepath.Join(d.Path, d.Tor.HiddenServiceDir))
 

@@ -13,8 +13,8 @@ func (t Tor) ServiceName() string {
 }
 
 func installService(service, path string) error {
-	torExe := filepath.Join(path, `tor/tor`)
-	torConf := filepath.Join(path, `tor/settings/torrc`)
+	torExe := filepath.Join(path, "tor", "tor")
+	torConf := filepath.Join(path, "tor", "settings", "torrc")
 	binPath := fmt.Sprintf(`"%s" -nt-service -f "%s"`, torExe, torConf)
 
 	return util.ExecuteCommand("sc", "create", service, "start=auto",

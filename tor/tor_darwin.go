@@ -13,8 +13,8 @@ func (t Tor) ServiceName() string {
 }
 
 func installService(daemon, path string) error {
-	t := filepath.Join(path, `tor/tor`)
-	c := filepath.Join(path, `tor/settings/torrc`)
+	t := filepath.Join(path, "tor", "tor")
+	c := filepath.Join(path, "tor", "settings", "torrc")
 
 	d := unix.NewDaemon(daemon)
 	d.Command = t

@@ -68,7 +68,7 @@ func getParameters(path string) (string, bool, bool) {
 	envPath, _ := findFile(path, envFile)
 
 	if len(envPath) == 0 {
-		envPath = filepath.Join(path, "config/"+envFile)
+		envPath = filepath.Join(path, "config", envFile)
 	}
 
 	v, ok := readVariable(envPath, productImport)

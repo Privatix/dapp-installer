@@ -89,7 +89,7 @@ func (t *Tor) generateKey() error {
 }
 
 func (t *Tor) createSettings() error {
-	path := filepath.Join(t.RootPath, "tor/settings")
+	path := filepath.Join(t.RootPath, "tor", "settings")
 	if _, err := os.Stat(path); err != nil {
 		if !os.IsNotExist(err) {
 			return err

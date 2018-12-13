@@ -31,12 +31,12 @@ func runService(service string) error {
 }
 
 func startService(installPath string) error {
-	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
+	fileName := filepath.Join(installPath, "pgsql", "bin", "pg_ctl")
 	serviceName := Hash(installPath)
 
 	_ = util.ExecuteCommand(fileName, "unregister", "-N", serviceName)
 
-	dataPath := filepath.Join(installPath, `pgsql/data`)
+	dataPath := filepath.Join(installPath, "pgsql", "data")
 	err := util.ExecuteCommand(fileName, "register",
 		"-N", serviceName, "-D", dataPath)
 
@@ -51,7 +51,7 @@ func removeService(installPath string) error {
 	serviceName := Hash(installPath)
 	stopService(installPath)
 
-	fileName := filepath.Join(installPath, `pgsql/bin/pg_ctl`)
+	fileName := filepath.Join(installPath, "pgsql", "bin", "pg_ctl")
 
 	return util.ExecuteCommand(fileName, "unregister", "-N", serviceName)
 }
@@ -64,6 +64,6 @@ func stopService(installPath string) error {
 func prepareToInstall(installPath string) error {
 	// installs run-time components (the Visual C++ Redistributable Packages
 	// for VS 2013) that are required to run postgresql database engine.
-	vcredist := filepath.Join(installPath, "util/vcredist_x64.exe")
+	vcredist := filepath.Join(installPath, "util", "vcredist_x64.exe")
 	return util.ExecuteCommand(vcredist, "/install", "/quiet", "/norestart")
 }

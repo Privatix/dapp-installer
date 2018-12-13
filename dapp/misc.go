@@ -85,9 +85,11 @@ func createFirewallRule(d *Dapp, addr string) error {
 		return fmt.Errorf("failed to read payment reciever address")
 	}
 	args := []string{"-ExecutionPolicy", "Bypass",
-		"-File", filepath.Join(d.Path, "dappctrl/set-ctrlfirewall.ps1"),
+		"-File",
+		filepath.Join(d.Path, "dappctrl", "set-ctrlfirewall.ps1"),
 		"-Create", "-ServiceName", d.Controller.Service.ID,
-		"-ProgramPath", filepath.Join(d.Path, "dappctrl/dappctrl.exe"),
+		"-ProgramPath",
+		filepath.Join(d.Path, "dappctrl", "dappctrl.exe"),
 		"-Port", s[1], "-Protocol", "tcp"}
 	return util.ExecuteCommand("powershell", args...)
 }

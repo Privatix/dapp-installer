@@ -1010,7 +1010,7 @@ class Tor(CommonCMD):
             log='TOR. Read dappctrl conf')
 
         data.update(dict(
-            TorHostname=onion_key[0].replace('\n', '')
+            TorHostname=onion_key
         ))
 
         self.file_rw(p=self.p_contr + self.path_com + self.p_dapctrl_conf,

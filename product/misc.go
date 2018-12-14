@@ -9,7 +9,7 @@ import (
 
 const (
 	productDir       = "product"
-	envFile          = ".env.config.json"
+	envFile          = ".env.product.config.json"
 	agentConfigFile  = "install.agent.config.json"
 	clientConfigFile = "install.client.config.json"
 	productImport    = "ProductImport"
@@ -34,7 +34,7 @@ func writeVariable(envFile, key string, value interface{}) error {
 
 	if read, err := os.Open(envFile); err == nil {
 		json.NewDecoder(read).Decode(&jsonMap)
-		defer read.Close()
+		read.Close()
 	}
 
 	jsonMap[key] = value

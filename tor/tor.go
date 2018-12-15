@@ -9,6 +9,7 @@ import (
 	"encoding/base32"
 	"encoding/hex"
 	"encoding/pem"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -125,12 +126,14 @@ func (t *Tor) createSettings() error {
 }
 
 // Install installs tor process.
-func (t *Tor) Install() error {
+func (t *Tor) Install(role string) error {
 	if err := t.configurate(); err != nil {
 		return err
 	}
 
-	return installService(t.ServiceName(), t.RootPath)
+	descr := fmt.Sprintf("Privatix %s Tor transport %s", role,
+		util.Hash(t.RootPath))
+	return installService(t.ServiceName(), t.RootPath, descr)
 }
 
 // Start starts tor process.

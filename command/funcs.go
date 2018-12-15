@@ -338,7 +338,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 }
 
 func installTor(d *dapp.Dapp) error {
-	if err := d.Tor.Install(); err != nil {
+	if err := d.Tor.Install(d.Role); err != nil {
 		return fmt.Errorf("failed to install tor: %v", err)
 	}
 	return nil

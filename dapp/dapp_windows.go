@@ -93,9 +93,8 @@ func configurateService(d *Dapp) error {
 	services := []string{
 		d.Controller.Service.ID,
 		dbengine.Hash(d.Path),
-		d.Tor.ServiceName(),
 	}
-	suffixes := []string{"controller", "database", "Tor transport"}
+	suffixes := []string{"controller", "database"}
 
 	for i, v := range services {
 		if err := fail(v); err != nil {

@@ -97,7 +97,7 @@
                     <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
                     <windowsIcon></windowsIcon>
-                    <windowsPath></windowsPath>
+                    <windowsPath>${installdir}/</windowsPath>
                 </startMenuShortcut>
             </startMenuShortcutList>
         </component>
@@ -125,7 +125,6 @@
             <actionList>
                 <runProgram>
                     <abortOnError>0</abortOnError>
-                    <explanation>Run shell script ${install_type}</explanation>
                     <program>${installdir}/dapp-installer</program>
                     <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
                     <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
@@ -153,7 +152,7 @@
                 <runProgram>
                     <program>${installdir}/dapp-installer</program>
                     <programArguments>remove -workdir ./${install_type}</programArguments>
-                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                    <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>
             </actionList>

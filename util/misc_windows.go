@@ -16,6 +16,8 @@ import (
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
+
+	"golang.org/x/sys/windows/svc/mgr"
 )
 
 // MinWindowsVersion is supported min windows version (Windows7 and newer)
@@ -179,4 +181,64 @@ func ExecuteCommandOutput(filename string, args ...string) (string, error) {
 	}
 
 	return output.String(), nil
+}
+
+// CreateService creates the windows service.
+func CreateService(name, exe, descr string, args ...string) error {
+	m, err := mgr.Connect()
+	if err != nil {
+		return err
+	}
+	defer m.Disconnect()
+
+	s, err := m.CreateService(name, exe,
+		mgr.Config{
+			DisplayName: name,
+			StartType:   mgr.StartAutomatic,
+			Description: descr,
+		}, args...)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	recoveryActions := []mgr.RecoveryAction{
+		mgr.RecoveryAction{Type: mgr.ServiceRestart, Delay: 1000},
+		mgr.RecoveryAction{Type: mgr.ServiceRestart, Delay: 2000},
+		mgr.RecoveryAction{Type: mgr.ServiceRestart, Delay: 5000},
+	}
+
+	return s.SetRecoveryActions(recoveryActions, 0)
+}
+
+// RemoveService removes the windows service.
+func RemoveService(name string) error {
+	m, err := mgr.Connect()
+	if err != nil {
+		return err
+	}
+	defer m.Disconnect()
+	s, err := m.OpenService(name)
+	if err != nil {
+		return fmt.Errorf("could not access service: %v", err)
+	}
+	defer s.Close()
+
+	return s.Delete()
+}
+
+// StartService starts the windows service.
+func StartService(name string) error {
+	m, err := mgr.Connect()
+	if err != nil {
+		return err
+	}
+	defer m.Disconnect()
+	s, err := m.OpenService(name)
+	if err != nil {
+		return fmt.Errorf("could not access service: %v", err)
+	}
+	defer s.Close()
+
+	return s.Start()
 }

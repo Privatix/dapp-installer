@@ -123,13 +123,34 @@
         <showProgressDialog>
             <title>${msg(Installer.showProgressDialog.Title)}</title>
             <actionList>
-                <runProgram>
-                    <abortOnError>0</abortOnError>
-                    <program>${installdir}/dapp-installer</program>
-                    <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                <if>
                     <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                    <workingDirectory>${installdir}</workingDirectory>
-                </runProgram>
+                    <actionList>
+                        <runProgram>
+                            <abortOnError>0</abortOnError>
+                            <program>${installdir}/dapp-installer</program>
+                            <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                            <workingDirectory>${installdir}</workingDirectory>
+                        </runProgram>
+                    </actionList>
+                    <conditionRuleList>
+                        <compareValues>
+                            <logic>equals</logic>
+                            <value1>${install_type}</value1>
+                            <value2>agent</value2>
+                        </compareValues>
+                    </conditionRuleList>
+                    <elseActionList>
+                        <runProgram>
+                            <abortOnError>0</abortOnError>
+                            <program>${installdir}/dapp-installer</program>
+                            <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                            <progressText>${msg(Installer.showProgressDialog.Title)}</progressText>
+                            <workingDirectory>${installdir}</workingDirectory>
+                        </runProgram>
+                    </elseActionList>
+                </if>
                 <deleteFile>
                     <path>${installdir}/app.zip</path>
                 </deleteFile>
@@ -140,6 +161,81 @@
             <key>version</key>
             <value>${install_type}</value>
         </propertiesFileSet>
+        <readFile>
+            <name>dappctrl_config</name>
+            <path>${installdir}/agent/dappctrl/dappctrl.config.json</path>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </readFile>
+        <setInstallerVariableFromRegEx>
+            <name>pay_service_port</name>
+            <pattern>.*"PayServer":{"Addr":"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(\d+).*?</pattern>
+            <substitution>\1</substitution>
+            <text>${dappctrl_config}</text>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </setInstallerVariableFromRegEx>
+        <readFile>
+            <name>servers_config</name>
+            <path>${installdir}/agent/product/73e17130-2a1d-4f7d-97a8-93a9aaa6f10d/config/server.conf</path>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>servers_config</name>
+            <path>${installdir}/agent/product/dappvpn/config/server.conf</path>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <setInstallerVariableFromRegEx>
+            <name>vpn_port</name>
+            <pattern>.*port\s+(\d+).*?</pattern>
+            <substitution>\1</substitution>
+            <text>${servers_config}</text>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </setInstallerVariableFromRegEx>
+        <showInfo>
+            <text>${msg(Installer.AfterInstallPorts)}</text>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </showInfo>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>
@@ -265,7 +361,7 @@
                     <value>client</value>
                 </option>
                 <option>
-                    <description></description>
+                    <description>${msg(Installer.TypeOfInstallation.Agent.Description)}</description>
                     <image></image>
                     <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
                     <value>agent</value>

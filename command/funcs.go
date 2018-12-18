@@ -186,6 +186,7 @@ func update(d *dapp.Dapp) error {
 	d.Path = newPath
 
 	if err := extract(d); err != nil {
+		d = &oldDapp
 		return err
 	}
 
@@ -193,15 +194,21 @@ func update(d *dapp.Dapp) error {
 
 	version := util.ParseVersion(d.Version)
 	if util.ParseVersion(oldDapp.Version) >= version {
+		d = &oldDapp
 		return fmt.Errorf(
 			"dapp current version: %s, update is not required",
 			oldDapp.Version)
 	}
 
+	// Update products.
+	if err := product.Update(d.Role, oldDapp.Path, d.Path); err != nil {
+		d = &oldDapp
+		return fmt.Errorf("failed to update products: %v", err)
+	}
+
 	// Update dapp core.
 	if err := d.Update(&oldDapp); err != nil {
-		oldDapp.DBEngine.Start(oldDapp.Path)
-		oldDapp.Controller.Service.Start()
+		d = &oldDapp
 		return fmt.Errorf("failed to update dapp: %v", err)
 	}
 
@@ -215,6 +222,16 @@ func checkInstallation(d *dapp.Dapp) error {
 
 	if err := d.Exists(); err != nil {
 		return fmt.Errorf("dapp is not found at %s: %v", d.Path, err)
+	}
+	return nil
+}
+
+func startServices(d *dapp.Dapp) error {
+	if err := d.DBEngine.Start(d.Path); err != nil {
+		return fmt.Errorf("failed to start dbengine: %v", err)
+	}
+	if err := d.Controller.Service.Start(); err != nil {
+		return fmt.Errorf("failed to start controller: %v", err)
 	}
 	return nil
 }

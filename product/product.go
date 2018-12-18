@@ -79,8 +79,8 @@ func Install(role, path, conn string) error {
 }
 
 // Update updates the products.
-func Update(role, path string) error {
-	path = filepath.Join(path, productDir)
+func Update(role, oldPath, newPath string) error {
+	path := filepath.Join(newPath, productDir)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err

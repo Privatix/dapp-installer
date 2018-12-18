@@ -2,7 +2,6 @@ package dapp
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -92,18 +91,6 @@ func (d *Dapp) Download() string {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
-	// Stop services.
-	done := make(chan bool)
-	go oldDapp.Stop(done)
-
-	select {
-	case <-done:
-
-	case <-time.After(util.TimeOutInSec(d.Timeout)):
-		os.RemoveAll(d.Path)
-		return errors.New("failed to stopped services. timeout expired")
-	}
-
 	// Merge with exist dapp.
 	if err := d.merge(oldDapp); err != nil {
 		os.RemoveAll(d.Path)
@@ -275,6 +262,13 @@ func (d *Dapp) merge(s *Dapp) error {
 	// Merge dappctrl config.
 	dstConfig := filepath.Join(d.Path, d.Controller.Configuration)
 	srcConfig := filepath.Join(s.Path, s.Controller.Configuration)
+	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
+		return err
+	}
+
+	// Merge dappgui config.
+	dstConfig = filepath.Join(d.Path, d.Gui.Configuration)
+	srcConfig = filepath.Join(s.Path, s.Gui.Configuration)
 	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
 		return err
 	}

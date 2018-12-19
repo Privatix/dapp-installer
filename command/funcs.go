@@ -186,7 +186,7 @@ func update(d *dapp.Dapp) error {
 	d.Path = newPath
 
 	if err := extract(d); err != nil {
-		d = &oldDapp
+		d.Path = oldDapp.Path
 		return err
 	}
 
@@ -194,7 +194,7 @@ func update(d *dapp.Dapp) error {
 
 	version := util.ParseVersion(d.Version)
 	if util.ParseVersion(oldDapp.Version) >= version {
-		d = &oldDapp
+		d.Path = oldDapp.Path
 		return fmt.Errorf(
 			"dapp current version: %s, update is not required",
 			oldDapp.Version)
@@ -202,7 +202,7 @@ func update(d *dapp.Dapp) error {
 
 	// Update dapp core.
 	if err := d.Update(&oldDapp); err != nil {
-		d = &oldDapp
+		d.Path = oldDapp.Path
 		return fmt.Errorf("failed to update dapp: %v", err)
 	}
 

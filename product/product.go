@@ -23,6 +23,8 @@ type product struct {
 	Install  []command
 	Update   []command
 	Remove   []command
+	Start    []command
+	Stop     []command
 }
 
 type command struct {
@@ -141,6 +143,10 @@ func run(role, path, cmd string) (bool, error) {
 		cmds = p.Update
 	case "remove":
 		cmds = p.Remove
+	case "start":
+		cmds = p.Start
+	case "stop":
+		cmds = p.Stop
 	default:
 		return true, fmt.Errorf("unknown command %s", cmd)
 
@@ -242,8 +248,13 @@ func executeOperation(role, path, command, oldPath string) error {
 
 		if len(oldPath) > 0 {
 			oldPath = filepath.Join(oldPath, productDir, f.Name())
+
 			util.CopyFile(filepath.Join(oldPath, "config", envFile),
 				filepath.Join(productPath, "config", envFile))
+
+			util.CopyFile(filepath.Join(oldPath, "config",
+				".env.config.json"), filepath.Join(productPath,
+				"config", ".env.config.json"))
 		}
 
 		_, _, installed := getParameters(productPath)

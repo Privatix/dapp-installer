@@ -200,12 +200,6 @@ func update(d *dapp.Dapp) error {
 			oldDapp.Version)
 	}
 
-	// Update products.
-	if err := product.Update(d.Role, oldDapp.Path, d.Path); err != nil {
-		d = &oldDapp
-		return fmt.Errorf("failed to update products: %v", err)
-	}
-
 	// Update dapp core.
 	if err := d.Update(&oldDapp); err != nil {
 		d = &oldDapp
@@ -424,6 +418,22 @@ func installProducts(d *dapp.Dapp) error {
 func removeProducts(d *dapp.Dapp) error {
 	if err := product.Remove(d.Role, d.Path); err != nil {
 		return fmt.Errorf("failed to remove products: %v", err)
+	}
+
+	return nil
+}
+
+func startProducts(d *dapp.Dapp) error {
+	if err := product.Start(d.Role, d.Path); err != nil {
+		return fmt.Errorf("failed to start products: %v", err)
+	}
+
+	return nil
+}
+
+func stopProducts(d *dapp.Dapp) error {
+	if err := product.Stop(d.Role, d.Path); err != nil {
+		return fmt.Errorf("failed to stop products: %v", err)
 	}
 
 	return nil

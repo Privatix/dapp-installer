@@ -88,11 +88,13 @@ func updateFlow() pipeline.Flow {
 		newOperator("validate", checkInstallation, nil),
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("stop tor", stopTor, startTor),
+		newOperator("stop products", stopProducts, startProducts),
 		newOperator("stop services", stopServices, startServices),
 		newOperator("update", update, nil),
 		newOperator("write version", writeVersion, nil),
 		newOperator("write env", writeEnvironmentVariable, nil),
 		newOperator("start tor", startTor, nil),
+		newOperator("start products", startProducts, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
 }

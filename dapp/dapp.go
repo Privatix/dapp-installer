@@ -15,6 +15,7 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/tor"
 	"github.com/privatix/dapp-installer/util"
 )
@@ -91,6 +92,11 @@ func (d *Dapp) Download() string {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
+	// Update products.
+	if err := product.Update(d.Role, oldDapp.Path, d.Path); err != nil {
+		return fmt.Errorf("failed to update products: %v", err)
+	}
+
 	// Merge with exist dapp.
 	if err := d.merge(oldDapp); err != nil {
 		os.RemoveAll(d.Path)

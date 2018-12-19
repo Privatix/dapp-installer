@@ -80,27 +80,7 @@ func Install(role, path, conn string) error {
 
 // Update updates the products.
 func Update(role, oldPath, newPath string) error {
-	path := filepath.Join(newPath, productDir)
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range files {
-		if !f.IsDir() {
-			continue
-		}
-		productPath := filepath.Join(path, f.Name())
-		_, _, installed := getParameters(productPath)
-
-		if installed {
-			_, err := run(role, productPath, "update")
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return executeOperation(role, newPath, "update", oldPath)
 }
 
 // Remove removes the products.
@@ -235,4 +215,45 @@ func importsProduct(role, envPath, productPath, conn string) error {
 	dest := filepath.Join(configPath, adapterConfig)
 
 	return util.CopyFile(src, dest)
+}
+
+// Start starts the products.
+func Start(role, path string) error {
+	return executeOperation(role, path, "start", "")
+}
+
+// Stop stops the products.
+func Stop(role, path string) error {
+	return executeOperation(role, path, "stop", "")
+}
+
+func executeOperation(role, path, command, oldPath string) error {
+	path = filepath.Join(path, productDir)
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		if !f.IsDir() {
+			continue
+		}
+		productPath := filepath.Join(path, f.Name())
+
+		if len(oldPath) > 0 {
+			oldPath = filepath.Join(oldPath, productDir, f.Name())
+			util.CopyFile(filepath.Join(oldPath, "config", envFile),
+				filepath.Join(productPath, "config", envFile))
+		}
+
+		_, _, installed := getParameters(productPath)
+
+		if installed {
+			_, err := run(role, productPath, command)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

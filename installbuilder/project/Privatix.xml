@@ -6,7 +6,6 @@
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
     <wmImage>images/icons/48x48_win.png</wmImage>
-    <allowLanguageSelection>1</allowLanguageSelection>
     <componentList>
         <component>
             <name>default</name>
@@ -280,11 +279,6 @@
             <code>en</code>
             <encoding>utf-8</encoding>
             <file>en.lng</file>
-        </language>
-        <language>
-            <code>ru</code>
-            <encoding>utf-8</encoding>
-            <file>ru.lng</file>
         </language>
     </customLanguageFileList>
     <installationAbortedActionList>

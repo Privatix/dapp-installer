@@ -6,7 +6,6 @@
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
     <wmImage>images/icons/48x48_win.png</wmImage>
-    <allowLanguageSelection>1</allowLanguageSelection>
     <componentList>
         <component>
             <name>default</name>
@@ -127,7 +126,6 @@
                     <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                     <actionList>
                         <runProgram>
-                            <abortOnError>0</abortOnError>
                             <program>${installdir}/dapp-installer</program>
                             <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
@@ -143,7 +141,6 @@
                     </conditionRuleList>
                     <elseActionList>
                         <runProgram>
-                            <abortOnError>0</abortOnError>
                             <program>${installdir}/dapp-installer</program>
                             <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
                             <progressText>${msg(Installer.showProgressDialog.Title)}</progressText>
@@ -155,6 +152,37 @@
                     <path>${installdir}/app.zip</path>
                 </deleteFile>
             </actionList>
+            <onErrorActionList>
+                <showProgressDialog>
+                    <title>Please wait</title>
+                    <actionList>
+                        <runProgram>
+                            <explanation>Please wait Rollback</explanation>
+                            <program>${installdir}/dapp-installer</program>
+                            <programArguments>remove -workdir ./${install_type}</programArguments>
+                            <progressText>Please wait Rollback</progressText>
+                            <workingDirectory>${installdir}</workingDirectory>
+                            <ruleList>
+                                <fileExists>
+                                    <path>${installdir}/dapp-installer</path>
+                                </fileExists>
+                                <fileExists>
+                                    <path>${installdir}/${install_type}</path>
+                                </fileExists>
+                            </ruleList>
+                        </runProgram>
+                        <deleteFile>
+                            <abortOnError>0</abortOnError>
+                            <path>${installdir}</path>
+                            <progressText>Please wait Rollback</progressText>
+                            <showMessageOnError>0</showMessageOnError>
+                        </deleteFile>
+                    </actionList>
+                </showProgressDialog>
+                <exit>
+                    <exitCode>1</exitCode>
+                </exit>
+            </onErrorActionList>
         </showProgressDialog>
         <propertiesFileSet>
             <file>${installdir}/version</file>
@@ -262,7 +290,6 @@
     <allowedLanguages>en ru</allowedLanguages>
     <createOsxBundleDmg>1</createOsxBundleDmg>
     <disableSplashScreen>1</disableSplashScreen>
-    <enableDebugger>1</enableDebugger>
     <enableRollback>1</enableRollback>
     <enableTimestamp>1</enableTimestamp>
     <nativePackageName>Privatix.app</nativePackageName>
@@ -280,11 +307,6 @@
             <code>en</code>
             <encoding>utf-8</encoding>
             <file>en.lng</file>
-        </language>
-        <language>
-            <code>ru</code>
-            <encoding>utf-8</encoding>
-            <file>ru.lng</file>
         </language>
     </customLanguageFileList>
     <installationAbortedActionList>
@@ -309,10 +331,12 @@
                     </conditionRuleList>
                 </while>
                 <runProgram>
+                    <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
                     <program>${installdir}/dapp-installer</program>
                     <programArguments>remove -workdir ./${install_type}</programArguments>
                     <progressText>Please wait Rollback</progressText>
+                    <showMessageOnError>0</showMessageOnError>
                     <ruleList>
                         <fileExists>
                             <path>${installdir}/dapp-installer</path>

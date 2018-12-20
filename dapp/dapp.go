@@ -2,7 +2,6 @@ package dapp
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/tor"
 	"github.com/privatix/dapp-installer/util"
 )
@@ -92,16 +92,9 @@ func (d *Dapp) Download() string {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
-	// Stop services.
-	done := make(chan bool)
-	go oldDapp.Stop(done)
-
-	select {
-	case <-done:
-
-	case <-time.After(util.TimeOutInSec(d.Timeout)):
-		os.RemoveAll(d.Path)
-		return errors.New("failed to stopped services. timeout expired")
+	// Update products.
+	if err := product.Update(d.Role, oldDapp.Path, d.Path); err != nil {
+		return fmt.Errorf("failed to update products: %v", err)
 	}
 
 	// Merge with exist dapp.
@@ -275,6 +268,13 @@ func (d *Dapp) merge(s *Dapp) error {
 	// Merge dappctrl config.
 	dstConfig := filepath.Join(d.Path, d.Controller.Configuration)
 	srcConfig := filepath.Join(s.Path, s.Controller.Configuration)
+	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
+		return err
+	}
+
+	// Merge dappgui config.
+	dstConfig = filepath.Join(d.Path, d.Gui.Configuration)
+	srcConfig = filepath.Join(s.Path, s.Gui.Configuration)
 	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
 		return err
 	}

@@ -171,6 +171,6 @@ func (engine *DBEngine) checkRunning() error {
 	case <-done:
 		return nil
 	case <-time.After(util.Timeout):
-		return errors.New("failed to stopped services. timeout expired")
+		return errors.New("failed to check running dbengine. timeout expired")
 	}
 }

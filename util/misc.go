@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	//Timeout - 90 sec
-	Timeout time.Duration = 90 * time.Second
+	//Timeout - 3 min
+	Timeout time.Duration = 3 * time.Minute
 	// MinAvailableDiskSize - available min 500MB
 	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
 	// MinMemorySize  - min RAM 2 GB

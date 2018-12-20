@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/privatix/dapp-openvpn/inst/pipeline"
 	"github.com/privatix/dappctrl/util/log"
 
 	"github.com/privatix/dapp-installer/dapp"
+	"github.com/privatix/dapp-installer/pipeline"
 )
 
 // Execute executes a CLI command.

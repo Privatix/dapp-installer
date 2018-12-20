@@ -12,8 +12,6 @@ import (
 
 	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/util"
-
-	"github.com/privatix/dapp-openvpn/adapter/config"
 )
 
 const (
@@ -42,6 +40,15 @@ var (
 	ErrNotFile       = fmt.Errorf("object is not file")
 	ErrNotAllItems   = fmt.Errorf("some required items not found")
 )
+
+type sessConfig struct {
+	Product  string
+	Password string
+}
+
+type config struct {
+	Sess *sessConfig
+}
 
 type item struct {
 	product *data.Product
@@ -105,15 +112,15 @@ func adjustment(product *data.Product, configFile string) error {
 		return err
 	}
 
-	cfg := config.NewConfig()
+	cfg := &config{Sess: &sessConfig{}}
 
 	err = util.ReadJSONFile(configFile, &cfg)
 	if err != nil {
 		return err
 	}
 
-	cfg.Connector.Username = product.ID
-	cfg.Connector.Password = pass
+	cfg.Sess.Product = product.ID
+	cfg.Sess.Password = pass
 
 	return util.WriteJSONFile(configFile, "", jsonIdent, &cfg)
 }

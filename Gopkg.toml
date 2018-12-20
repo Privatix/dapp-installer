@@ -1,5 +1,5 @@
 ignored = ["github.com/satori/go.uuid"]
 
 [[constraint]]
-  name = "github.com/privatix/dapp-openvpn"
-  source = "https://github.com/privatix/dapp-openvpn.git"
+  name = "github.com/privatix/dappctrl"
+  source = "https://github.com/privatix/dappctrl.git"

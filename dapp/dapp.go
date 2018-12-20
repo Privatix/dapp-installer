@@ -33,6 +33,7 @@ type Dapp struct {
 	Version    string
 	Tor        *tor.Tor
 	UserID     string
+	Timeout    uint64 // in seconds
 }
 
 // InstallerEntity has a config for install entity.
@@ -71,6 +72,7 @@ func NewDapp() *Dapp {
 		},
 		DBEngine: dbengine.NewConfig(),
 		Tor:      tor.NewTor(),
+		Timeout:  300,
 	}
 }
 
@@ -97,7 +99,7 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 	select {
 	case <-done:
 
-	case <-time.After(util.Timeout):
+	case <-time.After(util.TimeOutInSec(d.Timeout)):
 		os.RemoveAll(d.Path)
 		return errors.New("failed to stopped services. timeout expired")
 	}

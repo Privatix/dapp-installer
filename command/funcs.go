@@ -226,7 +226,7 @@ func stopServices(d *dapp.Dapp) error {
 	select {
 	case <-done:
 		return nil
-	case <-time.After(util.Timeout):
+	case <-time.After(util.TimeOutInSec(d.Timeout)):
 		return fmt.Errorf("failed to stop services: timeout expired")
 	}
 }

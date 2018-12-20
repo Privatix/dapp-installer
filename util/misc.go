@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	//Timeout - 90 sec
-	Timeout time.Duration = 90 * time.Second
 	// MinAvailableDiskSize - available min 500MB
 	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
 	// MinMemorySize  - min RAM 2 GB
@@ -330,4 +328,9 @@ func SelfRemove(dir string) error {
 		return exec.Command("cmd", "/c", cmd).Start()
 	}
 	return nil
+}
+
+// TimeOutInSec returns time duration in seconds.
+func TimeOutInSec(timeout uint64) time.Duration {
+	return time.Duration(timeout) * time.Second
 }

@@ -59,6 +59,10 @@ func Execute(logger log.Logger, version func(), args []string) {
 		object, _ := json.Marshal(d)
 		logger = logger.Add("object", string(object))
 		logger.Error(fmt.Sprintf("%v", err))
+		if !d.Verbose {
+			fmt.Println("error:", err)
+			fmt.Println("object:", string(object))
+		}
 		os.Exit(2)
 	}
 

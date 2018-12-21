@@ -33,6 +33,7 @@ type Dapp struct {
 	Version    string
 	Tor        *tor.Tor
 	UserID     string
+	Verbose    bool
 }
 
 // InstallerEntity has a config for install entity.

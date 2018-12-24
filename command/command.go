@@ -121,7 +121,7 @@ func statusFlow() pipeline.Flow {
 
 func installProductsFlow() pipeline.Flow {
 	return pipeline.Flow{
-		newOperator("processed flags", processedUpdateFlags, nil),
+		newOperator("processed flags", processedInstallProductFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("install products", installProducts, removeProducts),
 	}
@@ -129,7 +129,7 @@ func installProductsFlow() pipeline.Flow {
 
 func removeProductsFlow() pipeline.Flow {
 	return pipeline.Flow{
-		newOperator("processed flags", processedUpdateFlags, nil),
+		newOperator("processed flags", processedRemoveProductFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("remove products", removeProducts, nil),
 	}

@@ -39,6 +39,14 @@ func processedUpdateFlags(d *dapp.Dapp) error {
 	return processedCommonFlags(d, updateHelp)
 }
 
+func processedInstallProductFlags(d *dapp.Dapp) error {
+	return processedCommonFlags(d, installProductHelp)
+}
+
+func processedRemoveProductFlags(d *dapp.Dapp) error {
+	return processedCommonFlags(d, removeProductHelp)
+}
+
 func processedRemoveFlags(d *dapp.Dapp) error {
 	return processedWorkFlags(d, removeHelp)
 }

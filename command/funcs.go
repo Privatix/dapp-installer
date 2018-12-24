@@ -49,6 +49,7 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	role := flag.String("role", "", "Dapp user role")
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
+	core := flag.Bool("core", false, "Install only dapp core")
 
 	flag.Bool("verbose", false, "Display log to console output")
 
@@ -76,6 +77,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	if len(*src) > 0 {
 		d.Source = *src
 	}
+
+	d.OnlyCore = *core
 
 	return nil
 }
@@ -407,6 +410,10 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 }
 
 func installProducts(d *dapp.Dapp) error {
+	if d.OnlyCore {
+		return nil
+	}
+
 	conn := d.DBEngine.DB.ConnectionString()
 	if err := product.Install(d.Role, d.Path, conn); err != nil {
 		return fmt.Errorf("failed to install products: %v", err)
@@ -416,6 +423,10 @@ func installProducts(d *dapp.Dapp) error {
 }
 
 func removeProducts(d *dapp.Dapp) error {
+	if d.OnlyCore {
+		return nil
+	}
+
 	if err := product.Remove(d.Role, d.Path); err != nil {
 		return fmt.Errorf("failed to remove products: %v", err)
 	}

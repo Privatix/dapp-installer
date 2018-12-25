@@ -35,6 +35,7 @@ type Dapp struct {
 	UserID     string
 	Timeout    uint64 // in seconds
 	OnlyCore   bool
+	Product    string
 }
 
 // InstallerEntity has a config for install entity.

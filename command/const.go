@@ -79,7 +79,7 @@ Usage:
 Flags:
 	--role		Dapp user role
 	--workdir	Dapp install directory
-	--guid		Concrete product guid
+	--product	Specific product
 	--verbose	Display log to console log
 	--help		Display help information
 `
@@ -91,7 +91,7 @@ Usage:
 Flags:
 	--role		Dapp user role
 	--workdir	Dapp install directory
-	--guid		Concrete product guid
+	--product	Specific product
 	--verbose	Display log to console log
 	--help		Display help information
 `

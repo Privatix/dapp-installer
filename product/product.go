@@ -33,11 +33,16 @@ type command struct {
 }
 
 // Install installs the products.
-func Install(role, path, conn string) error {
+func Install(role, path, conn, specificProduct string) error {
 	path = filepath.Join(path, productDir)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err
+	}
+
+	files = filterProducts(files, specificProduct)
+	if files == nil {
+		return fmt.Errorf("product not found %v", specificProduct)
 	}
 
 	for _, f := range files {
@@ -86,11 +91,16 @@ func Update(role, oldPath, newPath string) error {
 }
 
 // Remove removes the products.
-func Remove(role, path string) error {
+func Remove(role, path, specificProduct string) error {
 	path = filepath.Join(path, productDir)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err
+	}
+
+	files = filterProducts(files, specificProduct)
+	if files == nil {
+		return fmt.Errorf("product not found %v", specificProduct)
 	}
 
 	for _, f := range files {

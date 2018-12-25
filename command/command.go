@@ -33,6 +33,10 @@ func Execute(logger log.Logger, version func(), args []string) {
 		logger.Info("update process")
 		logger = logger.Add("action", "update")
 		flow = updateFlow()
+	case "update-products":
+		logger.Info("update products process")
+		logger = logger.Add("action", "update products")
+		flow = updateProductsFlow()
 	case "remove":
 		logger.Info("remove process")
 		logger = logger.Add("action", "remove")
@@ -123,6 +127,15 @@ func installProductsFlow() pipeline.Flow {
 		newOperator("processed flags", processedInstallProductFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("install products", installProducts, removeProducts),
+	}
+}
+
+func updateProductsFlow() pipeline.Flow {
+	return pipeline.Flow{
+		newOperator("processed flags", processedUpdateProductFlags, nil),
+		newOperator("validate", checkInstallation, nil),
+		newOperator("update products", updateProducts, nil),
+		newOperator("start products", startProducts, nil),
 	}
 }
 

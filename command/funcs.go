@@ -43,6 +43,10 @@ func processedInstallProductFlags(d *dapp.Dapp) error {
 	return processedCommonFlags(d, installProductHelp)
 }
 
+func processedUpdateProductFlags(d *dapp.Dapp) error {
+	return processedCommonFlags(d, updateProductHelp)
+}
+
 func processedRemoveProductFlags(d *dapp.Dapp) error {
 	return processedCommonFlags(d, removeProductHelp)
 }
@@ -448,15 +452,29 @@ func removeProducts(d *dapp.Dapp) error {
 }
 
 func startProducts(d *dapp.Dapp) error {
-	if err := product.Start(d.Role, d.Path); err != nil {
+	if err := product.Start(d.Role, d.Path, d.Product); err != nil {
 		return fmt.Errorf("failed to start products: %v", err)
 	}
 
 	return nil
 }
 
+func updateProducts(d *dapp.Dapp) error {
+	b, dir := filepath.Split(d.Path)
+	path := filepath.Join(b, dir+"_new")
+
+	if err := product.Update(d.Role, d.Path, path, d.Product); err != nil {
+		return fmt.Errorf("failed to update products: %v", err)
+	}
+
+	util.CopyDir(filepath.Join(path, "product"),
+		filepath.Join(d.Path, "product"))
+
+	return nil
+}
+
 func stopProducts(d *dapp.Dapp) error {
-	if err := product.Stop(d.Role, d.Path); err != nil {
+	if err := product.Stop(d.Role, d.Path, d.Product); err != nil {
 		return fmt.Errorf("failed to stop products: %v", err)
 	}
 

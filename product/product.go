@@ -86,8 +86,8 @@ func Install(role, path, conn, specificProduct string) error {
 }
 
 // Update updates the products.
-func Update(role, oldPath, newPath string) error {
-	return executeOperation(role, newPath, "update", oldPath)
+func Update(role, oldPath, newPath, specificProduct string) error {
+	return executeOperation(role, newPath, "update", oldPath, specificProduct)
 }
 
 // Remove removes the products.
@@ -234,20 +234,26 @@ func importsProduct(role, envPath, productPath, conn string) error {
 }
 
 // Start starts the products.
-func Start(role, path string) error {
-	return executeOperation(role, path, "start", "")
+func Start(role, path, specificProduct string) error {
+	return executeOperation(role, path, "start", "", specificProduct)
 }
 
 // Stop stops the products.
-func Stop(role, path string) error {
-	return executeOperation(role, path, "stop", "")
+func Stop(role, path, specificProduct string) error {
+	return executeOperation(role, path, "stop", "", specificProduct)
 }
 
-func executeOperation(role, path, command, oldPath string) error {
+func executeOperation(role, path, command, oldPath,
+	specificProduct string) error {
 	path = filepath.Join(path, productDir)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err
+	}
+
+	files = filterProducts(files, specificProduct)
+	if files == nil {
+		return fmt.Errorf("product not found %v", specificProduct)
 	}
 
 	for _, f := range files {

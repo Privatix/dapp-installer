@@ -136,10 +136,10 @@ func DappCtrlVersion(filename string) string {
 func TempPath(volume string) string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
-		return fmt.Sprintf(`%s\temporary\`, volume)
+		return filepath.Join(volume, "temporary")
 	}
 
-	path := fmt.Sprintf(`%s\%x\`, volume, b)
+	path := filepath.Join(volume, fmt.Sprintf("%x", b))
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0644)

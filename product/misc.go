@@ -82,3 +82,16 @@ func getParameters(path string) (string, bool, bool) {
 	}
 	return envPath, imported, installed
 }
+
+func filterProducts(files []os.FileInfo, product string) []os.FileInfo {
+	if len(product) == 0 {
+		return files
+	}
+
+	for _, f := range files {
+		if f.Name() == product {
+			return []os.FileInfo{f}
+		}
+	}
+	return nil
+}

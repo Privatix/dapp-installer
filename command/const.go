@@ -71,3 +71,39 @@ Flags:
 	--workdir	Dapp install directory
 	--verbose	Display log to console log
 `
+
+const installProductHelp = `
+Usage:
+	dapp-installer install-products [flags]
+
+Flags:
+	--role		Dapp user role
+	--workdir	Dapp install directory
+	--product	Specific product
+	--verbose	Display log to console log
+	--help		Display help information
+`
+
+const updateProductHelp = `
+Usage:
+	dapp-installer update-products [flags]
+
+Flags:
+	--role		Dapp user role
+	--workdir	Dapp install directory
+	--product	Specific product
+	--verbose	Display log to console log
+	--help		Display help information
+`
+
+const removeProductHelp = `
+Usage:
+	dapp-installer remove-products [flags]
+
+Flags:
+	--role		Dapp user role
+	--workdir	Dapp install directory
+	--product	Specific product
+	--verbose	Display log to console log
+	--help		Display help information
+`

@@ -34,6 +34,8 @@ type Dapp struct {
 	Tor        *tor.Tor
 	UserID     string
 	Timeout    uint64 // in seconds
+	OnlyCore   bool
+	Product    string
 }
 
 // InstallerEntity has a config for install entity.
@@ -93,7 +95,8 @@ func (d *Dapp) Download() string {
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
 	// Update products.
-	if err := product.Update(d.Role, oldDapp.Path, d.Path); err != nil {
+	if err := product.Update(d.Role, oldDapp.Path, d.Path,
+		d.Product); err != nil {
 		return fmt.Errorf("failed to update products: %v", err)
 	}
 

@@ -460,14 +460,23 @@ func startProducts(d *dapp.Dapp) error {
 }
 
 func updateProducts(d *dapp.Dapp) error {
-	b, dir := filepath.Split(d.Path)
-	path := filepath.Join(b, dir+"_new")
+	if len(d.Source) == 0 {
+		return fmt.Errorf("product path not set")
+	}
 
-	if err := product.Update(d.Role, d.Path, path, d.Product); err != nil {
+	err := os.Setenv("PRIVATIX_TEMP_PRODUCT", d.Source)
+	if err != nil {
+		return fmt.Errorf("failed to set env variables: %v", err)
+	}
+
+	defer os.Setenv("PRIVATIX_TEMP_PRODUCT", "")
+
+	err = product.Update(d.Role, d.Path, d.Source, d.Product)
+	if err != nil {
 		return fmt.Errorf("failed to update products: %v", err)
 	}
 
-	util.CopyDir(filepath.Join(path, "product"),
+	util.CopyDir(filepath.Join(d.Source, "product"),
 		filepath.Join(d.Path, "product"))
 
 	return nil

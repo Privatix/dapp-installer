@@ -284,7 +284,10 @@ func (d *Dapp) merge(s *Dapp) error {
 
 	s.BackupPath = util.RenamePath(s.Path, "backup")
 	if err := os.Rename(s.Path, s.BackupPath); err != nil {
-		return err
+		time.Sleep(10 * time.Second)
+		if err := os.Rename(s.Path, s.BackupPath); err != nil {
+			return err
+		}
 	}
 
 	return os.Rename(d.Path, s.Path)

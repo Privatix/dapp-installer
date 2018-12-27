@@ -92,6 +92,7 @@ Flags:
 	--role		Dapp user role
 	--workdir	Dapp install directory
 	--product	Specific product
+	--source	Path to new products
 	--verbose	Display log to console log
 	--help		Display help information
 `

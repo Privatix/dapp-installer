@@ -153,6 +153,10 @@
                 </deleteFile>
             </actionList>
             <onErrorActionList>
+                <showWarning>
+                    <text>${program_stdout}
+${program_stderr}</text>
+                </showWarning>
                 <showProgressDialog>
                     <title>Please wait</title>
                     <actionList>
@@ -164,21 +168,17 @@
                             <workingDirectory>${installdir}</workingDirectory>
                             <ruleList>
                                 <fileExists>
-                                    <path>${installdir}/dapp-installer</path>
-                                </fileExists>
-                                <fileExists>
                                     <path>${installdir}/${install_type}</path>
                                 </fileExists>
                             </ruleList>
                         </runProgram>
-                        <deleteFile>
-                            <abortOnError>0</abortOnError>
-                            <path>${installdir}</path>
-                            <progressText>Please wait Rollback</progressText>
-                            <showMessageOnError>0</showMessageOnError>
-                        </deleteFile>
                     </actionList>
                 </showProgressDialog>
+                <deleteFile>
+                    <excludeFiles>*.log</excludeFiles>
+                    <matchHiddenFiles>1</matchHiddenFiles>
+                    <path>${installdir}/*</path>
+                </deleteFile>
                 <exit>
                     <exitCode>1</exitCode>
                 </exit>
@@ -222,23 +222,6 @@
                     <value1>${install_type}</value1>
                     <value2>agent</value2>
                 </compareValues>
-                <platformTest>
-                    <type>windows</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
-        <readFile>
-            <name>servers_config</name>
-            <path>${installdir}/agent/product/dappvpn/config/server.conf</path>
-            <ruleList>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${install_type}</value1>
-                    <value2>agent</value2>
-                </compareValues>
-                <platformTest>
-                    <type>osx</type>
-                </platformTest>
             </ruleList>
         </readFile>
         <setInstallerVariableFromRegEx>
@@ -284,13 +267,15 @@
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>
-            <path>${installdir}</path>
+            <excludeFiles>*.log</excludeFiles>
+            <matchHiddenFiles>1</matchHiddenFiles>
+            <path>${installdir}/*</path>
         </deleteFile>
     </postUninstallationActionList>
     <allowedLanguages>en ru</allowedLanguages>
     <createOsxBundleDmg>1</createOsxBundleDmg>
     <disableSplashScreen>1</disableSplashScreen>
-    <enableRollback>1</enableRollback>
+    <enableRollback>0</enableRollback>
     <enableTimestamp>1</enableTimestamp>
     <nativePackageName>Privatix.app</nativePackageName>
     <osxApplicationBundleIcon>images/icons/macIcons.icns</osxApplicationBundleIcon>
@@ -345,7 +330,9 @@
                 </runProgram>
                 <deleteFile>
                     <abortOnError>0</abortOnError>
-                    <path>${installdir}</path>
+                    <excludeFiles>*.log</excludeFiles>
+                    <matchHiddenFiles>1</matchHiddenFiles>
+                    <path>${installdir}/*</path>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
                 </deleteFile>

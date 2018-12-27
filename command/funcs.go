@@ -64,7 +64,7 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	core := flag.Bool("core", false, "Install only dapp core")
 	product := flag.String("product", "", "Specific product")
 
-	flag.Bool("verbose", false, "Display log to console output")
+	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -72,6 +72,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 		fmt.Println(help)
 		os.Exit(0)
 	}
+
+	d.Verbose = *v
 
 	if len(*config) > 0 {
 		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
@@ -352,7 +354,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 
-	flag.Bool("verbose", false, "Display log to console output")
+	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -365,6 +367,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 		*p = filepath.Dir(os.Args[0])
 	}
 	d.Path = *p
+	d.Verbose = *v
 	return nil
 }
 

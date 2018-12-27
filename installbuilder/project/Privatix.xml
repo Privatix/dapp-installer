@@ -267,9 +267,8 @@ ${program_stderr}</text>
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>
-            <excludeFiles>*.log</excludeFiles>
             <matchHiddenFiles>1</matchHiddenFiles>
-            <path>${installdir}/*</path>
+            <path>${installdir}</path>
         </deleteFile>
     </postUninstallationActionList>
     <allowedLanguages>en ru</allowedLanguages>

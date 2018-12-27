@@ -23,3 +23,8 @@ func (d *Daemon) Stop() error {
 func (d *Daemon) Remove() error {
 	return errors.New("not implemented")
 }
+
+// IsStopped returns the daemon stopped status.
+func (d *Daemon) IsStopped() bool {
+	return true
+}

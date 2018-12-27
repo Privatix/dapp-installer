@@ -72,14 +72,14 @@ func (engine *DBEngine) Install(installPath string) error {
 	}
 
 	// init db
-	dataPath := filepath.Join(installPath, `pgsql/data`)
+	dataPath := filepath.Join(installPath, "pgsql", "data")
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 		os.MkdirAll(dataPath, util.FullPermission)
 	}
 
 	util.GrantAccess(installPath)
 
-	fileName := filepath.Join(installPath, `pgsql/bin/initdb`)
+	fileName := filepath.Join(installPath, "pgsql", "bin", "initdb")
 	err := util.ExecuteCommand(fileName, "-E UTF8", "-D", dataPath)
 
 	if err != nil {
@@ -98,9 +98,30 @@ func (engine *DBEngine) Install(installPath string) error {
 		return err
 	}
 
-	fileName = filepath.Join(installPath, "pgsql/bin/createuser")
-	return util.ExecuteCommand(fileName, "-p", engine.DB.Port,
-		"-s", engine.DB.User)
+	fileName = filepath.Join(installPath, "pgsql", "bin", "createuser")
+	args := []string{"-p", engine.DB.Port, "-s", engine.DB.User}
+	return createUser(fileName, args...)
+}
+
+func createUser(fileName string, args ...string) error {
+	done := make(chan bool)
+	go func() {
+		for {
+			err := util.ExecuteCommand(fileName, args...)
+			if err == nil {
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(util.Timeout):
+		return errors.New("failed to createuser. timeout expired")
+	}
 }
 
 func configDBEngine(pgconf, port string) error {

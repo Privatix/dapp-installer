@@ -4,7 +4,6 @@ package dapp
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/dbengine"
@@ -47,9 +46,6 @@ func (d *Dapp) Configurate() error {
 	if d.Gui.Symlink {
 		d.createSymlink()
 	}
-
-	_, installer := filepath.Split(os.Args[0])
-	util.CopyFile(os.Args[0], filepath.Join(d.Path, installer))
 
 	ctrl := d.Controller
 	ctrlPath := filepath.Join(d.Path, filepath.Dir(ctrl.EntryPoint))
@@ -97,9 +93,8 @@ func configurateService(d *Dapp) error {
 	services := []string{
 		d.Controller.Service.ID,
 		dbengine.Hash(d.Path),
-		d.Tor.ServiceName(),
 	}
-	suffixes := []string{"controller", "database", "Tor transport"}
+	suffixes := []string{"controller", "database"}
 
 	for i, v := range services {
 		if err := fail(v); err != nil {

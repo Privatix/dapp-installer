@@ -37,7 +37,7 @@ fh.setFormatter(form_file)
 logging.getLogger().addHandler(fh)
 
 ch = logging.StreamHandler()  # console debug
-ch.setLevel('INFO')
+ch.setLevel('DEBUG')
 ch.setFormatter(form_console)
 logging.getLogger().addHandler(ch)
 
@@ -154,6 +154,7 @@ class ServicesThread(QThread):
                     (True, 'Reboot the common to apply the settings.<br>Please wait.'))
 
                 if self.initial.dappctrl_role == 'agent':
+                    # self.change_perm(cycle='tor_host')
                     self.initial.get_onion_key()
                 else:
                     self.initial.set_socks_list()
@@ -165,7 +166,7 @@ class ServicesThread(QThread):
                 self.signal.emit((True, 'Install GUI.<br>Please wait.'))
                 res = self.initial.install_gui(self.change_perm)
                 if res[0]:
-                    self.signal.emit((True, 'end cycle',res[1]))
+                    self.signal.emit((True, 'end cycle', res[1]))
                 else:
                     self.signal.emit((False, res[1]))
 
@@ -233,7 +234,6 @@ class RollbackThread(QThread):
         logging.debug('RollbackThread init')
         QThread.__init__(self)
         self.initial = initial
-        self.contTmp = '/var/lib/container_tmp'
         self.dumpPath = [
             '{}common'.format(self.initial.p_contr),
             '{}vpn/root/go/bin'.format(self.initial.p_contr),
@@ -243,7 +243,7 @@ class RollbackThread(QThread):
     def rolbackContainerData(self):
         logging.debug('Rollback containers data')
         for p in self.dumpPath:
-            p_src = self.contTmp + '/' + p.split('/')[-1]
+            p_src = self.initial.contTmp + '/' + p.split('/')[-1]
             cmd = 'sudo cp -rf {} {}'.format(p_src, p)
             self.initial._sys_call(cmd, rolback=False)
 
@@ -253,7 +253,7 @@ class RollbackThread(QThread):
 
     def clearTmp(self):
         logging.debug('Clear tmp data')
-        cmd = 'sudo rm -rf {}'.format(self.contTmp)
+        cmd = 'sudo rm -rf {}'.format(self.initial.contTmp)
         self.initial._sys_call(cmd=cmd, rolback=False)
 
     def run(self):
@@ -278,14 +278,14 @@ class UpdaterThread(RollbackThread):
 
     def dumpContainerData(self):
         logging.debug('Prepare to dump data')
-        cmd = 'sudo mkdir {0} && sudo chmod 777 {0}'.format(self.contTmp)
+        cmd = 'sudo mkdir {0} && sudo chmod 777 {0}'.format(self.initial.contTmp)
         self.initial._sys_call(cmd, rolback=False)
 
         mess = 'Copying important files. It may take some time. Do not interrupt the process.'
         self.signal.emit(('0', mess))
 
         for p in self.dumpPath:
-            cmd = 'sudo cp -rf {} {}'.format(p, self.contTmp)
+            cmd = 'sudo cp -rf {} {}'.format(p, self.initial.contTmp)
             logging.debug('Dump: {}'.format(cmd))
             if int(system(cmd)):
                 logging.debug('Trouble when try dump data')
@@ -298,7 +298,7 @@ class UpdaterThread(RollbackThread):
             dwnld_url = self.dwnldUpdateLink + f
             self.signal.emit(('0', 'status_bar', 'start'))
 
-            with open(self.contTmp + '/' + f, "wb") as ftmp:
+            with open(self.initial.contTmp + '/' + f, "wb") as ftmp:
                 mess = "Downloading {}.<br>Please wait.".format(f)
                 self.signal.emit(('0', mess))
                 response = requests.get(dwnld_url, stream=True)
@@ -323,7 +323,7 @@ class UpdaterThread(RollbackThread):
             for con in contrs:
                 logging.debug('Migrate {} in {}'.format(f, con))
                 p_dest = self.initial.p_contr + con + '/root/go/bin/'
-                p_src = self.contTmp + '/' + f
+                p_src = self.initial.contTmp + '/' + f
                 cmd = 'sudo cp -f {} {}'.format(p_src, p_dest)
                 if int(system(cmd)):
                     return False
@@ -354,7 +354,6 @@ class UpdaterThread(RollbackThread):
             if self.updateNewData():
                 self.initial.run_service(comm=True)
                 self.initial.run_service()
-                self.initial._sys_call('sudo rm -rf {}'.format(self.contTmp))
                 self.signal.emit(('0', '0'))
             else:
                 logging.debug('Trouble when try update data.Rollback.')
@@ -407,7 +406,7 @@ class InitGUI(QWidget):
         self.initial = mainInitialCycle(log=logging)
         self.rollbackEvent = None
         self._updateRollback = _updtRck  # declared in UpdateReinstall class
-        
+
 
     def progrBar(self, on=False):
         if on:
@@ -534,7 +533,7 @@ class InitGUI(QWidget):
         # layout.addWidget(self.interLayout)
         # self.setLayout(layout)
         self.interLayout.hide()
-        
+
     def showStreamInterLayout(self, proc):
         mess = str(proc.readAllStandardOutput())
         self.interLayout.append(mess)
@@ -556,7 +555,7 @@ class UpdateReinstall(InitGUI):
 
     def __choisePage(self):
         logging.debug('Show __choisePage on second start')
-        
+
         def prepUpdate():
             self.rollbackEvent = 'update'
             mess = "You have chosen to update the software.<br>" \
@@ -636,7 +635,7 @@ class UpdateReinstall(InitGUI):
         logging.debug('Rollback when update')
 
         def rollbackDone(resp):
-            self.pageText.setHtml(resp)
+            self.pageText.setHtml(resp[1])
             self.spinner.stop()
 
         self.thr = RollbackThread(initial=self.initial)
@@ -773,7 +772,7 @@ class Prepare(UpdateReinstall):
                 return True
         logging.debug('Clean installing')
         return False
-    
+
 
     def startCycle(self, purge=False):
 
@@ -970,7 +969,7 @@ class Prepare(UpdateReinstall):
 
         def perm(perm_files):
             for path in perm_files:
-                cmd = "stat -c '%a %n' {}".format(path)
+                cmd = "sudo stat -c '%a %n' {}".format(path)
                 res = self.initial._sys_call(cmd=cmd)
                 if res:
                     perm_code = res.split(' ')[0]
@@ -987,6 +986,8 @@ class Prepare(UpdateReinstall):
         path_dapcom_conf = p_cont + self.initial.path_com + self.initial.p_dapvpn_conf
         path_vpn_conf = p_cont + self.initial.path_vpn + self.initial.ovpn_conf
         path_vpn_unit = p_cont + self.initial.unit_f_vpn
+        path_tor_h_conf = p_cont + self.initial.path_com + self.initial.tor_hostname_config
+        path_tor_conf = p_cont + self.initial.path_com + self.initial.tor_config
 
         if cycle == 'dapp':
             perm_files = {
@@ -1007,10 +1008,23 @@ class Prepare(UpdateReinstall):
                 self.initial.dappctrlgui: ''
             }
             perm(perm_files)
+
+        elif cycle == 'tor_host':
+            perm_files = {
+                path_tor_h_conf: '',
+            }
+            perm(perm_files)
+
+        elif cycle == 'tor_conf':
+            perm_files = {
+                path_tor_conf: ''
+            }
+            perm(perm_files)
         else:
             for path, code in self.perm_files.items():
                 cmd = 'sudo chmod {} {}'.format(code, path)
                 self.initial._sys_call(cmd=cmd)
+                del self.perm_files[path]
 
     def finish(self, upt=False):
         ''' upt for rolback when update or reinstall'''
@@ -1020,6 +1034,10 @@ class Prepare(UpdateReinstall):
             self.spinner.stop()
 
             if resp[0] == '0':
+                if upt:
+                    self.initial._sys_call(
+                        'sudo rm -rf {}'.format(self.initial.contTmp))
+
                 self.pageNext.setEnabled(True)
                 self.pageNext.show()
                 self.pageText.setHtml(
@@ -1090,6 +1108,7 @@ class Prepare(UpdateReinstall):
         self.initial._clear_db_log()
 
         self.initial.conf_dappctrl_json()
+        self.change_perm(cycle='tor_conf')
         self.initial.check_tor_port()
 
         self.thr = ServicesThread(initial=self.initial,

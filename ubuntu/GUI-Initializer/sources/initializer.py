@@ -336,6 +336,8 @@ class Init:
         self.dns_sect = dnsmasq['section']
         self.dns_disable = dnsmasq['disable']
 
+        self.contTmp = '/var/lib/container_tmp'
+
     def re_init(self):
         self.__init__()
 
@@ -643,7 +645,7 @@ class CommonCMD(Init):
     def _sys_call(self, cmd, rolback=True, s_exit=4):
         resp = Popen(cmd, shell=True, stdout=PIPE,
                      stderr=STDOUT).communicate()
-        logging.debug('Sys call cmd: {}. Stdout: {}'.format(cmd, resp))
+        logging.debug('Sys call cmd: {} . Stdout: {}'.format(cmd, resp))
         if resp[1]:
             logging.debug('Error in sys call: {}'.format(resp[1]))
             if rolback:
@@ -848,8 +850,7 @@ class CommonCMD(Init):
         """Check ip addr, free ports and replace it in
         common dappctrl.config.local.json"""
         logging.debug('Check IP, Port in common dappctrl.local.json')
-        # search_keys = ['AgentServer', 'PayAddress', 'PayServer',
-        #                'SessionServer']
+
         pay_port = dict(old=None, new=None)
         p = self.p_contr + self.path_com
         if old_vers:
@@ -954,8 +955,8 @@ class Tor(CommonCMD):
 
     def check_tor_port(self):
         logging.info('TOR. Check config')
-        self.tor_socks_port = self.check_port(port=self.tor_socks_port,
-                                     auto=True)
+        self.tor_socks_port = int(self.check_port(port=self.tor_socks_port,
+                                     auto=True))
         full_comm_p = self.p_contr + self.path_com
         data = self.file_rw(p=full_comm_p + self.p_dapctrl_conf,
                             json_r=True,
@@ -996,9 +997,11 @@ class Tor(CommonCMD):
     def get_onion_key(self):
         logging.debug('TOR. Get onion key')
         hostname_config = self.p_contr + self.path_com + self.tor_hostname_config
-        onion_key = self.file_rw(
-            p=hostname_config,
-            log='TOR. Read hostname conf')
+        # onion_key = self.file_rw(
+        #     p=hostname_config,
+        #     log='TOR. Read hostname conf')
+        onion_key = self._sys_call('sudo cat {}'.format(hostname_config))
+        onion_key = onion_key.replace('\n', '')
         logging.debug('TOR. Onion key: {}'.format(onion_key))
 
         data = self.file_rw(
@@ -1007,7 +1010,7 @@ class Tor(CommonCMD):
             log='TOR. Read dappctrl conf')
 
         data.update(dict(
-            TorHostname=onion_key[0].replace('\n', '')
+            TorHostname=onion_key
         ))
 
         self.file_rw(p=self.p_contr + self.path_com + self.p_dapctrl_conf,

@@ -6,7 +6,6 @@
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
     <wmImage>images/icons/48x48_win.png</wmImage>
-    <allowLanguageSelection>1</allowLanguageSelection>
     <componentList>
         <component>
             <name>default</name>
@@ -89,6 +88,16 @@
                     <windowsIcon></windowsIcon>
                     <windowsPath>${installdir}/</windowsPath>
                 </startMenuShortcut>
+                <startMenuShortcut>
+                    <comment></comment>
+                    <name>Privatix</name>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon></windowsIcon>
+                    <windowsPath>${installdir}/</windowsPath>
+                </startMenuShortcut>
             </startMenuShortcutList>
         </component>
     </componentList>
@@ -113,21 +122,131 @@
         <showProgressDialog>
             <title>${msg(Installer.showProgressDialog.Title)}</title>
             <actionList>
-                <runProgram>
-                    <abortOnError>0</abortOnError>
-                    <explanation>Run shell script ${install_type}</explanation>
-                    <program>${installdir}/dapp-installer</program>
-                    <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                <if>
                     <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                    <workingDirectory>${installdir}</workingDirectory>
-                </runProgram>
+                    <actionList>
+                        <runProgram>
+                            <program>${installdir}/dapp-installer</program>
+                            <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                            <workingDirectory>${installdir}</workingDirectory>
+                        </runProgram>
+                    </actionList>
+                    <conditionRuleList>
+                        <compareValues>
+                            <logic>equals</logic>
+                            <value1>${install_type}</value1>
+                            <value2>agent</value2>
+                        </compareValues>
+                    </conditionRuleList>
+                    <elseActionList>
+                        <runProgram>
+                            <program>${installdir}/dapp-installer</program>
+                            <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                            <progressText>${msg(Installer.showProgressDialog.Title)}</progressText>
+                            <workingDirectory>${installdir}</workingDirectory>
+                        </runProgram>
+                    </elseActionList>
+                </if>
+                <deleteFile>
+                    <path>${installdir}/app.zip</path>
+                </deleteFile>
             </actionList>
+            <onErrorActionList>
+                <showWarning>
+                    <text>${program_stdout}
+${program_stderr}</text>
+                </showWarning>
+                <showProgressDialog>
+                    <title>Please wait</title>
+                    <actionList>
+                        <runProgram>
+                            <explanation>Please wait Rollback</explanation>
+                            <program>${installdir}/dapp-installer</program>
+                            <programArguments>remove -workdir ./${install_type}</programArguments>
+                            <progressText>Please wait Rollback</progressText>
+                            <workingDirectory>${installdir}</workingDirectory>
+                            <ruleList>
+                                <fileExists>
+                                    <path>${installdir}/${install_type}</path>
+                                </fileExists>
+                            </ruleList>
+                        </runProgram>
+                    </actionList>
+                </showProgressDialog>
+                <deleteFile>
+                    <excludeFiles>*.log</excludeFiles>
+                    <matchHiddenFiles>1</matchHiddenFiles>
+                    <path>${installdir}/*</path>
+                </deleteFile>
+                <exit>
+                    <exitCode>1</exitCode>
+                </exit>
+            </onErrorActionList>
         </showProgressDialog>
         <propertiesFileSet>
             <file>${installdir}/version</file>
             <key>version</key>
             <value>${install_type}</value>
         </propertiesFileSet>
+        <readFile>
+            <name>dappctrl_config</name>
+            <path>${installdir}/agent/dappctrl/dappctrl.config.json</path>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </readFile>
+        <setInstallerVariableFromRegEx>
+            <name>pay_service_port</name>
+            <pattern>.*"PayServer":{"Addr":"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(\d+).*?</pattern>
+            <substitution>\1</substitution>
+            <text>${dappctrl_config}</text>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </setInstallerVariableFromRegEx>
+        <readFile>
+            <name>servers_config</name>
+            <path>${installdir}/agent/product/73e17130-2a1d-4f7d-97a8-93a9aaa6f10d/config/server.conf</path>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </readFile>
+        <setInstallerVariableFromRegEx>
+            <name>vpn_port</name>
+            <pattern>.*port\s+(\d+).*?</pattern>
+            <substitution>\1</substitution>
+            <text>${servers_config}</text>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </setInstallerVariableFromRegEx>
+        <showInfo>
+            <text>${msg(Installer.AfterInstallPorts)}</text>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${install_type}</value1>
+                    <value2>agent</value2>
+                </compareValues>
+            </ruleList>
+        </showInfo>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>
@@ -140,7 +259,7 @@
                 <runProgram>
                     <program>${installdir}/dapp-installer</program>
                     <programArguments>remove -workdir ./${install_type}</programArguments>
-                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                    <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>
             </actionList>
@@ -148,14 +267,14 @@
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>
+            <matchHiddenFiles>1</matchHiddenFiles>
             <path>${installdir}</path>
         </deleteFile>
     </postUninstallationActionList>
     <allowedLanguages>en ru</allowedLanguages>
     <createOsxBundleDmg>1</createOsxBundleDmg>
     <disableSplashScreen>1</disableSplashScreen>
-    <enableDebugger>1</enableDebugger>
-    <enableRollback>1</enableRollback>
+    <enableRollback>0</enableRollback>
     <enableTimestamp>1</enableTimestamp>
     <nativePackageName>Privatix.app</nativePackageName>
     <osxApplicationBundleIcon>images/icons/macIcons.icns</osxApplicationBundleIcon>
@@ -172,11 +291,6 @@
             <code>en</code>
             <encoding>utf-8</encoding>
             <file>en.lng</file>
-        </language>
-        <language>
-            <code>ru</code>
-            <encoding>utf-8</encoding>
-            <file>ru.lng</file>
         </language>
     </customLanguageFileList>
     <installationAbortedActionList>
@@ -201,10 +315,12 @@
                     </conditionRuleList>
                 </while>
                 <runProgram>
+                    <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
                     <program>${installdir}/dapp-installer</program>
                     <programArguments>remove -workdir ./${install_type}</programArguments>
                     <progressText>Please wait Rollback</progressText>
+                    <showMessageOnError>0</showMessageOnError>
                     <ruleList>
                         <fileExists>
                             <path>${installdir}/dapp-installer</path>
@@ -213,7 +329,9 @@
                 </runProgram>
                 <deleteFile>
                     <abortOnError>0</abortOnError>
-                    <path>${installdir}</path>
+                    <excludeFiles>*.log</excludeFiles>
+                    <matchHiddenFiles>1</matchHiddenFiles>
+                    <path>${installdir}/*</path>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
                 </deleteFile>
@@ -238,8 +356,8 @@
             <title>${msg(Installer.TypeOfInstallation)}</title>
             <description></description>
             <explanation>${msg(Installer.TypeOfInstallation.description)}</explanation>
-            <value>agent</value>
-            <default>agent</default>
+            <value>client</value>
+            <default>client</default>
             <allowEmptyValue>0</allowEmptyValue>
             <displayType>radiobuttons</displayType>
             <ordering>default</ordering>
@@ -249,14 +367,14 @@
                 <option>
                     <description></description>
                     <image></image>
-                    <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
-                    <value>agent</value>
-                </option>
-                <option>
-                    <description></description>
-                    <image></image>
                     <text>${msg(Installer.TypeOfInstallation.Client)}</text>
                     <value>client</value>
+                </option>
+                <option>
+                    <description>${msg(Installer.TypeOfInstallation.Agent.Description)}</description>
+                    <image></image>
+                    <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
+                    <value>agent</value>
                 </option>
             </optionList>
         </choiceParameter>

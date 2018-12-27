@@ -50,7 +50,7 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
 
-	flag.Bool("verbose", false, "Display log to console output")
+	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -58,6 +58,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 		fmt.Println(help)
 		os.Exit(0)
 	}
+
+	d.Verbose = *v
 
 	if len(*config) > 0 {
 		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
@@ -235,7 +237,7 @@ func removeServices(d *dapp.Dapp) error {
 	if d.Role == "agent" && runtime.GOOS == "windows" {
 		// Removes firewall rule for payment reciever of dappctrl.
 		args := []string{"-ExecutionPolicy", "Bypass", "-File",
-			filepath.Join(d.Path, "dappctrl/set-ctrlfirewall.ps1"),
+			filepath.Join(d.Path, "dappctrl", "set-ctrlfirewall.ps1"),
 			"-Remove", "-ServiceName", d.Controller.Service.ID}
 		err := util.ExecuteCommand("powershell", args...)
 		if err != nil {
@@ -321,7 +323,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 
-	flag.Bool("verbose", false, "Display log to console output")
+	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
@@ -334,11 +336,12 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 		*p = filepath.Dir(os.Args[0])
 	}
 	d.Path = *p
+	d.Verbose = *v
 	return nil
 }
 
 func installTor(d *dapp.Dapp) error {
-	if err := d.Tor.Install(); err != nil {
+	if err := d.Tor.Install(d.Role); err != nil {
 		return fmt.Errorf("failed to install tor: %v", err)
 	}
 	return nil

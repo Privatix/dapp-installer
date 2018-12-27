@@ -16,8 +16,8 @@ func Hash(installPath string) string {
 }
 
 func startService(installPath string) error {
-	fileName := filepath.Join(installPath, `pgsql/bin/postgres`)
-	dataPath := filepath.Join(installPath, `pgsql/data`)
+	fileName := filepath.Join(installPath, "pgsql", "bin", "postgres")
+	dataPath := filepath.Join(installPath, "pgsql", "data")
 
 	d := unix.NewDaemon(Hash(installPath))
 	d.Command = fileName

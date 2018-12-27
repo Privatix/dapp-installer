@@ -1,7 +1,6 @@
 package tor
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/util"
@@ -12,17 +11,16 @@ func (t Tor) ServiceName() string {
 	return "Privatix Tor " + util.Hash(t.RootPath)
 }
 
-func installService(service, path string) error {
-	torExe := filepath.Join(path, `tor/tor`)
-	torConf := filepath.Join(path, `tor/settings/torrc`)
-	binPath := fmt.Sprintf(`"%s" -nt-service -f "%s"`, torExe, torConf)
+func installService(service, path, description string) error {
+	torExe := filepath.Join(path, "tor", "tor")
+	torConf := filepath.Join(path, "tor", "settings", "torrc")
 
-	return util.ExecuteCommand("sc", "create", service, "start=auto",
-		"binPath="+binPath)
+	return util.CreateService(service, torExe, description,
+		"-nt-service", "-f", torConf)
 }
 
 func startService(service string) error {
-	return util.ExecuteCommand("sc", "start", service)
+	return util.StartService(service)
 }
 
 func stopService(service string) error {
@@ -30,5 +28,5 @@ func stopService(service string) error {
 }
 
 func removeService(service string) error {
-	return util.ExecuteCommand("sc", "delete", service)
+	return util.RemoveService(service)
 }

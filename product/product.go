@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"gopkg.in/reform.v1"
 
@@ -66,8 +67,12 @@ func Install(role, path, conn string) error {
 
 		err = writeVariable(envPath, productInstall, true)
 		if err != nil {
-			return fmt.Errorf("failed to write %s after install: %v",
-				envPath, err)
+			time.Sleep(2 * time.Second)
+			err = writeVariable(envPath, productInstall, true)
+			if err != nil {
+				return fmt.Errorf("failed to write %s after install: %v",
+					envPath, err)
+			}
 		}
 	}
 	return nil

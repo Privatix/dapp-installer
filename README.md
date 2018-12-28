@@ -36,18 +36,41 @@ Simply run `dapp-installer <COMMAND>`
 Usage:
    dapp-installer [command] [flags]
 
- Available Commands:
-   install     Install dapp core
-   update      Update dapp core
-   remove      Remove dapp core
-   status      Display dapp installation info
- 
- Flags:
-   --help      Display help information
-   --version   Display the current version of this CLI
-   
+Available Commands:
+ 	install             Install dapp core and products
+	update              Update dapp core and products
+	remove              Remove dapp core and products
+	install-products    Install products
+	update-products     Update products
+	remove-products     Remove products
+	status              Display dapp installation info
+
+Flags:
+	--help              Display help information
+	--version           Display the current version of this CLI
+	--verbose           Display log to console log
+  
  Use "dapp-installer [command] --help" for more information about a command.
  ```
+
+### Examples
+By default, installs dapp core and products:
+```
+dapp-installer install -config dapp-installer.config.json
+```
+Use `-core` flag to install only dapp core without products:
+```
+dapp-installer install -config dapp-installer.config.json -core
+```
+Installs all products, which contains in `product` folder:
+```
+dapp-installer install-products -role client -workdir ./client
+```
+Use `-product` flag to install the specific product (specific product must be in `product` folder):
+```
+dapp-installer install-products -role client -workdir ./client -product 73e17130-2a1d-4f7d-97a8-93a9aaa6f10d
+```
+
 
 # Contributing
 

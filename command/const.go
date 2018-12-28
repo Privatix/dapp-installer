@@ -14,15 +14,18 @@ Usage:
   dapp-installer [command] [flags]
 
 Available Commands:
-	install		Install dapp core
-	update		Update dapp core
-	remove		Remove dapp core
-	status		Display dapp installation info
+	install			Install dapp core and products
+	update			Update dapp core and products
+	remove			Remove dapp core and products
+	install-products	Install products
+	update-products		Update products
+	remove-products		Remove products
+	status			Display dapp installation info
 
 Flags:
-	--help		Display help information
-	--version	Display the current version of this CLI
-	--verbose	Display log to console log
+	--help			Display help information
+	--version		Display the current version of this CLI
+	--verbose		Display log to console log
 
 Use "dapp-installer [command] --help" for more information about a command.
 `
@@ -55,6 +58,7 @@ Usage:
 
 Flags:
 	--config	Configuration file
+	--core		Install only dapp core
 	--role		Dapp user role
 	--workdir	Dapp install directory
 	--source	Dapp install source

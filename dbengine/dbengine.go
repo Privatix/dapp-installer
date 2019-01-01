@@ -2,6 +2,7 @@ package dbengine
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -68,7 +69,7 @@ func (engine DBEngine) databaseInit(fileName string) error {
 // Install installs a DB engine.
 func (engine *DBEngine) Install(installPath string) error {
 	if err := prepareToInstall(installPath); err != nil {
-		return err
+		return fmt.Errorf("failed to prepare install db: %v", err)
 	}
 
 	// init db
@@ -83,19 +84,19 @@ func (engine *DBEngine) Install(installPath string) error {
 	err := util.ExecuteCommand(fileName, "-E UTF8", "-D", dataPath)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to init db: %v", err)
 	}
 
 	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
 	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
-		return err
+		return fmt.Errorf("failed to configure db conf: %v", err)
 	}
 
 	// start service
 	if err := engine.Start(installPath); err != nil {
-		return err
+		return fmt.Errorf("failed to start db engine: %v", err)
 	}
 
 	fileName = filepath.Join(installPath, "pgsql", "bin", "createuser")

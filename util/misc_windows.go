@@ -17,6 +17,7 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
+	"golang.org/x/sys/windows/registry"
 	"golang.org/x/sys/windows/svc/mgr"
 )
 
@@ -241,4 +242,38 @@ func StartService(name string) error {
 	defer s.Close()
 
 	return s.Start()
+}
+
+// CheckInstallVCRedist checks to install Visual C++ Redistributable Packages.
+func CheckInstallVCRedist() bool {
+	value, err := getWinRegistryBoolValue(
+		`SOFTWARE\Microsoft\VisualStudio\12.0\VC\Runtimes\x64`,
+		"Installed")
+	if value && err == nil {
+		return true
+	}
+
+	value, err = getWinRegistryBoolValue(
+		`SOFTWARE\WOW6432Node\Microsoft\VisualStudio\12.0\VC\Runtimes\x64`,
+		"Installed")
+
+	return value && err == nil
+}
+
+func getWinRegistryBoolValue(regPath, parameter string) (bool, error) {
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, regPath,
+		registry.QUERY_VALUE)
+
+	if err != nil {
+		return false, err
+	}
+
+	defer key.Close()
+
+	value, _, err := key.GetIntegerValue(parameter)
+	if err != nil {
+		return false, err
+	}
+
+	return value == 1, nil
 }

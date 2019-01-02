@@ -64,6 +64,9 @@ func stopService(installPath string) error {
 func prepareToInstall(installPath string) error {
 	// installs run-time components (the Visual C++ Redistributable Packages
 	// for VS 2013) that are required to run postgresql database engine.
+	if util.CheckInstallVCRedist() {
+		return nil
+	}
 	vcredist := filepath.Join(installPath, "util", "vcredist_x64.exe")
 	return util.ExecuteCommand(vcredist, "/install", "/quiet", "/norestart")
 }

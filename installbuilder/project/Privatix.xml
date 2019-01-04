@@ -21,7 +21,7 @@
                     <name>Privatix ${install_type}</name>
                     <path></path>
                     <platforms>windows</platforms>
-                    <runAsAdmin>0</runAsAdmin>
+                    <runAsAdmin>1</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>

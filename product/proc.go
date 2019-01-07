@@ -41,15 +41,6 @@ var (
 	ErrNotAllItems   = fmt.Errorf("some required items not found")
 )
 
-type sessConfig struct {
-	Product  string
-	Password string
-}
-
-type config struct {
-	Sess *sessConfig
-}
-
 type item struct {
 	product *data.Product
 	config  string
@@ -112,15 +103,20 @@ func adjustment(product *data.Product, configFile string) error {
 		return err
 	}
 
-	cfg := &config{Sess: &sessConfig{}}
+	cfg := make(map[string]interface{})
 
 	err = util.ReadJSONFile(configFile, &cfg)
 	if err != nil {
 		return err
 	}
 
-	cfg.Sess.Product = product.ID
-	cfg.Sess.Password = pass
+	sess, ok := cfg["Sess"]
+	if !ok {
+		sess = make(map[string]interface{})
+		cfg["Sess"] = sess
+	}
+	sess.(map[string]interface{})["Product"] = product.ID
+	sess.(map[string]interface{})["Password"] = pass
 
 	return util.WriteJSONFile(configFile, "", jsonIdent, &cfg)
 }

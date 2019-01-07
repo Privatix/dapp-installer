@@ -4,7 +4,6 @@ package dapp
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/privatix/dapp-installer/unix"
@@ -27,24 +26,9 @@ func newService() *service {
 func (d *Dapp) controllerHash() string {
 	return fmt.Sprintf("ctrl_%s", util.Hash(d.Path))
 }
-func (d *Dapp) createSymlink() {
-	target := filepath.Join(d.Path, d.Gui.EntryPoint)
-	link := filepath.Join(util.DesktopPath(),
-		fmt.Sprintf("%s %s", d.Gui.DisplayName, d.Role))
-
-	if len(filepath.Ext(target)) == 0 {
-		target += ".app"
-	}
-
-	os.Symlink(target, link)
-}
 
 // Configurate configurates installed dapp.
 func (d *Dapp) Configurate() error {
-	if d.Gui.Symlink {
-		d.createSymlink()
-	}
-
 	if err := d.modifyDappConfig(); err != nil {
 		return err
 	}

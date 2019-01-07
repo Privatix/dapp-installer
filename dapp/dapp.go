@@ -44,7 +44,6 @@ type InstallerEntity struct {
 	DisplayName   string
 	EntryPoint    string
 	Configuration string
-	Symlink       bool
 	Service       *service
 	Settings      map[string]interface{}
 }
@@ -71,7 +70,6 @@ func NewDapp() *Dapp {
 			EntryPoint:    "dappgui/dapp-gui",
 			Configuration: gc,
 			Settings:      make(map[string]interface{}),
-			Symlink:       true,
 		},
 		DBEngine: dbengine.NewConfig(),
 		Tor:      tor.NewTor(),
@@ -212,12 +210,6 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	if d.Gui.Symlink {
-		link := filepath.Join(util.DesktopPath(),
-			fmt.Sprintf("%s %s", d.Gui.DisplayName, d.Role))
-		os.Remove(link)
-	}
-
 	if err := os.RemoveAll(d.Path); err != nil {
 		time.Sleep(10 * time.Second)
 		return os.RemoveAll(d.Path)

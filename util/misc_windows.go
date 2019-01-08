@@ -103,12 +103,6 @@ func IsServiceStopped(service string) bool {
 	return strings.Contains(out, "STOPPED")
 }
 
-// DesktopPath returns windows desktop path.
-func DesktopPath() string {
-	u, _ := user.Current()
-	return filepath.Join(u.HomeDir, "Desktop")
-}
-
 // Unzip will decompress a zip archive, moving all files and folders
 // within the zip file (parameter 1) to an output directory (parameter 2).
 func Unzip(src string, dest string) error {

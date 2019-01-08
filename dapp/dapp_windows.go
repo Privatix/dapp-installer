@@ -29,24 +29,8 @@ func (d *Dapp) controllerHash() string {
 	return fmt.Sprintf("Privatix Controller %s", util.Hash(d.Path))
 }
 
-func (d *Dapp) createSymlink() {
-	target := filepath.Join(d.Path, d.Gui.EntryPoint)
-	link := filepath.Join(util.DesktopPath(),
-		fmt.Sprintf(`%s %s`, d.Gui.DisplayName, d.Role))
-
-	if len(filepath.Ext(target)) == 0 {
-		target += ".exe"
-	}
-
-	util.ExecuteCommand("cmd", "/C", "mklink", link, target)
-}
-
 // Configurate configurates installed dapp.
 func (d *Dapp) Configurate() error {
-	if d.Gui.Symlink {
-		d.createSymlink()
-	}
-
 	ctrl := d.Controller
 	ctrlPath := filepath.Join(d.Path, filepath.Dir(ctrl.EntryPoint))
 

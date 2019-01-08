@@ -57,11 +57,6 @@ func IsServiceStopped(id string) bool {
 	return unix.NewDaemon(id).IsStopped()
 }
 
-// DesktopPath returns unix app path.
-func DesktopPath() string {
-	return "/Applications"
-}
-
 // Unzip will decompress a zip archive, moving all files and folders
 // within the zip file (parameter 1) to an output directory (parameter 2).
 func Unzip(src string, dest string) error {

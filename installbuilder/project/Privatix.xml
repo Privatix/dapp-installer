@@ -8,9 +8,9 @@
     <wmImage>images/icons/48x48_win.png</wmImage>
     <componentList>
         <component>
-            <name>default</name>
-            <description>Default Component</description>
-            <canBeEdited>1</canBeEdited>
+            <name>core</name>
+            <description>Core service</description>
+            <canBeEdited>0</canBeEdited>
             <selected>1</selected>
             <show>1</show>
             <desktopShortcutList>
@@ -93,6 +93,78 @@
                     </distributionFileList>
                 </folder>
             </folderList>
+            <postInstallationActionList>
+                <propertiesFileSet>
+                    <file>${installdir}/version</file>
+                    <key>version</key>
+                    <value>${install_type}</value>
+                </propertiesFileSet>
+                <showProgressDialog>
+                    <title>${msg(Installer.showProgressDialog.Title)}</title>
+                    <actionList>
+                        <if>
+                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                            <actionList>
+                                <runProgram>
+                                    <program>${installdir}/dapp-installer</program>
+                                    <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                    <workingDirectory>${installdir}</workingDirectory>
+                                </runProgram>
+                            </actionList>
+                            <conditionRuleList>
+                                <compareValues>
+                                    <logic>equals</logic>
+                                    <value1>${install_type}</value1>
+                                    <value2>agent</value2>
+                                </compareValues>
+                            </conditionRuleList>
+                            <elseActionList>
+                                <runProgram>
+                                    <program>${installdir}/dapp-installer</program>
+                                    <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                    <workingDirectory>${installdir}</workingDirectory>
+                                </runProgram>
+                            </elseActionList>
+                        </if>
+                        <deleteFile>
+                            <path>${installdir}/app.zip</path>
+                        </deleteFile>
+                    </actionList>
+                    <onErrorActionList>
+                        <showWarning>
+                            <text>${program_stdout}
+${program_stderr}</text>
+                        </showWarning>
+                        <showProgressDialog>
+                            <title>Please wait</title>
+                            <actionList>
+                                <runProgram>
+                                    <explanation>Please wait Rollback</explanation>
+                                    <program>${installdir}/dapp-installer</program>
+                                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                                    <progressText>Please wait Rollback</progressText>
+                                    <workingDirectory>${installdir}</workingDirectory>
+                                    <ruleList>
+                                        <fileExists>
+                                            <path>${installdir}/${install_type}</path>
+                                        </fileExists>
+                                    </ruleList>
+                                </runProgram>
+                            </actionList>
+                        </showProgressDialog>
+                        <deleteFile>
+                            <excludeFiles>*.log</excludeFiles>
+                            <matchHiddenFiles>1</matchHiddenFiles>
+                            <path>${installdir}/*</path>
+                        </deleteFile>
+                        <exit>
+                            <exitCode>1</exitCode>
+                        </exit>
+                    </onErrorActionList>
+                </showProgressDialog>
+            </postInstallationActionList>
             <startMenuShortcutList>
                 <startMenuShortcut>
                     <comment>Uninstall ${product_fullname}</comment>
@@ -116,6 +188,80 @@
                 </startMenuShortcut>
             </startMenuShortcutList>
         </component>
+        <component>
+            <name>vpn</name>
+            <description>VPN adapter</description>
+            <canBeEdited>0</canBeEdited>
+            <selected>1</selected>
+            <show>1</show>
+            <postInstallationActionList>
+                <showProgressDialog>
+                    <title>${msg(Installer.showProgressDialog.Title)}</title>
+                    <actionList>
+                        <if>
+                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                            <actionList>
+                                <runProgram>
+                                    <program>${installdir}/dapp-installer</program>
+                                    <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                                    <workingDirectory>${installdir}</workingDirectory>
+                                </runProgram>
+                            </actionList>
+                            <conditionRuleList>
+                                <compareValues>
+                                    <logic>equals</logic>
+                                    <value1>${install_type}</value1>
+                                    <value2>agent</value2>
+                                </compareValues>
+                            </conditionRuleList>
+                            <elseActionList>
+                                <runProgram>
+                                    <program>${installdir}/dapp-installer</program>
+                                    <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                    <progressText>${msg(Installer.showProgressDialog.TextVPN)}</progressText>
+                                    <workingDirectory>${installdir}</workingDirectory>
+                                </runProgram>
+                            </elseActionList>
+                        </if>
+                        <deleteFile>
+                            <path>${installdir}/app.zip</path>
+                        </deleteFile>
+                    </actionList>
+                    <onErrorActionList>
+                        <showWarning>
+                            <text>${program_stdout}
+${program_stderr}</text>
+                        </showWarning>
+                        <showProgressDialog>
+                            <title>Please wait</title>
+                            <actionList>
+                                <runProgram>
+                                    <explanation>Please wait Rollback</explanation>
+                                    <program>${installdir}/dapp-installer</program>
+                                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                                    <progressText>Please wait Rollback</progressText>
+                                    <workingDirectory>${installdir}</workingDirectory>
+                                    <ruleList>
+                                        <fileExists>
+                                            <path>${installdir}/${install_type}</path>
+                                        </fileExists>
+                                    </ruleList>
+                                </runProgram>
+                            </actionList>
+                        </showProgressDialog>
+                        <deleteFile>
+                            <excludeFiles>*.log</excludeFiles>
+                            <matchHiddenFiles>1</matchHiddenFiles>
+                            <path>${installdir}/*</path>
+                        </deleteFile>
+                        <exit>
+                            <exitCode>1</exitCode>
+                        </exit>
+                    </onErrorActionList>
+                </showProgressDialog>
+            </postInstallationActionList>
+        </component>
     </componentList>
     <readyToInstallActionList>
         <showWarning>
@@ -135,76 +281,6 @@
         </exit>
     </readyToInstallActionList>
     <postInstallationActionList>
-        <showProgressDialog>
-            <title>${msg(Installer.showProgressDialog.Title)}</title>
-            <actionList>
-                <if>
-                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                    <actionList>
-                        <runProgram>
-                            <program>${installdir}/dapp-installer</program>
-                            <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
-                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                            <workingDirectory>${installdir}</workingDirectory>
-                        </runProgram>
-                    </actionList>
-                    <conditionRuleList>
-                        <compareValues>
-                            <logic>equals</logic>
-                            <value1>${install_type}</value1>
-                            <value2>agent</value2>
-                        </compareValues>
-                    </conditionRuleList>
-                    <elseActionList>
-                        <runProgram>
-                            <program>${installdir}/dapp-installer</program>
-                            <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
-                            <progressText>${msg(Installer.showProgressDialog.Title)}</progressText>
-                            <workingDirectory>${installdir}</workingDirectory>
-                        </runProgram>
-                    </elseActionList>
-                </if>
-                <deleteFile>
-                    <path>${installdir}/app.zip</path>
-                </deleteFile>
-            </actionList>
-            <onErrorActionList>
-                <showWarning>
-                    <text>${program_stdout}
-${program_stderr}</text>
-                </showWarning>
-                <showProgressDialog>
-                    <title>Please wait</title>
-                    <actionList>
-                        <runProgram>
-                            <explanation>Please wait Rollback</explanation>
-                            <program>${installdir}/dapp-installer</program>
-                            <programArguments>remove -workdir ./${install_type}</programArguments>
-                            <progressText>Please wait Rollback</progressText>
-                            <workingDirectory>${installdir}</workingDirectory>
-                            <ruleList>
-                                <fileExists>
-                                    <path>${installdir}/${install_type}</path>
-                                </fileExists>
-                            </ruleList>
-                        </runProgram>
-                    </actionList>
-                </showProgressDialog>
-                <deleteFile>
-                    <excludeFiles>*.log</excludeFiles>
-                    <matchHiddenFiles>1</matchHiddenFiles>
-                    <path>${installdir}/*</path>
-                </deleteFile>
-                <exit>
-                    <exitCode>1</exitCode>
-                </exit>
-            </onErrorActionList>
-        </showProgressDialog>
-        <propertiesFileSet>
-            <file>${installdir}/version</file>
-            <key>version</key>
-            <value>${install_type}</value>
-        </propertiesFileSet>
         <readFile>
             <name>dappctrl_config</name>
             <path>${installdir}/agent/dappctrl/dappctrl.config.json</path>
@@ -296,6 +372,7 @@ ${program_stderr}</text>
             <path>${installdir}</path>
         </deleteFile>
     </postUninstallationActionList>
+    <allowComponentSelection>1</allowComponentSelection>
     <allowedLanguages>en ru</allowedLanguages>
     <createOsxBundleDmg>1</createOsxBundleDmg>
     <disableSplashScreen>1</disableSplashScreen>

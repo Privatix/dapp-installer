@@ -364,6 +364,12 @@ ${program_stderr}</text>
             <key>version</key>
             <showMessageOnError>0</showMessageOnError>
             <variable>old_install_type</variable>
+            <onErrorActionList>
+                <setInstallerVariable>
+                    <name>old_install_type</name>
+                    <value>${install_type}</value>
+                </setInstallerVariable>
+            </onErrorActionList>
         </propertiesFileGet>
         <showWarning>
             <ruleEvaluationLogic>or</ruleEvaluationLogic>

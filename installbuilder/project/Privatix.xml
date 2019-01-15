@@ -359,8 +359,10 @@ ${program_stderr}</text>
             </onErrorActionList>
         </propertiesFileGet>
         <propertiesFileGet>
+            <abortOnError>0</abortOnError>
             <file>${installdir}/version</file>
             <key>version</key>
+            <showMessageOnError>0</showMessageOnError>
             <variable>old_install_type</variable>
         </propertiesFileGet>
         <showWarning>

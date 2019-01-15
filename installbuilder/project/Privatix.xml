@@ -1,7 +1,7 @@
 <project>
     <shortName>Privatix</shortName>
     <fullName>Privatix Network</fullName>
-    <version>1.0</version>
+    <version>0.19.0</version>
     <licenseFile>PN.lic</licenseFile>
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
@@ -105,12 +105,31 @@
                         <if>
                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                             <actionList>
-                                <runProgram>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
-                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
-                                    <workingDirectory>${installdir}</workingDirectory>
-                                </runProgram>
+                                <if>
+                                    <actionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </actionList>
+                                    <conditionRuleList>
+                                        <compareText>
+                                            <logic>contains</logic>
+                                            <text>${installed_version}</text>
+                                            <value>unknown variable</value>
+                                        </compareText>
+                                    </conditionRuleList>
+                                    <elseActionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </elseActionList>
+                                </if>
                             </actionList>
                             <conditionRuleList>
                                 <compareValues>
@@ -120,17 +139,33 @@
                                 </compareValues>
                             </conditionRuleList>
                             <elseActionList>
-                                <runProgram>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
-                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
-                                    <workingDirectory>${installdir}</workingDirectory>
-                                </runProgram>
+                                <if>
+                                    <actionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </actionList>
+                                    <conditionRuleList>
+                                        <compareText>
+                                            <logic>contains</logic>
+                                            <text>${installed_version}</text>
+                                            <value>unknown variable</value>
+                                        </compareText>
+                                    </conditionRuleList>
+                                    <elseActionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </elseActionList>
+                                </if>
                             </elseActionList>
                         </if>
-                        <deleteFile>
-                            <path>${installdir}/app.zip</path>
-                        </deleteFile>
                     </actionList>
                     <onErrorActionList>
                         <showWarning>
@@ -153,11 +188,25 @@ ${program_stderr}</text>
                                     </ruleList>
                                 </runProgram>
                             </actionList>
+                            <ruleList>
+                                <compareText>
+                                    <logic>contains</logic>
+                                    <text>${installed_version}</text>
+                                    <value>unknown variable</value>
+                                </compareText>
+                            </ruleList>
                         </showProgressDialog>
                         <deleteFile>
                             <excludeFiles>*.log</excludeFiles>
                             <matchHiddenFiles>1</matchHiddenFiles>
                             <path>${installdir}/*</path>
+                            <ruleList>
+                                <compareText>
+                                    <logic>contains</logic>
+                                    <text>${installed_version}</text>
+                                    <value>unknown variable</value>
+                                </compareText>
+                            </ruleList>
                         </deleteFile>
                         <exit>
                             <exitCode>1</exitCode>
@@ -201,12 +250,31 @@ ${program_stderr}</text>
                         <if>
                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                             <actionList>
-                                <runProgram>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
-                                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                                    <workingDirectory>${installdir}</workingDirectory>
-                                </runProgram>
+                                <if>
+                                    <actionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </actionList>
+                                    <conditionRuleList>
+                                        <compareText>
+                                            <logic>contains</logic>
+                                            <text>${installed_version}</text>
+                                            <value>unknown variable</value>
+                                        </compareText>
+                                    </conditionRuleList>
+                                    <elseActionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>update-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </elseActionList>
+                                </if>
                             </actionList>
                             <conditionRuleList>
                                 <compareValues>
@@ -216,17 +284,25 @@ ${program_stderr}</text>
                                 </compareValues>
                             </conditionRuleList>
                             <elseActionList>
-                                <runProgram>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
-                                    <progressText>${msg(Installer.showProgressDialog.TextVPN)}</progressText>
-                                    <workingDirectory>${installdir}</workingDirectory>
-                                </runProgram>
+                                <if>
+                                    <actionList>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product 73e17130-2a1d-4f7d-97a8-93a9aaa6f10d</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextVPN)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                    </actionList>
+                                    <conditionRuleList>
+                                        <compareText>
+                                            <logic>contains</logic>
+                                            <text>${installed_version}</text>
+                                            <value>unknown variable</value>
+                                        </compareText>
+                                    </conditionRuleList>
+                                </if>
                             </elseActionList>
                         </if>
-                        <deleteFile>
-                            <path>${installdir}/app.zip</path>
-                        </deleteFile>
                     </actionList>
                     <onErrorActionList>
                         <showWarning>
@@ -264,23 +340,70 @@ ${program_stderr}</text>
         </component>
     </componentList>
     <readyToInstallActionList>
+        <propertiesFileGet>
+            <abortOnError>0</abortOnError>
+            <file>${installdir}/version</file>
+            <key>installed_version</key>
+            <showMessageOnError>0</showMessageOnError>
+            <variable>installed_version</variable>
+            <onErrorActionList>
+                <setInstallerVariable>
+                    <name>installed_version</name>
+                    <value>0.18.0</value>
+                    <ruleList>
+                        <fileExists>
+                            <path>${installdir}/version</path>
+                        </fileExists>
+                    </ruleList>
+                </setInstallerVariable>
+            </onErrorActionList>
+        </propertiesFileGet>
+        <propertiesFileGet>
+            <file>${installdir}/version</file>
+            <key>version</key>
+            <variable>old_install_type</variable>
+        </propertiesFileGet>
         <showWarning>
+            <ruleEvaluationLogic>or</ruleEvaluationLogic>
             <text>${msg(Installer.AlreadyInstalled)}</text>
             <ruleList>
-                <fileExists>
-                    <path>${installdir}/version</path>
-                </fileExists>
+                <compareVersions>
+                    <logic>greater_or_equal</logic>
+                    <version1>${installed_version}</version1>
+                    <version2>${project.version}</version2>
+                </compareVersions>
+                <compareText>
+                    <logic>does_not_equal</logic>
+                    <text>${install_type}</text>
+                    <value>${old_install_type}</value>
+                </compareText>
             </ruleList>
         </showWarning>
         <exit>
+            <ruleEvaluationLogic>or</ruleEvaluationLogic>
             <ruleList>
-                <fileExists>
-                    <path>${installdir}/version</path>
-                </fileExists>
+                <compareVersions>
+                    <logic>greater_or_equal</logic>
+                    <version1>${installed_version}</version1>
+                    <version2>${project.version}</version2>
+                </compareVersions>
+                <compareText>
+                    <logic>does_not_equal</logic>
+                    <text>${install_type}</text>
+                    <value>${old_install_type}</value>
+                </compareText>
             </ruleList>
         </exit>
     </readyToInstallActionList>
     <postInstallationActionList>
+        <propertiesFileSet>
+            <file>${installdir}/version</file>
+            <key>installed_version</key>
+            <value>${project.version}</value>
+        </propertiesFileSet>
+        <deleteFile>
+            <path>${installdir}/app.zip</path>
+        </deleteFile>
         <readFile>
             <name>dappctrl_config</name>
             <path>${installdir}/agent/dappctrl/dappctrl.config.json</path>
@@ -438,6 +561,13 @@ ${program_stderr}</text>
                     <showMessageOnError>0</showMessageOnError>
                 </deleteFile>
             </actionList>
+            <ruleList>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${installed_version}</text>
+                    <value>unknown variable</value>
+                </compareText>
+            </ruleList>
         </showProgressDialog>
     </installationAbortedActionList>
     <parameterList>

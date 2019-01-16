@@ -37,8 +37,8 @@ func (db *DB) ConnectionString() string {
 		db.Password, db.Port)
 }
 
-// ping tests connection to database.
-func ping(connStr string) error {
+// Ping tests connection to database.
+func Ping(connStr string) error {
 	conn, err := sql.Open("postgres", connStr)
 	if err == nil {
 		defer conn.Close()

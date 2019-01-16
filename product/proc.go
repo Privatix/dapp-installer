@@ -12,8 +12,6 @@ import (
 
 	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/util"
-
-	"github.com/privatix/dapp-openvpn/adapter/config"
 )
 
 const (
@@ -105,15 +103,20 @@ func adjustment(product *data.Product, configFile string) error {
 		return err
 	}
 
-	cfg := config.NewConfig()
+	cfg := make(map[string]interface{})
 
 	err = util.ReadJSONFile(configFile, &cfg)
 	if err != nil {
 		return err
 	}
 
-	cfg.Connector.Username = product.ID
-	cfg.Connector.Password = pass
+	sess, ok := cfg["Sess"]
+	if !ok {
+		sess = make(map[string]interface{})
+		cfg["Sess"] = sess
+	}
+	sess.(map[string]interface{})["Product"] = product.ID
+	sess.(map[string]interface{})["Password"] = pass
 
 	return util.WriteJSONFile(configFile, "", jsonIdent, &cfg)
 }

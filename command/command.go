@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/privatix/dapp-openvpn/inst/pipeline"
 	"github.com/privatix/dappctrl/util/log"
 
 	"github.com/privatix/dapp-installer/dapp"
+	"github.com/privatix/dapp-installer/pipeline"
 )
 
 // Execute executes a CLI command.
@@ -33,6 +33,10 @@ func Execute(logger log.Logger, version func(), args []string) {
 		logger.Info("update process")
 		logger = logger.Add("action", "update")
 		flow = updateFlow()
+	case "update-products":
+		logger.Info("update products process")
+		logger = logger.Add("action", "update products")
+		flow = updateProductsFlow()
 	case "remove":
 		logger.Info("remove process")
 		logger = logger.Add("action", "remove")
@@ -92,10 +96,12 @@ func updateFlow() pipeline.Flow {
 		newOperator("validate", checkInstallation, nil),
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("stop tor", stopTor, startTor),
-		newOperator("update", update, nil),
+		newOperator("stop services", stopServices, startServices),
+		newOperator("update", update, startProducts),
 		newOperator("write version", writeVersion, nil),
 		newOperator("write env", writeEnvironmentVariable, nil),
 		newOperator("start tor", startTor, nil),
+		newOperator("start products", startProducts, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}
 }
@@ -122,15 +128,24 @@ func statusFlow() pipeline.Flow {
 
 func installProductsFlow() pipeline.Flow {
 	return pipeline.Flow{
-		newOperator("processed flags", processedUpdateFlags, nil),
+		newOperator("processed flags", processedInstallProductFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("install products", installProducts, removeProducts),
 	}
 }
 
+func updateProductsFlow() pipeline.Flow {
+	return pipeline.Flow{
+		newOperator("processed flags", processedUpdateProductFlags, nil),
+		newOperator("validate", checkInstallation, nil),
+		newOperator("update products", updateProducts, nil),
+		newOperator("start products", startProducts, nil),
+	}
+}
+
 func removeProductsFlow() pipeline.Flow {
 	return pipeline.Flow{
-		newOperator("processed flags", processedUpdateFlags, nil),
+		newOperator("processed flags", processedRemoveProductFlags, nil),
 		newOperator("validate", checkInstallation, nil),
 		newOperator("remove products", removeProducts, nil),
 	}

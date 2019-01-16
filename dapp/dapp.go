@@ -2,7 +2,6 @@ package dapp
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/tor"
 	"github.com/privatix/dapp-installer/util"
 )
@@ -33,6 +33,9 @@ type Dapp struct {
 	Version    string
 	Tor        *tor.Tor
 	UserID     string
+	Timeout    uint64 // in seconds
+	OnlyCore   bool
+	Product    string
 	Verbose    bool
 }
 
@@ -41,7 +44,6 @@ type InstallerEntity struct {
 	DisplayName   string
 	EntryPoint    string
 	Configuration string
-	Symlink       bool
 	Service       *service
 	Settings      map[string]interface{}
 }
@@ -68,10 +70,10 @@ func NewDapp() *Dapp {
 			EntryPoint:    "dappgui/dapp-gui",
 			Configuration: gc,
 			Settings:      make(map[string]interface{}),
-			Symlink:       true,
 		},
 		DBEngine: dbengine.NewConfig(),
 		Tor:      tor.NewTor(),
+		Timeout:  300,
 	}
 }
 
@@ -91,16 +93,10 @@ func (d *Dapp) Download() string {
 
 // Update updates the dapp core.
 func (d *Dapp) Update(oldDapp *Dapp) error {
-	// Stop services.
-	done := make(chan bool)
-	go oldDapp.Stop(done)
-
-	select {
-	case <-done:
-
-	case <-time.After(util.Timeout):
-		os.RemoveAll(d.Path)
-		return errors.New("failed to stopped services. timeout expired")
+	// Update products.
+	if err := product.Update(d.Role, oldDapp.Path, d.Path,
+		d.Product); err != nil {
+		return fmt.Errorf("failed to update products: %v", err)
 	}
 
 	// Merge with exist dapp.
@@ -214,12 +210,6 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	if d.Gui.Symlink {
-		link := filepath.Join(util.DesktopPath(),
-			fmt.Sprintf("%s %s", d.Gui.DisplayName, d.Role))
-		os.Remove(link)
-	}
-
 	if err := os.RemoveAll(d.Path); err != nil {
 		time.Sleep(10 * time.Second)
 		return os.RemoveAll(d.Path)
@@ -278,9 +268,19 @@ func (d *Dapp) merge(s *Dapp) error {
 		return err
 	}
 
+	// Merge dappgui config.
+	dstConfig = filepath.Join(d.Path, d.Gui.Configuration)
+	srcConfig = filepath.Join(s.Path, s.Gui.Configuration)
+	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
+		return err
+	}
+
 	s.BackupPath = util.RenamePath(s.Path, "backup")
 	if err := os.Rename(s.Path, s.BackupPath); err != nil {
-		return err
+		time.Sleep(10 * time.Second)
+		if err := os.Rename(s.Path, s.BackupPath); err != nil {
+			return err
+		}
 	}
 
 	return os.Rename(d.Path, s.Path)

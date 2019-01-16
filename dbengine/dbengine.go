@@ -17,12 +17,14 @@ import (
 type DBEngine struct {
 	ServiceName string
 	DB          *data.DB
+	Timeout     uint64 // in seconds
 }
 
 // NewConfig creates a default DBEngine configuration.
 func NewConfig() *DBEngine {
 	return &DBEngine{
-		DB: data.NewConfig(),
+		DB:      data.NewConfig(),
+		Timeout: 300,
 	}
 }
 
@@ -100,11 +102,12 @@ func (engine *DBEngine) Install(installPath string) error {
 	}
 
 	fileName = filepath.Join(installPath, "pgsql", "bin", "createuser")
-	args := []string{"-p", engine.DB.Port, "-s", engine.DB.User}
-	return createUser(fileName, args...)
+	return engine.createUser(fileName)
 }
 
-func createUser(fileName string, args ...string) error {
+func (engine *DBEngine) createUser(fileName string) error {
+	args := []string{"-p", engine.DB.Port, "-s", engine.DB.User}
+
 	done := make(chan bool)
 	go func() {
 		for {
@@ -120,7 +123,7 @@ func createUser(fileName string, args ...string) error {
 	select {
 	case <-done:
 		return nil
-	case <-time.After(util.Timeout):
+	case <-time.After(util.TimeOutInSec(engine.Timeout)):
 		return errors.New("failed to createuser. timeout expired")
 	}
 }
@@ -171,7 +174,7 @@ func (engine *DBEngine) checkRunning() error {
 	select {
 	case <-done:
 		return nil
-	case <-time.After(util.Timeout):
-		return errors.New("failed to stopped services. timeout expired")
+	case <-time.After(util.TimeOutInSec(engine.Timeout)):
+		return errors.New("failed to check running dbengine. timeout expired")
 	}
 }

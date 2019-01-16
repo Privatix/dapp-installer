@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	//Timeout - 90 sec
-	Timeout time.Duration = 90 * time.Second
 	// MinAvailableDiskSize - available min 500MB
 	MinAvailableDiskSize uint64 = 500 * 1024 * 1024
 	// MinMemorySize  - min RAM 2 GB
@@ -138,10 +136,10 @@ func DappCtrlVersion(filename string) string {
 func TempPath(volume string) string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
-		return fmt.Sprintf(`%s\temporary\`, volume)
+		return filepath.Join(volume, "temporary")
 	}
 
-	path := fmt.Sprintf(`%s\%x\`, volume, b)
+	path := filepath.Join(volume, fmt.Sprintf("%x", b))
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.MkdirAll(path, 0644)
@@ -330,4 +328,9 @@ func SelfRemove(dir string) error {
 		return exec.Command("cmd", "/c", cmd).Start()
 	}
 	return nil
+}
+
+// TimeOutInSec returns time duration in seconds.
+func TimeOutInSec(timeout uint64) time.Duration {
+	return time.Duration(timeout) * time.Second
 }

@@ -39,6 +39,18 @@ func processedUpdateFlags(d *dapp.Dapp) error {
 	return processedCommonFlags(d, updateHelp)
 }
 
+func processedInstallProductFlags(d *dapp.Dapp) error {
+	return processedCommonFlags(d, installProductHelp)
+}
+
+func processedUpdateProductFlags(d *dapp.Dapp) error {
+	return processedCommonFlags(d, updateProductHelp)
+}
+
+func processedRemoveProductFlags(d *dapp.Dapp) error {
+	return processedCommonFlags(d, removeProductHelp)
+}
+
 func processedRemoveFlags(d *dapp.Dapp) error {
 	return processedWorkFlags(d, removeHelp)
 }
@@ -49,6 +61,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	role := flag.String("role", "", "Dapp user role")
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
+	core := flag.Bool("core", false, "Install only dapp core")
+	product := flag.String("product", "", "Specific product")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -78,6 +92,12 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	if len(*src) > 0 {
 		d.Source = *src
 	}
+
+	if len(*product) > 0 {
+		d.Product = *product
+	}
+
+	d.OnlyCore = *core
 
 	return nil
 }
@@ -188,6 +208,7 @@ func update(d *dapp.Dapp) error {
 	d.Path = newPath
 
 	if err := extract(d); err != nil {
+		d.Path = oldDapp.Path
 		return err
 	}
 
@@ -195,6 +216,7 @@ func update(d *dapp.Dapp) error {
 
 	version := util.ParseVersion(d.Version)
 	if util.ParseVersion(oldDapp.Version) >= version {
+		d.Path = oldDapp.Path
 		return fmt.Errorf(
 			"dapp current version: %s, update is not required",
 			oldDapp.Version)
@@ -202,8 +224,7 @@ func update(d *dapp.Dapp) error {
 
 	// Update dapp core.
 	if err := d.Update(&oldDapp); err != nil {
-		oldDapp.DBEngine.Start(oldDapp.Path)
-		oldDapp.Controller.Service.Start()
+		d.Path = oldDapp.Path
 		return fmt.Errorf("failed to update dapp: %v", err)
 	}
 
@@ -221,6 +242,16 @@ func checkInstallation(d *dapp.Dapp) error {
 	return nil
 }
 
+func startServices(d *dapp.Dapp) error {
+	if err := d.DBEngine.Start(d.Path); err != nil {
+		return fmt.Errorf("failed to start dbengine: %v", err)
+	}
+	if err := d.Controller.Service.Start(); err != nil {
+		return fmt.Errorf("failed to start controller: %v", err)
+	}
+	return nil
+}
+
 func stopServices(d *dapp.Dapp) error {
 	done := make(chan bool)
 	go d.Stop(done)
@@ -228,7 +259,7 @@ func stopServices(d *dapp.Dapp) error {
 	select {
 	case <-done:
 		return nil
-	case <-time.After(util.Timeout):
+	case <-time.After(util.TimeOutInSec(d.Timeout)):
 		return fmt.Errorf("failed to stop services: timeout expired")
 	}
 }
@@ -399,8 +430,12 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 }
 
 func installProducts(d *dapp.Dapp) error {
+	if d.OnlyCore {
+		return nil
+	}
+
 	conn := d.DBEngine.DB.ConnectionString()
-	if err := product.Install(d.Role, d.Path, conn); err != nil {
+	if err := product.Install(d.Role, d.Path, conn, d.Product); err != nil {
 		return fmt.Errorf("failed to install products: %v", err)
 	}
 
@@ -408,8 +443,51 @@ func installProducts(d *dapp.Dapp) error {
 }
 
 func removeProducts(d *dapp.Dapp) error {
-	if err := product.Remove(d.Role, d.Path); err != nil {
+	if d.OnlyCore {
+		return nil
+	}
+
+	if err := product.Remove(d.Role, d.Path, d.Product); err != nil {
 		return fmt.Errorf("failed to remove products: %v", err)
+	}
+
+	return nil
+}
+
+func startProducts(d *dapp.Dapp) error {
+	if err := product.Start(d.Role, d.Path, d.Product); err != nil {
+		return fmt.Errorf("failed to start products: %v", err)
+	}
+
+	return nil
+}
+
+func updateProducts(d *dapp.Dapp) error {
+	if len(d.Source) == 0 {
+		return fmt.Errorf("product path not set")
+	}
+
+	err := os.Setenv("PRIVATIX_TEMP_PRODUCT", d.Source)
+	if err != nil {
+		return fmt.Errorf("failed to set env variables: %v", err)
+	}
+
+	defer os.Setenv("PRIVATIX_TEMP_PRODUCT", "")
+
+	err = product.Update(d.Role, d.Path, d.Source, d.Product)
+	if err != nil {
+		return fmt.Errorf("failed to update products: %v", err)
+	}
+
+	util.CopyDir(filepath.Join(d.Source, "product"),
+		filepath.Join(d.Path, "product"))
+
+	return nil
+}
+
+func stopProducts(d *dapp.Dapp) error {
+	if err := product.Stop(d.Role, d.Path, d.Product); err != nil {
+		return fmt.Errorf("failed to stop products: %v", err)
 	}
 
 	return nil

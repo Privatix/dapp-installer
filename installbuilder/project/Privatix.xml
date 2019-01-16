@@ -13,6 +13,22 @@
             <canBeEdited>1</canBeEdited>
             <selected>1</selected>
             <show>1</show>
+            <desktopShortcutList>
+                <shortcut>
+                    <comment></comment>
+                    <exec></exec>
+                    <icon></icon>
+                    <name>Privatix ${install_type}</name>
+                    <path></path>
+                    <platforms>windows</platforms>
+                    <runAsAdmin>1</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsIcon>
+                    <windowsPath></windowsPath>
+                </shortcut>
+            </desktopShortcutList>
             <folderList>
                 <folder>
                     <description>Program Files</description>
@@ -247,6 +263,15 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </showInfo>
+        <createSymLink>
+            <linkName>/Applications/Privatix ${install_type}</linkName>
+            <target>${installdir}/${install_type}/dappgui/dapp-gui.app</target>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </createSymLink>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>

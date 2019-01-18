@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/go-ps"
+	ps "github.com/keybase/go-ps"
 )
 
 const (
@@ -137,6 +137,10 @@ func TempPath(volume string) string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
 		return filepath.Join(volume, "temporary")
+	}
+
+	if len(volume) == 0 {
+		volume = "/tmp"
 	}
 
 	path := filepath.Join(volume, fmt.Sprintf("%x", b))

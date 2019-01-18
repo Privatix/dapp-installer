@@ -58,7 +58,7 @@ func NewDapp() *Dapp {
 
 	return &Dapp{
 		Role: "agent",
-		Path: ".",
+		Path: "./agent",
 		Controller: &InstallerEntity{
 			EntryPoint:    "dappctrl/dappctrl",
 			Configuration: "dappctrl/dappctrl.config.json",

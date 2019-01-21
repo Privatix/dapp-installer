@@ -11,6 +11,8 @@ func installFlow() pipeline.Flow {
 		newOperator("prepare", prepare, nil),
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("extract", extract, removeDapp),
+		newOperator("install", installContainer, removeContainer),
+		newOperator("start", startContainer, stopContainer),
 		newOperator("remove temp", removeTemp, nil),
 	}
 }

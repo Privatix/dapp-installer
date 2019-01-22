@@ -138,7 +138,7 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 func (d *Dapp) modifyDappConfig() error {
 	configFile := filepath.Join(d.Path, d.Controller.Configuration)
 
-	if err := util.SetDynamicPorts(configFile); err != nil {
+	if err := setDynamicPorts(configFile); err != nil {
 		return err
 	}
 
@@ -164,13 +164,16 @@ func (d *Dapp) modifyDappConfig() error {
 	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
 		d.Tor.TargetPort)
 	settings["Report.userid"] = d.UserID
-	settings["FileLog.Filename"] = filepath.Join(d.Path,
-		"log/dappctrl-%Y-%m-%d.log")
-	settings["DB.Conn.user"] = d.DBEngine.DB.User
-	settings["DB.Conn.port"] = d.DBEngine.DB.Port
-	settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
-	if len(d.DBEngine.DB.Password) > 0 {
-		settings["DB.Conn.password"] = d.DBEngine.DB.Password
+
+	if runtime.GOOS != "linux" {
+		settings["FileLog.Filename"] = filepath.Join(d.Path,
+			"log/dappctrl-%Y-%m-%d.log")
+		settings["DB.Conn.user"] = d.DBEngine.DB.User
+		settings["DB.Conn.port"] = d.DBEngine.DB.Port
+		settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
+		if len(d.DBEngine.DB.Password) > 0 {
+			settings["DB.Conn.password"] = d.DBEngine.DB.Password
+		}
 	}
 
 	if strings.EqualFold(d.Role, "agent") {
@@ -365,6 +368,9 @@ func (d *Dapp) fromConfig() error {
 
 func (d *Dapp) setUIConfig() error {
 	configFile := filepath.Join(d.Path, d.Gui.Configuration)
+	if runtime.GOOS == "linux" {
+		configFile = d.Gui.Configuration
+	}
 	read, err := os.Open(configFile)
 	if err != nil {
 		return err

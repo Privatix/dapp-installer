@@ -2,7 +2,6 @@ package command
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
@@ -86,12 +85,9 @@ func configure(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to install tor: %v", err)
 	}
 
-	path := filepath.Join(d.Path, d.Controller.Configuration)
-	err := util.SetDynamicPorts(path)
-	if err != nil {
-		return fmt.Errorf("failed to set dynamic ports: %v", err)
+	if err := d.Configurate(); err != nil {
+		return fmt.Errorf("failed to configure: %v", err)
 	}
-
 	return nil
 }
 

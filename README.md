@@ -18,6 +18,12 @@ Clone the `dapp-installer` repository using git:
 git clone https://github.com/privatix/dapp-installer.git
 cd dapp-installer
 git checkout master
+
+```
+Create `Gopkg.toml`:
+
+```bash
+./scripts/toml.sh ./Gopkg.toml.template > ./Gopkg.toml
 ```
 
 Build `dapp-installer` package:

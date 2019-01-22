@@ -30,7 +30,7 @@ Simply run `ps-runner -config filename` or `ps-runner -script filename [args...]
 Run powershell script with arguments:
 
 ```
-ps-runner -script new-dump.ps1 -installDir "C:\Program Files\Privatix"
+ps-runner -script new-dump.ps1 -installDir "C:\Program Files\Privatix\client" -outFile "C:\Program Files\Privatix\client\logdump.zip"
 ```
 
 Run powershell script using configuration file:

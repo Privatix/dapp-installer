@@ -1,6 +1,6 @@
 SocksPort {{.SocksPort}}
 
-HiddenServiceDir {{if .IsLinux}}/var/lib/{{.HiddenServiceDir}}/{{else}}"{{.RootPath}}/{{.HiddenServiceDir}}"{{end}}
+HiddenServiceDir "{{if not .IsLinux}}{{.RootPath}}{{end}}/{{.HiddenServiceDir}}"
 HiddenServicePort {{.VirtPort}} 127.0.0.1:{{.TargetPort}}
 
 {{if not .IsLinux}}

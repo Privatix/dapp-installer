@@ -77,6 +77,7 @@ func removeContainer(d *dapp.Dapp) error {
 }
 
 func configure(d *dapp.Dapp) error {
+	d.Tor.HiddenServiceDir = "var/lib/tor/hidden_service"
 	d.Tor.Config = "torrcprod"
 	d.Tor.SocksPort = 9099
 	d.Tor.IsLinux = true
@@ -95,11 +96,6 @@ func configure(d *dapp.Dapp) error {
 }
 
 func finalize(d *dapp.Dapp) error {
-	var err error
-	d.Tor.Hostname, err = d.Tor.OnionName()
-	if err != nil {
-		return fmt.Errorf("failed to read tor onion name: %v", err)
-	}
 
 	return nil
 }

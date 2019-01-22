@@ -46,10 +46,6 @@ func NewTor() *Tor {
 }
 
 func (t *Tor) configurate() error {
-	if t.IsLinux {
-		return t.createSettings()
-	}
-
 	if err := t.generateKey(); err != nil {
 		return err
 	}

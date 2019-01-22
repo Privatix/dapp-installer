@@ -25,10 +25,12 @@ type Tor struct {
 	Hostname         string
 	HiddenServiceDir string
 	RootPath         string
+	Config           string
 	Addr             string
 	SocksPort        int
 	VirtPort         int
 	TargetPort       int
+	IsLinux          bool
 }
 
 // NewTor creates a default Tor configuration.
@@ -39,10 +41,15 @@ func NewTor() *Tor {
 		SocksPort:        9999,
 		VirtPort:         80,
 		TargetPort:       5555,
+		Config:           "torrc",
 	}
 }
 
 func (t *Tor) configurate() error {
+	if t.IsLinux {
+		return t.createSettings()
+	}
+
 	if err := t.generateKey(); err != nil {
 		return err
 	}
@@ -91,6 +98,9 @@ func (t *Tor) generateKey() error {
 
 func (t *Tor) createSettings() error {
 	path := filepath.Join(t.RootPath, "tor", "settings")
+	if t.IsLinux {
+		path = filepath.Join(t.RootPath, "etc", "tor")
+	}
 	if _, err := os.Stat(path); err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -100,7 +110,7 @@ func (t *Tor) createSettings() error {
 		}
 	}
 
-	file, err := os.Create(filepath.Join(path, "torrc"))
+	file, err := os.Create(filepath.Join(path, t.Config))
 	if err != nil {
 		return err
 	}

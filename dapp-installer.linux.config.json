@@ -1,5 +1,8 @@
 {
     "Role" : "agent",
     "Path" : "/home/parallels/agent",
-    "Source":"/tmp/2874d0528f35b8135bacf4827f86887e/common.tar.xz"
+    "Source":"/tmp/2874d0528f35b8135bacf4827f86887e/common.tar.xz",
+    "Controller":{
+        "Configuration":"/opt/privatix/config/dappctrl.config.local.json"
+    }
  }

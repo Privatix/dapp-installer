@@ -3,23 +3,10 @@
 package command
 
 import (
-	"runtime"
-
 	"github.com/privatix/dapp-installer/pipeline"
 )
 
 func installFlow() pipeline.Flow {
-	if runtime.GOOS == "linux" {
-		return pipeline.Flow{
-			newOperator("processed flags", processedInstallFlags, nil),
-			newOperator("validate", validateToInstall, nil),
-			newOperator("prepare", prepare, nil),
-			newOperator("init temp", initTemp, removeTemp),
-			newOperator("extract", extract, removeDapp),
-			newOperator("remove temp", removeTemp, nil),
-		}
-	}
-
 	return pipeline.Flow{
 		newOperator("processed flags", processedInstallFlags, nil),
 		newOperator("validate", validateToInstall, nil),

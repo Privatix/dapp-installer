@@ -138,7 +138,7 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 func (d *Dapp) modifyDappConfig() error {
 	configFile := filepath.Join(d.Path, d.Controller.Configuration)
 
-	if err := setDynamicPorts(configFile); err != nil {
+	if err := util.SetDynamicPorts(configFile); err != nil {
 		return err
 	}
 

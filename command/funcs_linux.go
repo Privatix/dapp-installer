@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
@@ -70,6 +71,34 @@ func removeContainer(d *dapp.Dapp) error {
 
 	if err := c.Remove(); err != nil {
 		return fmt.Errorf("failed to remove container: %v", err)
+	}
+
+	return nil
+}
+
+func configure(d *dapp.Dapp) error {
+	d.Tor.Config = "torrcprod"
+	d.Tor.SocksPort = 9099
+	d.Tor.IsLinux = true
+
+	if err := d.Tor.Install(d.Role); err != nil {
+		return fmt.Errorf("failed to install tor: %v", err)
+	}
+
+	path := filepath.Join(d.Path, d.Controller.Configuration)
+	err := util.SetDynamicPorts(path)
+	if err != nil {
+		return fmt.Errorf("failed to set dynamic ports: %v", err)
+	}
+
+	return nil
+}
+
+func finalize(d *dapp.Dapp) error {
+	var err error
+	d.Tor.Hostname, err = d.Tor.OnionName()
+	if err != nil {
+		return fmt.Errorf("failed to read tor onion name: %v", err)
 	}
 
 	return nil

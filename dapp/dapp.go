@@ -392,3 +392,8 @@ func (d *Dapp) setUIConfig() error {
 
 	return json.NewEncoder(write).Encode(jsonMap)
 }
+
+// ReadConfig reads dappctrl configuration file.
+func (d *Dapp) ReadConfig() error {
+	return d.fromConfig()
+}

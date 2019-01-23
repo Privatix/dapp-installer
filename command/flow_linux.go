@@ -11,7 +11,8 @@ func installFlow() pipeline.Flow {
 		newOperator("prepare", prepare, nil),
 		newOperator("init temp", initTemp, removeTemp),
 		newOperator("extract", extract, removeDapp),
-		newOperator("configure", configure, nil),
+		newOperator("configure tor", installTor, nil),
+		newOperator("configure dapp", configureDapp, nil),
 		newOperator("install", installContainer, removeContainer),
 		newOperator("start", startContainer, stopContainer),
 		newOperator("finalize", finalize, nil),
@@ -24,7 +25,13 @@ func updateFlow() pipeline.Flow {
 }
 
 func removeFlow() pipeline.Flow {
-	return nil
+	return pipeline.Flow{
+		newOperator("processed flags", processedRemoveFlags, nil),
+		newOperator("validate", checkContainer, nil),
+		newOperator("stop", stopContainer, nil),
+		newOperator("remove", removeContainer, nil),
+		newOperator("remove dapp", removeDapp, nil),
+	}
 }
 
 func statusFlow() pipeline.Flow {

@@ -75,16 +75,22 @@ func removeContainer(d *dapp.Dapp) error {
 	return nil
 }
 
-func configure(d *dapp.Dapp) error {
-	d.Tor.HiddenServiceDir = "var/lib/tor/hidden_service"
-	d.Tor.Config = "torrcprod"
-	d.Tor.SocksPort = 9099
-	d.Tor.IsLinux = true
-
-	if err := d.Tor.Install(d.Role); err != nil {
-		return fmt.Errorf("failed to install tor: %v", err)
+func checkContainer(d *dapp.Dapp) error {
+	if err := d.ReadConfig(); err != nil {
+		return fmt.Errorf("failed to read config: %v", err)
 	}
 
+	// version, ok := data.ReadAppVersion(d.DBEngine.DB)
+	// if !ok {
+	// 	return fmt.Errorf("failed to read app version")
+	// }
+
+	// d.Version = version
+
+	return nil
+}
+
+func configureDapp(d *dapp.Dapp) error {
 	if err := d.Configurate(); err != nil {
 		return fmt.Errorf("failed to configure: %v", err)
 	}
@@ -92,6 +98,5 @@ func configure(d *dapp.Dapp) error {
 }
 
 func finalize(d *dapp.Dapp) error {
-
 	return nil
 }

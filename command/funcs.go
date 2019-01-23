@@ -353,6 +353,7 @@ func printStatus(d *dapp.Dapp) error {
 func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
+	config := flag.String("config", "", "Configuration file")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -361,6 +362,12 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	if *h {
 		fmt.Println(help)
 		os.Exit(0)
+	}
+
+	if len(*config) > 0 {
+		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
+			return err
+		}
 	}
 
 	if len(*p) == 0 {

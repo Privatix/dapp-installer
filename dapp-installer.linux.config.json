@@ -1,11 +1,16 @@
 {
-    "Role" : "agent",
-    "Path" : "/home/parallels/agent",
-    "Source":"/tmp/2874d0528f35b8135bacf4827f86887e/common.tar.xz",
-    "Controller":{
-        "Configuration":"/opt/privatix/config/dappctrl.config.local.json"
+    "Role": "agent",
+    "Path": "/home/parallels/agent",
+    "Source": "/tmp/2874d0528f35b8135bacf4827f86887e/common.tar.xz",
+    "Controller": {
+        "Configuration": "/opt/privatix/config/dappctrl.config.local.json"
     },
-    "Gui":{
-        "Configuration":"/opt/privatix/gui/node_modules/dappctrlgui/settings.json"
+    "Gui": {
+        "Configuration": "/opt/privatix/gui/node_modules/dappctrlgui/settings.json"
+    },
+    "Tor": {
+        "HiddenServiceDir": "var/lib/tor/hidden_service",
+        "Config": "torrcprod",
+        "SocksPort": 9099
     }
- }
+}

@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -42,6 +43,7 @@ func NewTor() *Tor {
 		VirtPort:         80,
 		TargetPort:       5555,
 		Config:           "torrc",
+		IsLinux:          runtime.GOOS == "linux",
 	}
 }
 

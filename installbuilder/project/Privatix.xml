@@ -239,7 +239,7 @@ ${program_stderr}</text>
         </component>
         <component>
             <name>vpn</name>
-            <description>VPN adapter</description>
+            <description>VPN service</description>
             <canBeEdited>0</canBeEdited>
             <selected>1</selected>
             <show>1</show>

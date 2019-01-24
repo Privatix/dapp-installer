@@ -59,25 +59,11 @@ func (engine DBEngine) createDatabase(fileName string) error {
 }
 
 func (engine DBEngine) databaseMigrate(fileName string) error {
-	conn := engine.DB.ConnectionString()
-
-	done := make(chan bool)
-	go func() {
-		for {
-			if err := data.Ping(conn); err == nil {
-				break
-			}
-			time.Sleep(200 * time.Millisecond)
-		}
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		return util.ExecuteCommand(fileName, "db-migrate", "-conn", conn)
-	case <-time.After(util.TimeOutInSec(engine.Timeout)):
-		return errors.New("failed to ping database. timeout expired")
+	if err := engine.Ping(); err != nil {
+		return err
 	}
+	conn := engine.DB.ConnectionString()
+	return util.ExecuteCommand(fileName, "db-migrate", "-conn", conn)
 }
 
 func (engine DBEngine) databaseInit(fileName string) error {
@@ -193,5 +179,28 @@ func (engine *DBEngine) checkRunning() error {
 		return nil
 	case <-time.After(util.TimeOutInSec(engine.Timeout)):
 		return errors.New("failed to check running dbengine. timeout expired")
+	}
+}
+
+// Ping tests connection to database.
+func (engine DBEngine) Ping() error {
+	conn := engine.DB.ConnectionString()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			if err := data.Ping(conn); err == nil {
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(util.TimeOutInSec(engine.Timeout)):
+		return errors.New("failed to ping database. timeout expired")
 	}
 }

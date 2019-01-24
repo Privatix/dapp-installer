@@ -5,6 +5,7 @@ import (
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
+	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -80,12 +81,12 @@ func checkContainer(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
-	// version, ok := data.ReadAppVersion(d.DBEngine.DB)
-	// if !ok {
-	// 	return fmt.Errorf("failed to read app version")
-	// }
+	version, ok := data.ReadAppVersion(d.DBEngine.DB)
+	if !ok {
+		return fmt.Errorf("failed to read app version")
+	}
 
-	// d.Version = version
+	d.Version = version
 
 	return nil
 }
@@ -98,5 +99,9 @@ func configureDapp(d *dapp.Dapp) error {
 }
 
 func finalize(d *dapp.Dapp) error {
-	return nil
+	if err := d.DBEngine.Ping(); err != nil {
+		return fmt.Errorf("failed to finalize: %v", err)
+	}
+
+	return writeVersion(d)
 }

@@ -50,10 +50,10 @@ type InstallerEntity struct {
 
 // NewDapp creates a default Dapp configuration.
 func NewDapp() *Dapp {
-	gc := "dappgui/dapp-gui.app/Contents/Resources/app/settings.json"
+	gc := "dappgui/resources/app/settings.json"
 
-	if runtime.GOOS == "windows" {
-		gc = "dappgui/resources/app/settings.json"
+	if runtime.GOOS == "darwin" {
+		gc = "dappgui/dapp-gui.app/Contents/Resources/app/settings.json"
 	}
 
 	return &Dapp{

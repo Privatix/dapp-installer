@@ -1,17 +1,16 @@
 {
     "Role": "agent",
     "Path": "/home/parallels/agent",
-    "Source": "/home/parallels/Downloads/common.tar.xz",
+    "Source": "/home/parallels/Downloads/privatix-dapp-container.tar.xz",
     "Controller": {
-        "EntryPoint": "/root/go/bin/dappctrl",
-        "Configuration": "/opt/privatix/config/dappctrl.config.local.json"
+        "EntryPoint": "/app/dappctrl/dappctrl",
+        "Configuration": "/app/dappctrl/dappctrl.config.json"
     },
     "Gui": {
-        "Configuration": "/opt/privatix/gui/node_modules/dappctrlgui/settings.json"
+        "Configuration": "/app/dappgui/resources/app/settings.json"
     },
     "Tor": {
         "HiddenServiceDir": "var/lib/tor/hidden_service",
-        "Config": "torrcprod",
         "SocksPort": 9099
     }
 }

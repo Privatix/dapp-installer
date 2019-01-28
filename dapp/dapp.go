@@ -368,9 +368,6 @@ func (d *Dapp) fromConfig() error {
 
 func (d *Dapp) setUIConfig() error {
 	configFile := filepath.Join(d.Path, d.Gui.Configuration)
-	if runtime.GOOS == "linux" {
-		configFile = d.Gui.Configuration
-	}
 	read, err := os.Open(configFile)
 	if err != nil {
 		return err

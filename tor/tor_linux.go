@@ -1,7 +1,11 @@
 package tor
 
 import (
+	"fmt"
+	"os"
+	"os/user"
 	"path/filepath"
+	"syscall"
 
 	"github.com/privatix/dapp-installer/util"
 )
@@ -12,8 +16,20 @@ func (t Tor) ServiceName() string {
 }
 
 func installService(daemon, path, descr string) error {
-	p := filepath.Join(path, "var/lib/tor/hidden_service")
-	return util.ExecuteCommand("chown", "-R", "messagebus", p)
+	path = filepath.Join(path, "var", "lib", "tor")
+
+	s, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	u, err := user.LookupId(fmt.Sprint(s.Sys().(*syscall.Stat_t).Uid))
+	if err != nil {
+		return err
+	}
+
+	p := filepath.Join(path, "hidden_service")
+	return util.ExecuteCommand("chown", "-R", u.Username, p)
 }
 
 func startService(daemon string) error {

@@ -2,6 +2,8 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
+	"time"
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
@@ -99,9 +101,26 @@ func configureDapp(d *dapp.Dapp) error {
 }
 
 func finalize(d *dapp.Dapp) error {
+	time.Sleep(10 * time.Second)
+
+	file := filepath.Join(d.Path, d.Controller.EntryPoint)
+	if err := d.DBEngine.CreateDatabase(file); err != nil {
+		return fmt.Errorf("failed to create db: %v", err)
+	}
+
 	if err := d.DBEngine.Ping(); err != nil {
 		return fmt.Errorf("failed to finalize: %v", err)
 	}
 
-	return writeVersion(d)
+	if err := writeVersion(d); err != nil {
+		return fmt.Errorf("failed to write pp version: %v", err)
+	}
+
+	if err := stopContainer(d); err != nil {
+		return err
+	}
+
+	time.Sleep(10 * time.Second)
+
+	return startContainer(d)
 }

@@ -10,6 +10,12 @@ echo "App folder path:" ${dappcoredir}
 sudo debootstrap jessie ./${container} http://mirror.yandex.ru/debian
 #sudo chroot ${container} dpkg --print-architecture
 
+# copy dappcore
+sudo cp -R ${dappcoredir}/. ${container}/app/
+
+# move daemons
+sudo mv ${container}/app/daemon/* ${container}/lib/systemd/system/
+
 # connect to container
 sudo systemd-nspawn -D ${container}/ << EOF
 
@@ -43,33 +49,12 @@ service postgresql start
 # install Tor
 apt-get install -y tor
 
-# create folder structure
-mkdir -p /app
-mkdir -p /app/dappctrl
-mkdir -p /app/dappgui
-mkdir -p /app/log
-mkdir -p /app/product
+# enable daemon
+systemctl enable dappctrl.service
 
-exit
+logout
 EOF
 
-# copy dappcore
-sudo cp -R ${dappcoredir}/. ${container}/app/
+# create tar archive
+sudo tar cpJf ${container}.tar.xz --one-file-system -C ${container} .
 
-# move daemons
-sudo mv ${container}/app/daemon/* ${container}/lib/systemd/system/
-
-# sudo systemd-nspawn -D ${container}/ << EOF
-# # # enable daemon
-# # systemctl enable dappctrl.service
-
-# # # create, migrate and init database
-# # /app/dappctrl/dappctrl db-create -conn "dbname=postgres host=127.0.0.1 user=postgres sslmode=disable port=5433"
-# # /app/dappctrl/dappctrl db-migrate -conn "dbname=dappctrl host=127.0.0.1 user=postgres sslmode=disable port=5433"
-# # /app/dappctrl/dappctrl db-init-data -conn "dbname=dappctrl host=127.0.0.1 user=postgres sslmode=disable port=5433"
-
-# exit
-# EOF
-
-# # create tar archive
-# sudo tar cpJf ${container}.tar.xz --one-file-system -C ${container} .

@@ -13,9 +13,6 @@ sudo debootstrap jessie ./${container} http://mirror.yandex.ru/debian
 # copy dappcore
 sudo cp -R ${dappcoredir}/. ${container}/app/
 
-# move daemons
-sudo mv ${container}/app/daemon/* ${container}/lib/systemd/system/
-
 # connect to container
 sudo systemd-nspawn -D ${container}/ << EOF
 
@@ -49,12 +46,24 @@ service postgresql start
 # install Tor
 apt-get install -y tor
 
-# enable daemon
+# enable dappctrl daemon
+mv /app/dappctrl/dappctrl.service /lib/systemd/system/
 systemctl enable dappctrl.service
+
+rm -rf /usr/share/doc/*
+find /usr/share/locale -maxdepth 1 -mindepth 1 ! -name en_US -exec rm -rf {} \;
+find /usr/share/i18n/locales -maxdepth 1 -mindepth 1 ! -name en_US -exec rm -rf {} \;
+rm -rf /usr/share/man/*
+rm -rf /usr/share/groff/*
+rm -rf /usr/share/info/*
+rm -rf /usr/share/lintian/*
+rm -rf /usr/include/*
 
 logout
 EOF
 
 # create tar archive
-sudo tar cpJf ${container}.tar.xz --one-file-system -C ${container} .
+sudo tar cpJf ${container}.tar.xz --exclude="./var/cache/apt/archives/*.deb" \
+--exclude="./var/lib/apt/lists/*" --exclude="./var/cache/apt/*.bin" \
+--one-file-system -C ${container} .
 

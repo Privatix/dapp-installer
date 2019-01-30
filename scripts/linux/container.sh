@@ -19,8 +19,14 @@ sudo systemd-nspawn -D ${container}/ << EOF
 #set root password: xHd26ksN
 echo -e "xHd26ksN\nxHd26ksN\n" | passwd
 
-# install locale
+echo "pts/0" >> /etc/securetty 
+echo deb http://http.debian.net/debian jessie-backports main > /etc/apt/sources.list.d/jessie-backports.list
+
 apt-get update
+apt-get -t jessie-backports install -y systemd
+apt-get install -y dbus
+
+# install locale
 apt-get install -y locales
 
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
@@ -61,7 +67,7 @@ rm -rf /usr/include/*
 
 logout
 EOF
-
+    
 # create tar archive
 sudo tar cpJf ${container}.tar.xz --exclude="./var/cache/apt/archives/*.deb" \
 --exclude="./var/lib/apt/lists/*" --exclude="./var/cache/apt/*.bin" \

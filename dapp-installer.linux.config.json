@@ -2,13 +2,6 @@
     "Role": "agent",
     "Path": "/home/parallels/agent",
     "Source": "/home/parallels/Downloads/privatix-dapp-container.tar.xz",
-    "Controller": {
-        "EntryPoint": "/app/dappctrl/dappctrl",
-        "Configuration": "/app/dappctrl/dappctrl.config.json"
-    },
-    "Gui": {
-        "Configuration": "/app/dappgui/resources/app/settings.json"
-    },
     "Tor": {
         "HiddenServiceDir": "var/lib/tor/hidden_service",
         "SocksPort": 9099

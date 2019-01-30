@@ -15,6 +15,8 @@ func installFlow() pipeline.Flow {
 		newOperator("configure dapp", configureDapp, nil),
 		newOperator("install", installContainer, removeContainer),
 		newOperator("start", startContainer, stopContainer),
+		newOperator("create database", createDatabase, nil),
+		newOperator("install products", installProducts, removeProducts),
 		newOperator("finalize", finalize, nil),
 		newOperator("remove temp", removeTemp, nil),
 	}

@@ -11,7 +11,7 @@ sudo debootstrap jessie ./${container} http://mirror.yandex.ru/debian
 #sudo chroot ${container} dpkg --print-architecture
 
 # copy dappcore
-sudo cp -R ${dappcoredir}/. ${container}/app/
+sudo cp -R ${dappcoredir}/. ${container}/
 
 # connect to container
 sudo systemd-nspawn -D ${container}/ << EOF
@@ -53,7 +53,7 @@ service postgresql start
 apt-get install -y tor
 
 # enable dappctrl daemon
-mv /app/dappctrl/dappctrl.service /lib/systemd/system/
+mv /dappctrl/dappctrl.service /lib/systemd/system/
 systemctl enable dappctrl.service
 
 rm -rf /usr/share/doc/*

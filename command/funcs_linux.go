@@ -100,7 +100,7 @@ func configureDapp(d *dapp.Dapp) error {
 	return nil
 }
 
-func finalize(d *dapp.Dapp) error {
+func createDatabase(d *dapp.Dapp) error {
 	time.Sleep(10 * time.Second)
 
 	file := filepath.Join(d.Path, d.Controller.EntryPoint)
@@ -113,9 +113,13 @@ func finalize(d *dapp.Dapp) error {
 	}
 
 	if err := writeVersion(d); err != nil {
-		return fmt.Errorf("failed to write pp version: %v", err)
+		return fmt.Errorf("failed to write dapp version: %v", err)
 	}
 
+	return nil
+}
+
+func finalize(d *dapp.Dapp) error {
 	if err := stopContainer(d); err != nil {
 		return err
 	}

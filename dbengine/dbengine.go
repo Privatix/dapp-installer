@@ -95,7 +95,7 @@ func (engine *DBEngine) Install(installPath string) error {
 	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
-	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
+	if err := SetPort(pgconf, "5432", engine.DB.Port); err != nil {
 		return fmt.Errorf("failed to configure db conf: %v", err)
 	}
 
@@ -131,14 +131,15 @@ func (engine *DBEngine) createUser(fileName string) error {
 	}
 }
 
-func configDBEngine(pgconf, port string) error {
+// SetPort sets db engine port number.
+func SetPort(pgconf, oldPort, newPort string) error {
 	read, err := ioutil.ReadFile(pgconf)
 	if err != nil {
 		return err
 	}
 
 	newContents := strings.Replace(string(read),
-		"#port = 5432", "port = "+port, -1)
+		"#port = "+oldPort, "port = "+newPort, -1)
 
 	return ioutil.WriteFile(pgconf, []byte(newContents), 0)
 }

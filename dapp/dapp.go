@@ -168,12 +168,13 @@ func (d *Dapp) modifyDappConfig() error {
 	if runtime.GOOS != "linux" {
 		settings["FileLog.Filename"] = filepath.Join(d.Path,
 			"log/dappctrl-%Y-%m-%d.log")
-		settings["DB.Conn.user"] = d.DBEngine.DB.User
-		settings["DB.Conn.port"] = d.DBEngine.DB.Port
-		settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
-		if len(d.DBEngine.DB.Password) > 0 {
-			settings["DB.Conn.password"] = d.DBEngine.DB.Password
-		}
+	}
+	settings["DB.Conn.host"] = d.DBEngine.DB.Host
+	settings["DB.Conn.user"] = d.DBEngine.DB.User
+	settings["DB.Conn.port"] = d.DBEngine.DB.Port
+	settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
+	if len(d.DBEngine.DB.Password) > 0 {
+		settings["DB.Conn.password"] = d.DBEngine.DB.Password
 	}
 
 	if strings.EqualFold(d.Role, "agent") {

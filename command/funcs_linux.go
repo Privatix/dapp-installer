@@ -8,6 +8,7 @@ import (
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
+	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
 )
 
@@ -94,6 +95,14 @@ func checkContainer(d *dapp.Dapp) error {
 }
 
 func configureDapp(d *dapp.Dapp) error {
+	engine := d.DBEngine
+	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
+
+	conf := filepath.Join(d.Path, "etc/postgresql/10/main/postgresql.conf")
+	if err := dbengine.SetPort(conf, "5433", engine.DB.Port); err != nil {
+		return fmt.Errorf("failed to configure db conf: %v", err)
+	}
+
 	if err := d.Configurate(); err != nil {
 		return fmt.Errorf("failed to configure: %v", err)
 	}

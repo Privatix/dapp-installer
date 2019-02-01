@@ -50,6 +50,7 @@ func installContainer(d *dapp.Dapp) error {
 }
 
 func startContainer(d *dapp.Dapp) error {
+	time.Sleep(2 * time.Second)
 	c := getContainer(d)
 
 	if err := c.Start(); err != nil {
@@ -60,6 +61,7 @@ func startContainer(d *dapp.Dapp) error {
 }
 
 func stopContainer(d *dapp.Dapp) error {
+	time.Sleep(2 * time.Second)
 	c := getContainer(d)
 
 	if err := c.Stop(); err != nil {

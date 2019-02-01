@@ -46,16 +46,19 @@ func (c *Container) Install() error {
 		return err
 	}
 
-	return t.Execute(file, &c)
+	if err := t.Execute(file, &c); err != nil {
+		return err
+	}
+
+	if err := exec.Command("systemctl", "daemon-reload").Run(); err != nil {
+		return err
+	}
+
+	return exec.Command("systemctl", "enable", c.daemonName()).Run()
 }
 
 // Start starts the container.
 func (c *Container) Start() error {
-	if err := exec.Command("systemctl", "enable",
-		c.daemonName()).Run(); err != nil {
-		return err
-	}
-
 	cmd := exec.Command("systemctl", "start", c.daemonName())
 	return cmd.Run()
 }
@@ -72,6 +75,10 @@ func (c *Container) Remove() error {
 		return errors.New("can't remove active container")
 	}
 
+	cmd := exec.Command("systemctl", "disable", c.daemonName())
+	if err := cmd.Run(); err != nil {
+		return err
+	}
 	return os.Remove(c.daemonPath())
 }
 

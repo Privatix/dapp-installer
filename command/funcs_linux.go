@@ -22,11 +22,6 @@ func prepare(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to prepare system: %v", err)
 	}
 
-	if err := util.ExecuteCommand("apt-get", "install", "lshw",
-		"-y"); err != nil {
-		return fmt.Errorf("failed to prepare system: %v", err)
-	}
-
 	return nil
 }
 

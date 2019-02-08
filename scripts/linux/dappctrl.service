@@ -1,0 +1,20 @@
+[Unit]
+Description=dappctrl
+After=syslog.target network-online.target 
+Wants=network-online.target
+After=syslog.target
+After=postgresql.service
+
+[Service]
+Type=simple
+ExecStart=/dappctrl/dappctrl -config=/dappctrl/dappctrl.config.json
+Restart=always
+User=root
+Group=root
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
+
+

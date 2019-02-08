@@ -30,11 +30,11 @@ func NewConfig() *DBEngine {
 
 // CreateDatabase creates new database.
 func (engine *DBEngine) CreateDatabase(fileName string) error {
-	if err := engine.createDatabase(fileName); err != nil {
+	if err := engine.executor(engine.createDatabase, fileName); err != nil {
 		return err
 	}
 
-	if err := engine.databaseMigrate(fileName); err != nil {
+	if err := engine.executor(engine.databaseMigrate, fileName); err != nil {
 		return err
 	}
 
@@ -203,5 +203,26 @@ func (engine DBEngine) Ping() error {
 		return nil
 	case <-time.After(util.TimeOutInSec(engine.Timeout)):
 		return errors.New("failed to ping database. timeout expired")
+	}
+}
+
+func (engine DBEngine) executor(f func(string) error, param string) error {
+	done := make(chan bool)
+	go func() {
+		for {
+			err := f(param)
+			if err == nil {
+				break
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(util.TimeOutInSec(engine.Timeout)):
+		return errors.New("failed to create db. timeout expired")
 	}
 }

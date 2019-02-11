@@ -111,7 +111,9 @@ After=network.target
 
 [Service]
 Restart=always
+ExecStartPre={{.Path}}/dappctrl/pre-start.sh
 ExecStart=/usr/bin/systemd-nspawn --quiet --boot --keep-unit --machine={{.Name}} --link-journal=try-guest --directory={{.Path}} --bind=/lib/modules --bind=/etc/localtime:/etc/localtime --bind=/etc/resolv.conf:/etc/resolv.conf --settings=override --capability=CAP_NET_ADMIN --capability=CAP_NET_BIND_SERVICE --capability=CAP_SYS_ADMIN --capability=CAP_MAC_ADMIN --capability=CAP_SYS_MODULE
+ExecStopPost={{.Path}}/dappctrl/post-stop.sh
 KillMode=mixed
 Type=notify
 RestartForceExitStatus=133

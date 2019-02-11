@@ -70,7 +70,7 @@ func clearGuiStorage() error {
 		path = filepath.Join(path, "Library", "Application Support",
 			"dappctrlgui")
 	} else {
-		path = filepath.Join(path, ".config", "dappctrlgui")
+		path = filepath.Join(os.Getenv("HOME"), ".config", "dappctrlgui")
 	}
 
 	return os.RemoveAll(path)

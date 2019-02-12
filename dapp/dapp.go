@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -210,6 +211,27 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+	path := u.HomeDir
+	switch runtime.GOOS {
+	case "darwin":
+		path = filepath.Join(path, "Library", "Application Support",
+			"dappctrlgui")
+	case "linux":
+		path = filepath.Join(path, ".config", "dappctrlgui")
+	case "windows":
+		path = filepath.Join(path, "AppData", "Roaming", "dappctrlgui")
+	default:
+		return fmt.Errorf("unsupported OS")
+	}
+
+	if err := os.RemoveAll(path); err != nil {
+		return err
+	}
+
 	if err := os.RemoveAll(d.Path); err != nil {
 		time.Sleep(10 * time.Second)
 		return os.RemoveAll(d.Path)

@@ -32,3 +32,5 @@ dapp-installer\.iml
 /installbuilder/project/*.backup
 # don't ignore keep files
 !.keep
+
+Gopkg\.toml

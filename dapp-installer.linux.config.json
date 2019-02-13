@@ -1,7 +1,7 @@
 {
     "Role": "client",
     "Path": "/var/lib/container/client",
-    "Source": "/home/parallels/Downloads/privatix-dapp-container.tar.xz",
+    "Source": "./app.tar.xz",
     "Tor": {
         "HiddenServiceDir": "var/lib/tor/hidden_service",
         "SocksPort": 9099

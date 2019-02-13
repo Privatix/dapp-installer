@@ -69,7 +69,7 @@ logout
 EOF
     
 # create tar archive
-sudo tar cpJf ${container}.tar.xz --exclude="./var/cache/apt/archives/*.deb" \
+sudo tar cpJf app.tar.xz --exclude="./var/cache/apt/archives/*.deb" \
 --exclude="./var/lib/apt/lists/*" --exclude="./var/cache/apt/*.bin" \
 --one-file-system -C ${container} .
 

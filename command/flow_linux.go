@@ -41,13 +41,29 @@ func statusFlow() pipeline.Flow {
 }
 
 func installProductsFlow() pipeline.Flow {
-	return nil
+	return pipeline.Flow{
+		newOperator("processed flags", processedInstallProductFlags, nil),
+		newOperator("validate", checkContainer, nil),
+		newOperator("install products", installProducts, removeProducts),
+		newOperator("finalize", finalize, nil),
+	}
 }
 
 func updateProductsFlow() pipeline.Flow {
-	return nil
+	return pipeline.Flow{
+		newOperator("processed flags", processedUpdateProductFlags, nil),
+		newOperator("validate", checkContainer, nil),
+		newOperator("update products", updateProducts, nil),
+		newOperator("start products", startProducts, nil),
+		newOperator("finalize", finalize, nil),
+	}
 }
 
 func removeProductsFlow() pipeline.Flow {
-	return nil
+	return pipeline.Flow{
+		newOperator("processed flags", processedRemoveProductFlags, nil),
+		newOperator("validate", checkContainer, nil),
+		newOperator("remove products", removeProducts, nil),
+		newOperator("finalize", finalize, nil),
+	}
 }

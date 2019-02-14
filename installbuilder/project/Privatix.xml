@@ -16,8 +16,8 @@
             <desktopShortcutList>
                 <shortcut>
                     <comment></comment>
-                    <exec></exec>
-                    <icon></icon>
+                    <exec>${installdir}/${install_type}/dappgui/dapp-gui</exec>
+                    <icon>${installdir}/${install_type}/dappgui/dapp-gui</icon>
                     <name>Privatix ${install_type}</name>
                     <path></path>
                     <platforms>windows</platforms>

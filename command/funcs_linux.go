@@ -81,6 +81,10 @@ func checkContainer(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
+	if err := d.DBEngine.Ping(); err != nil {
+		return fmt.Errorf("failed to check contianer: %v", err)
+	}
+
 	version, ok := data.ReadAppVersion(d.DBEngine.DB)
 	if !ok {
 		return fmt.Errorf("failed to read app version")

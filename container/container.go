@@ -1,14 +1,14 @@
-// +build linux
-
 package container
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/privatix/dapp-installer/util"
 )
 
 // Container has a config for conatiner.
@@ -50,23 +50,21 @@ func (c *Container) Install() error {
 		return err
 	}
 
-	if err := exec.Command("systemctl", "daemon-reload").Run(); err != nil {
+	if err := util.ExecuteCommand("systemctl", "daemon-reload"); err != nil {
 		return err
 	}
 
-	return exec.Command("systemctl", "enable", c.daemonName()).Run()
+	return util.ExecuteCommand("systemctl", "enable", c.daemonName())
 }
 
 // Start starts the container.
 func (c *Container) Start() error {
-	cmd := exec.Command("systemctl", "start", c.daemonName())
-	return cmd.Run()
+	return util.ExecuteCommand("systemctl", "start", c.daemonName())
 }
 
 // Stop stops the container.
 func (c *Container) Stop() error {
-	cmd := exec.Command("systemctl", "stop", c.daemonName())
-	return cmd.Run()
+	return util.ExecuteCommand("systemctl", "stop", c.daemonName())
 }
 
 // Remove removes the container.
@@ -75,8 +73,8 @@ func (c *Container) Remove() error {
 		return errors.New("can't remove active container")
 	}
 
-	cmd := exec.Command("systemctl", "disable", c.daemonName())
-	if err := cmd.Run(); err != nil {
+	if err := util.ExecuteCommand("systemctl", "disable",
+		c.daemonName()); err != nil {
 		return err
 	}
 	return os.Remove(c.daemonPath())
@@ -84,14 +82,41 @@ func (c *Container) Remove() error {
 
 // IsActive returns the container active status.
 func (c *Container) IsActive() bool {
-	cmd := exec.Command("systemctl", "is-active", c.daemonName())
-	output, err := cmd.Output()
-
+	output, err := util.ExecuteCommandOutput("systemctl", "is-active",
+		c.daemonName())
 	if err != nil {
 		return false
 	}
 
-	return strings.EqualFold("active", string(output))
+	return strings.EqualFold("active", output)
+}
+
+// Update upgrades the container.
+func (c *Container) Update(newPath, oldPath string, copies []string,
+	merges []string) error {
+	if err := os.Rename(newPath, oldPath); err != nil {
+		return fmt.Errorf("failed to backup container: %v", err)
+	}
+
+	// copies dirs
+	for _, value := range copies {
+		src := filepath.Join(oldPath, value)
+		dst := filepath.Join(newPath, value)
+		if err := util.CopyDir(src, dst); err != nil {
+			return fmt.Errorf("failed to copy data: %v", err)
+		}
+	}
+
+	// merges configs
+	for _, value := range merges {
+		dst := filepath.Join(newPath, value)
+		src := filepath.Join(oldPath, value)
+		if err := util.MergeJSONFile(dst, src); err != nil {
+			return err
+		}
+	}
+
+	return os.Rename(newPath, c.Path)
 }
 
 var containerTemplate = `#  This file is part of systemd.
@@ -138,5 +163,5 @@ DeviceAllow=block-device-mapper rw
 
 
 [Install]
-WantedBy=machine.target
+WantedBy=machines.target
 `

@@ -1,106 +1,18 @@
 package command
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
 
-	dapputil "github.com/privatix/dappctrl/util"
-
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/env"
-	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/util"
 )
-
-func processedRootFlags(printVersion func()) {
-	v := flag.Bool("version", false, "Prints current dapp-installer version")
-
-	flag.Parse()
-
-	if *v {
-		printVersion()
-		os.Exit(0)
-	}
-
-	fmt.Printf(rootHelp)
-}
-
-func processedInstallFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, installHelp)
-}
-
-func processedUpdateFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, updateHelp)
-}
-
-func processedInstallProductFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, installProductHelp)
-}
-
-func processedUpdateProductFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, updateProductHelp)
-}
-
-func processedRemoveProductFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, removeProductHelp)
-}
-
-func processedRemoveFlags(d *dapp.Dapp) error {
-	return processedWorkFlags(d, removeHelp)
-}
-
-func processedCommonFlags(d *dapp.Dapp, help string) error {
-	h := flag.Bool("help", false, "Display dapp-installer help")
-	config := flag.String("config", "", "Configuration file")
-	role := flag.String("role", "", "Dapp user role")
-	path := flag.String("workdir", "", "Dapp install directory")
-	src := flag.String("source", "", "Dapp install source")
-	core := flag.Bool("core", false, "Install only dapp core")
-	product := flag.String("product", "", "Specific product")
-
-	v := flag.Bool("verbose", false, "Display log to console output")
-
-	flag.CommandLine.Parse(os.Args[2:])
-
-	if *h {
-		fmt.Println(help)
-		os.Exit(0)
-	}
-
-	d.Verbose = *v
-
-	if len(*config) > 0 {
-		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
-			return err
-		}
-	}
-
-	if len(*role) > 0 {
-		d.Role = *role
-	}
-
-	if len(*path) > 0 {
-		d.Path = *path
-	}
-
-	if len(*src) > 0 {
-		d.Source = *src
-	}
-
-	if len(*product) > 0 {
-		d.Product = *product
-	}
-
-	d.OnlyCore = *core
-
-	return nil
-}
 
 func validatePath(d *dapp.Dapp) error {
 	path, err := filepath.Abs(d.Path)
@@ -304,10 +216,6 @@ func removeDapp(d *dapp.Dapp) error {
 	return nil
 }
 
-func processedStatusFlags(d *dapp.Dapp) error {
-	return processedWorkFlags(d, statusHelp)
-}
-
 func printStatus(d *dapp.Dapp) error {
 	if err := validatePath(d); err != nil {
 		return err
@@ -350,65 +258,6 @@ func printStatus(d *dapp.Dapp) error {
 	return nil
 }
 
-func processedWorkFlags(d *dapp.Dapp, help string) error {
-	h := flag.Bool("help", false, "Display dapp-installer help")
-	p := flag.String("workdir", "", "Dapp install directory")
-	config := flag.String("config", "", "Configuration file")
-
-	v := flag.Bool("verbose", false, "Display log to console output")
-
-	flag.CommandLine.Parse(os.Args[2:])
-
-	if *h {
-		fmt.Println(help)
-		os.Exit(0)
-	}
-
-	if len(*config) > 0 {
-		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
-			return err
-		}
-	}
-
-	if len(*p) == 0 {
-		*p = filepath.Dir(os.Args[0])
-	}
-	d.Path = *p
-	d.Verbose = *v
-	return nil
-}
-
-func installTor(d *dapp.Dapp) error {
-	if err := d.Tor.Install(d.Role); err != nil {
-		return fmt.Errorf("failed to install tor: %v", err)
-	}
-	return nil
-}
-
-func removeTor(d *dapp.Dapp) error {
-	if err := d.Tor.Remove(); err != nil {
-		return fmt.Errorf("failed to remove tor: %v", err)
-	}
-
-	return nil
-}
-
-func stopTor(d *dapp.Dapp) error {
-	if err := d.Tor.Stop(); err != nil {
-		return fmt.Errorf("failed to stop tor: %v", err)
-	}
-
-	return nil
-}
-
-func startTor(d *dapp.Dapp) error {
-	if err := d.Tor.Start(); err != nil {
-		return fmt.Errorf("failed to start tor: %v", err)
-	}
-
-	return nil
-}
-
 func writeVersion(d *dapp.Dapp) error {
 	if err := data.WriteAppVersion(d.DBEngine.DB, d.Version); err != nil {
 		return fmt.Errorf("failed to write app version: %v", err)
@@ -436,66 +285,85 @@ func writeEnvironmentVariable(d *dapp.Dapp) error {
 	return v.Write(path)
 }
 
-func installProducts(d *dapp.Dapp) error {
-	if d.OnlyCore {
-		return nil
+func prepare(d *dapp.Dapp) error {
+	if err := util.ExecuteCommand("apt-get", "update"); err != nil {
+		return fmt.Errorf("failed to prepare system: %v", err)
 	}
 
-	conn := d.DBEngine.DB.ConnectionString()
-	if err := product.Install(d.Role, d.Path, conn, d.Product); err != nil {
-		return fmt.Errorf("failed to install products: %v", err)
-	}
-
-	return nil
-}
-
-func removeProducts(d *dapp.Dapp) error {
-	if d.OnlyCore {
-		return nil
-	}
-
-	if err := product.Remove(d.Role, d.Path, d.Product); err != nil {
-		return fmt.Errorf("failed to remove products: %v", err)
+	if err := util.ExecuteCommand("apt-get", "install",
+		"systemd-container", "-y"); err != nil {
+		return fmt.Errorf("failed to prepare system: %v", err)
 	}
 
 	return nil
 }
 
-func startProducts(d *dapp.Dapp) error {
-	if err := product.Start(d.Role, d.Path, d.Product); err != nil {
-		return fmt.Errorf("failed to start products: %v", err)
+func configureDapp(d *dapp.Dapp) error {
+	engine := d.DBEngine
+	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
+
+	conf := filepath.Join(d.Path, "etc/postgresql/10/main/postgresql.conf")
+	if err := dbengine.SetPort(conf, "5433", engine.DB.Port); err != nil {
+		return fmt.Errorf("failed to configure db conf: %v", err)
+	}
+
+	if err := d.Configurate(); err != nil {
+		return fmt.Errorf("failed to configure: %v", err)
+	}
+	return nil
+}
+
+func disableDaemons(d *dapp.Dapp) error {
+
+	return nil
+}
+
+func createDatabase(d *dapp.Dapp) error {
+	time.Sleep(10 * time.Second)
+
+	file := filepath.Join(d.Path, d.Controller.EntryPoint)
+	if err := d.DBEngine.CreateDatabase(file); err != nil {
+		return fmt.Errorf("failed to create db: %v", err)
+	}
+
+	if err := d.DBEngine.Ping(); err != nil {
+		return fmt.Errorf("failed to finalize: %v", err)
+	}
+
+	if err := writeVersion(d); err != nil {
+		return fmt.Errorf("failed to write dapp version: %v", err)
 	}
 
 	return nil
 }
 
-func updateProducts(d *dapp.Dapp) error {
-	if len(d.Source) == 0 {
-		return fmt.Errorf("product path not set")
+func updateDatabase(d *dapp.Dapp) error {
+	if err := d.DBEngine.Ping(); err != nil {
+		return fmt.Errorf("failed to finalize: %v", err)
 	}
 
-	err := os.Setenv("PRIVATIX_TEMP_PRODUCT", d.Source)
-	if err != nil {
-		return fmt.Errorf("failed to set env variables: %v", err)
+	file := filepath.Join(d.Path, d.Controller.EntryPoint)
+	if err := d.DBEngine.UpdateDatabase(file); err != nil {
+		return fmt.Errorf("failed to update db: %v", err)
 	}
 
-	defer os.Setenv("PRIVATIX_TEMP_PRODUCT", "")
-
-	err = product.Update(d.Role, d.Path, d.Source, d.Product)
-	if err != nil {
-		return fmt.Errorf("failed to update products: %v", err)
+	if err := writeVersion(d); err != nil {
+		return fmt.Errorf("failed to write dapp version: %v", err)
 	}
-
-	util.CopyDir(filepath.Join(d.Source, "product"),
-		filepath.Join(d.Path, "product"))
 
 	return nil
 }
 
-func stopProducts(d *dapp.Dapp) error {
-	if err := product.Stop(d.Role, d.Path, d.Product); err != nil {
-		return fmt.Errorf("failed to stop products: %v", err)
+func finalize(d *dapp.Dapp) error {
+	if err := stopContainer(d); err != nil {
+		return err
 	}
 
-	return nil
+	time.Sleep(10 * time.Second)
+
+	return startContainer(d)
+}
+
+func removeBackup(d *dapp.Dapp) error {
+	return os.RemoveAll(d.BackupPath)
 }

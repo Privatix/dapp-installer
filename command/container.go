@@ -2,28 +2,16 @@ package command
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/data"
-	"github.com/privatix/dapp-installer/dbengine"
+	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/util"
 )
-
-func prepare(d *dapp.Dapp) error {
-	if err := util.ExecuteCommand("apt-get", "update"); err != nil {
-		return fmt.Errorf("failed to prepare system: %v", err)
-	}
-
-	if err := util.ExecuteCommand("apt-get", "install",
-		"systemd-container", "-y"); err != nil {
-		return fmt.Errorf("failed to prepare system: %v", err)
-	}
-
-	return nil
-}
 
 func getContainer(d *dapp.Dapp) *container.Container {
 	c := container.NewContainer()
@@ -95,46 +83,49 @@ func checkContainer(d *dapp.Dapp) error {
 	return nil
 }
 
-func configureDapp(d *dapp.Dapp) error {
-	engine := d.DBEngine
-	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
+func updateContainer(d *dapp.Dapp) error {
+	oldDapp := *d
 
-	conf := filepath.Join(d.Path, "etc/postgresql/10/main/postgresql.conf")
-	if err := dbengine.SetPort(conf, "5433", engine.DB.Port); err != nil {
-		return fmt.Errorf("failed to configure db conf: %v", err)
-	}
+	b, dir := filepath.Split(d.Path)
+	newPath := filepath.Join(b, dir+"_new")
+	d.Path = newPath
+	d.BackupPath = filepath.Join(b, dir+"_backup")
 
-	if err := d.Configurate(); err != nil {
-		return fmt.Errorf("failed to configure: %v", err)
-	}
-	return nil
-}
-
-func createDatabase(d *dapp.Dapp) error {
-	time.Sleep(10 * time.Second)
-
-	file := filepath.Join(d.Path, d.Controller.EntryPoint)
-	if err := d.DBEngine.CreateDatabase(file); err != nil {
-		return fmt.Errorf("failed to create db: %v", err)
-	}
-
-	if err := d.DBEngine.Ping(); err != nil {
-		return fmt.Errorf("failed to finalize: %v", err)
-	}
-
-	if err := writeVersion(d); err != nil {
-		return fmt.Errorf("failed to write dapp version: %v", err)
-	}
-
-	return nil
-}
-
-func finalize(d *dapp.Dapp) error {
-	if err := stopContainer(d); err != nil {
+	if err := extract(d); err != nil {
+		d.Path = oldDapp.Path
 		return err
 	}
 
-	time.Sleep(10 * time.Second)
+	defer os.RemoveAll(newPath)
 
-	return startContainer(d)
+	version := util.ParseVersion(d.Version)
+	d.Path = oldDapp.Path
+	if util.ParseVersion(oldDapp.Version) >= version {
+		return fmt.Errorf(
+			"dapp current version: %s, update is not required",
+			oldDapp.Version)
+	}
+
+	if err := product.Update(d.Role, oldDapp.Path, newPath,
+		d.Product); err != nil {
+		return fmt.Errorf("failed to update products: %v", err)
+	}
+
+	c := getContainer(d)
+	copies := []string{"var/lib/postgresql/10/main", "etc/tor",
+		d.Tor.HiddenServiceDir}
+	merges := []string{d.Controller.Configuration, d.Gui.Configuration}
+	if err := c.Update(d.Path, d.BackupPath, copies, merges); err != nil {
+		return fmt.Errorf("failed to update dapp: %v", err)
+	}
+
+	return configureDapp(d)
+}
+
+func restoreContainer(d *dapp.Dapp) error {
+	if err := os.RemoveAll(d.Path); err != nil {
+		return err
+	}
+
+	return os.Rename(d.BackupPath, d.Path)
 }

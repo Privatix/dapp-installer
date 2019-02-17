@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/privatix/dapp-installer/container"
@@ -84,12 +85,15 @@ func checkContainer(d *dapp.Dapp) error {
 }
 
 func updateContainer(d *dapp.Dapp) error {
+	if strings.HasSuffix(d.Path, "/") {
+		d.Path = d.Path[:len(d.Path)-1]
+	}
+
 	oldDapp := *d
 
 	b, dir := filepath.Split(d.Path)
 	newPath := filepath.Join(b, dir+"_new")
 	d.Path = newPath
-	d.BackupPath = filepath.Join(b, dir+"_backup")
 
 	if err := extract(d); err != nil {
 		d.Path = oldDapp.Path
@@ -112,10 +116,12 @@ func updateContainer(d *dapp.Dapp) error {
 	}
 
 	c := getContainer(d)
-	copies := []string{"var/lib/postgresql/10/main", "etc/tor",
-		d.Tor.HiddenServiceDir}
+	copies := []string{"var/lib/postgresql/10/main",
+		"var/lib/tor", "etc/tor", "etc/systemd/system"}
+
 	merges := []string{d.Controller.Configuration, d.Gui.Configuration}
-	if err := c.Update(d.Path, d.BackupPath, copies, merges); err != nil {
+	d.BackupPath = filepath.Join(b, dir+"_backup")
+	if err := c.Update(newPath, d.BackupPath, copies, merges); err != nil {
 		return fmt.Errorf("failed to update dapp: %v", err)
 	}
 
@@ -123,6 +129,10 @@ func updateContainer(d *dapp.Dapp) error {
 }
 
 func restoreContainer(d *dapp.Dapp) error {
+	if len(d.BackupPath) == 0 {
+		return nil
+	}
+
 	if err := os.RemoveAll(d.Path); err != nil {
 		return err
 	}

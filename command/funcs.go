@@ -314,8 +314,17 @@ func configureDapp(d *dapp.Dapp) error {
 }
 
 func disableDaemons(d *dapp.Dapp) error {
+	src := filepath.Join(d.Path, dappCtrlDaemonOnLinux)
+	dst := filepath.Join(d.Path, dappCtrlDaemonOnLinux+"temp")
 
-	return nil
+	return util.ExecuteCommand("mv", src, dst)
+}
+
+func enableDaemons(d *dapp.Dapp) error {
+	src := filepath.Join(d.Path, dappCtrlDaemonOnLinux+"temp")
+	dst := filepath.Join(d.Path, dappCtrlDaemonOnLinux)
+
+	return util.ExecuteCommand("mv", src, dst)
 }
 
 func createDatabase(d *dapp.Dapp) error {

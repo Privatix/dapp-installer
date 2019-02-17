@@ -94,15 +94,15 @@ func (c *Container) IsActive() bool {
 // Update upgrades the container.
 func (c *Container) Update(newPath, oldPath string, copies []string,
 	merges []string) error {
-	if err := os.Rename(newPath, oldPath); err != nil {
+	if err := os.Rename(c.Path, oldPath); err != nil {
 		return fmt.Errorf("failed to backup container: %v", err)
 	}
 
 	// copies dirs
 	for _, value := range copies {
 		src := filepath.Join(oldPath, value)
-		dst := filepath.Join(newPath, value)
-		if err := util.CopyDir(src, dst); err != nil {
+		dst := filepath.Join(newPath, value, "..")
+		if err := util.ExecuteCommand("cp", "-pRf", src, dst); err != nil {
 			return fmt.Errorf("failed to copy data: %v", err)
 		}
 	}

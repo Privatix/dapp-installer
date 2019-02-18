@@ -436,6 +436,7 @@ ${program_stderr}</text>
         </propertiesFileSet>
         <deleteFile>
             <path>${installdir}/app.zip</path>
+            <path>${installdir}/app.tar.xz</path>
         </deleteFile>
         <readFile>
             <name>dappctrl_config</name>

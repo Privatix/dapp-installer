@@ -1,35 +1,37 @@
 #!/usr/bin/python
 
 import requests
-from pexpect import spawn, EOF
 
-import sys
-from sys import exit as sys_exit
-from os import remove, path
-from os import environ, system
+from os import system
 from os.path import isfile
-from urllib import URLopener
+from urllib import urlretrieve
+
 from platform import linux_distribution
 from subprocess import Popen, PIPE, STDOUT
 
-pack_name = 'dapp-privatix.deb'
-dwnld_url = 'http://art.privatix.net/{}'.format(pack_name)
-dst_path = '{}'.format(pack_name)
-# inst_pack = 'sudo apt update && sudo dpkg -i {} || sudo apt-get install -f -y'.format(dst_path)
-# inst_pack = 'sudo sh -c \"apt update && dpkg -i {} || apt-get install -f -y\"'.format(dst_path)
-# del_pack = 'sudo sh -c \"apt purge {} -y\"'.format((dst_path.split('.'))[0])
 user_file = '/etc/sudoers.d/{}'
 
 check_sudo = 'dpkg -l | grep sudo'
 install_sudo = 'su -c \'apt install sudo\''
 
 
-class Preparation():
-    def __init__(self, log, bar, page_t,sys_pswd,sys_call_meth):
+class Preparation:
+    def __init__(self, log=None, bar=None, page_t=None, sys_pswd=None, sys_call_meth=None, latest_tag=None):
+
+        self.pack_name = 'dapp-privatix'
+        self.link = 'https://github.com/'
+
+        self.dwnld_url = '{0}Privatix/privatix/releases/download/' \
+                         '{1}/privatix_ubuntu_x64_{1}_cli.deb'.format(
+            self.link,
+            latest_tag)
+
+        self.dst_path = '{}'.format(self.pack_name)
+
         self.inst_pack = 'sudo sh -c \"apt update && dpkg -i {} || ' \
-                    'apt-get install -f -y\"'.format(dst_path)
+                    'apt-get install -f -y\"'.format(self.dst_path)
         self.del_pack = 'sudo sh -c \"apt purge {} -y\"'.format(
-            (dst_path.split('.'))[0])
+            (self.dst_path.split('.'))[0])
 
         self.logging = log
         self.statusBar = bar
@@ -101,12 +103,12 @@ class Preparation():
     def __dwnld_pack(self):
         self.pageText.setHtml(
             'Preparing to download and install the package {}<br>'
-            'Please wait'.format(pack_name))
+            'Please wait'.format(self.pack_name))
         bar_act = self.statusBar(on=True)
         try:
-            f = open(dst_path, "wb")
-            self.logging.info("Downloading {}".format(dst_path))
-            response = requests.get(dwnld_url, stream=True)
+            f = open(self.dst_path, "wb")
+            self.logging.info("Downloading {}".format(self.dst_path))
+            response = requests.get(self.dwnld_url, stream=True)
             total_length = response.headers.get('content-length')
 
             if total_length is None:  # no content length header

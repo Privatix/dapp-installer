@@ -7,7 +7,7 @@ from json import load as jsonload
 from time import sleep
 from re import findall, search
 from os.path import isfile, isdir
-from os import remove, mkdir, system
+from os import system, environ
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -63,27 +63,6 @@ class ClassThread(QThread):
         else:
             self.signal.emit((False, res))
 
-#
-#
-# class PswdThread(QThread):
-#     signal = pyqtSignal(tuple)
-#
-#     def __init__(self, meth, cmd=None):
-#         QThread.__init__(self)
-#         self.meth = meth
-#         self.cmd = cmd
-#
-#     def run(self):
-#         if self.cmd:
-#             res = self.meth(self.cmd)
-#         else:
-#             res = self.meth()
-#
-#         if res:
-#             self.signal.emit((True, res))
-#         else:
-#             self.signal.emit((False, res))
-#
 
 class CheckOsThread(QThread):
     signal = pyqtSignal(tuple)
@@ -96,33 +75,32 @@ class CheckOsThread(QThread):
         res = self.meth()
         self.signal.emit(res)
 
-class DeleteThread(QThread):
+class DeleteThread(QThread, Preparation):
     signal = pyqtSignal(str)
 
-    def __init__(self, initial):
+    def __init__(self, initial,user):
         QThread.__init__(self)
+        Preparation.__init__(self)
+        self.user = user
         self.initial = initial
 
     def run(self):
-        mess = 'Stop and delete containers.'
-        self.signal.emit(mess)
+        self.signal.emit('Stop and delete containers.')
         self.initial.clear_contr(True)
-        mess = 'Delete gui.'
-        self.signal.emit(mess)
+        self.signal.emit('Delete gui.')
         self.initial._clear_dir(self.initial.gui_path)
-        mess = 'Delete PID file.'
-        self.signal.emit(mess)
+        self.signal.emit('Delete PID file.')
         self.initial._clear_dir(self.initial.fin_file)
-        mess = 'Delete Unit file.'
-        self.signal.emit(mess)
+        self.signal.emit('Delete Unit file.')
         for unit in [self.initial.unit_f_com, self.initial.unit_f_vpn]:
             unit_dest = self.initial.unit_dest + unit
-            mess = 'Delete {}.'.format(unit_dest)
-            self.signal.emit(mess)
+            self.signal.emit('Delete {}.'.format(unit_dest))
             self.initial._clear_dir(unit_dest)
-        mess = 'Delete Icon file.'
-        self.signal.emit(mess)
+        self.signal.emit('Delete Icon file.')
         self.initial._clear_dir(self.initial.gui_icon)
+        self.initial._clear_dir(self.initial.gui_dapp.format(self.user))
+        self.signal.emit('Delete {} from you os.'.format(self.pack_name))
+        self.initial._sys_call(cmd=self.del_pack)
         self.signal.emit('0')
 
 
@@ -181,22 +159,24 @@ class ServicesThread(QThread):
 class DownloadThread(QThread):
     signal = pyqtSignal(tuple)
 
-    def __init__(self, fdwnld, url_dwnld, p_contr):
+    def __init__(self, fdwnld, url_dwnld, p_contr, log):
         QThread.__init__(self)
         self.f_dwnld = fdwnld
         self.url_dwnld = url_dwnld
         self.p_contr = p_contr
+        self.log = log
 
     def run(self):
 
         for f in self.f_dwnld:
             dwnld_url = self.url_dwnld + '/' + f
             dwnld_url = dwnld_url.replace('///', '/')
-
-            with open(self.p_contr + f, "wb") as ftmp:
-                mess = "Downloading {}.<br>Please wait.".format(f)
+            self.log.debug('Url dwnld: {}'.format(dwnld_url))
+            try:
                 response = requests.get(dwnld_url, stream=True)
                 total_length = response.headers.get('content-length')
+
+                ftmp = open(self.p_contr + f, "wb")
                 if total_length is None:  # no content length header
                     ftmp.write(response.content)
                 else:
@@ -206,7 +186,10 @@ class DownloadThread(QThread):
                         dl += len(data)
                         ftmp.write(data)
                         done = int(100 * dl / total_length)
+                        mess = "Downloading {}.<br>Please wait.".format(f)
                         self.signal.emit((done, mess))
+            except BaseException as dwnlexpt:
+                self.signal.emit((500, dwnlexpt))
 
         self.signal.emit((101, 'All download done'))
 
@@ -269,18 +252,17 @@ class RollbackThread(QThread):
 class UpdaterThread(RollbackThread):
     signal = pyqtSignal(tuple)
 
-    def __init__(self, initial):
+    def __init__(self, initial, rel_path):
         RollbackThread.__init__(self, initial)
         logging.debug('UpdaterThread init')
-        self.dwnldUpdateLink = 'http://art.privatix.net/binary/'
+        self.migrate_cmd = 'sudo {}common/root/go/bin/dappctrl db-migrate -conn {}'
+        self.dwnldUpdateLink = initial.url_dwnld + '/' + initial.bin_arch
+        self.dapp_path =rel_path + self.initial.build_cmd_path
         self.dwnldFiles = {'dappctrl': ['common'],
                            'dappvpn': ['common', 'vpn']}
 
     def dumpContainerData(self):
         logging.debug('Prepare to dump data')
-        cmd = 'sudo mkdir {0} && sudo chmod 777 {0}'.format(self.initial.contTmp)
-        self.initial._sys_call(cmd, rolback=False)
-
         mess = 'Copying important files. It may take some time. Do not interrupt the process.'
         self.signal.emit(('0', mess))
 
@@ -292,86 +274,120 @@ class UpdaterThread(RollbackThread):
                 return False, cmd
         return True, ''
 
-    def downloadNewData(self):
-        logging.debug('Download new data')
-        for f in self.dwnldFiles:
-            dwnld_url = self.dwnldUpdateLink + f
-            self.signal.emit(('0', 'status_bar', 'start'))
+    def __migrate_data(self):
+        logging.info('Migrate DB')
+        logging.debug('Run containers')
+        self.initial.run_service(comm=True)
+        self.initial.run_service(comm=False)
+        db_con, db_port = self.initial._read_dapp_cmd()
 
-            with open(self.initial.contTmp + '/' + f, "wb") as ftmp:
-                mess = "Downloading {}.<br>Please wait.".format(f)
-                self.signal.emit(('0', mess))
-                response = requests.get(dwnld_url, stream=True)
-                total_length = response.headers.get('content-length')
-                if total_length is None:  # no content length header
-                    ftmp.write(response.content)
-                else:
-                    dl = 0
-                    total_length = int(total_length)
-                    for data in response.iter_content(chunk_size=4096):
-                        dl += len(data)
-                        ftmp.write(data)
-                        done = int(100 * dl / total_length)
-                        self.signal.emit(('0', 'status_bar', done))
+        logging.debug('Wait when run DB: {}'.format(db_port))
 
-            self.signal.emit(('0', 'status_bar', 'stop'))
+        if db_port and db_con and self.initial._checker_port(
+                port=db_port,
+                verb=True):
+            logging.debug('Wait 30 sec before DB init')
+            sleep(30)
+            cmd = self.migrate_cmd.format(self.initial.p_contr, db_con)
+            logging.debug('Migrate cmd: {}'.format(cmd))
+            resp = self.initial._sys_call(cmd=cmd, code_ex=True)
+            if resp[0]:
+                logging.info('Error when try migrate data: {}'.format(resp[1]))
+                return False
+            logging.info('Migrate done success')
+            return True
+        else:
+            logging.info('Trouble when wait DB run.')
+            return False
 
-    def migrationNewData(self):
-        logging.debug('Migrate container data')
+    def move_binary(self):
+        logging.debug('Move download bin')
+        try:
 
-        for f, contrs in self.dwnldFiles.items():
-            for con in contrs:
-                logging.debug('Migrate {} in {}'.format(f, con))
-                p_dest = self.initial.p_contr + con + '/root/go/bin/'
-                p_src = self.initial.contTmp + '/' + f
-                cmd = 'sudo cp -f {} {}'.format(p_src, p_dest)
-                if int(system(cmd)):
-                    return False
+            for f, contrs in self.dwnldFiles.items():
+                for con in contrs:
+                    p_dest = self.initial.p_contr + con + '/root/go/bin/'
+                    p_src = self.initial.contTmp + '/' + f
+                    cmd = 'sudo cp -rf {} {}'.format(p_src, p_dest)
+                    logging.debug('Move cmd: {}'.format(cmd))
+                    if int(system(cmd)):
+                        return False
+                    cmd = 'sudo chmod 777 {}'.format(p_dest + f)
+                    logging.debug('CMD: {}'.format(cmd))
+                    if int(system(cmd)):
+                        logging.error('Chmod: {}'.format(cmd))
+                        return False
+        except BaseException as down:
+            logging.error('Move download bin: {}.'.format(down))
+            exit(37)
 
-        logging.debug('Migrate DB')
-        # todo
-        return True
+    def __download_binary(self):
+        logging.info('Download binary arch.')
+        self.initial._sys_call(
+            cmd='wget -N {} -P {}'.format(
+                self.dwnldUpdateLink,
+                self.initial.contTmp)
+        )
+        logging.info('Download binary arch done.')
 
-    def updateNewData(self):
-        logging.debug('Get new data')
-        self.downloadNewData()
-        return self.migrationNewData()
+    def __unpack_binary(self):
+        logging.info('Begin unpacking binary.')
+
+        cmd = 'sudo tar xpf {} -C {} --numeric-owner'.format(
+            self.initial.contTmp + '/' + self.initial.bin_arch, self.initial.contTmp)
+        self.initial._sys_call(cmd)
+        logging.info('Unpacking git {} done.'.format(self.initial.bin_arch))
 
     def run(self):
         logging.debug('Updater run')
-        self.signal.emit(('0', 'Preparation for stop all containers.Please wait.'))
+        self.signal.emit(('0', 'Preparation for stop all containers.'
+                               '<br>Please wait.'))
         self.initial.stop_services()
-        self.signal.emit(('0', 'Preparation for dumping information.Please wait.'))
-        res = self.dumpContainerData()
-        if not res[0]:
-            self.signal.emit(('1', 'Trouble when try {}.<br>'
-                                   'Further work cannot be continued.'.format(res[1])))
+        self.signal.emit(('0', 'Preparation for dumping information.'
+                               '<br>Please wait.'))
+        logging.debug('Create tmp folder')
+        cmd = 'sudo mkdir {0} && sudo chmod 777 {0}'.format(self.initial.contTmp)
+        self.initial._sys_call(cmd, rolback=False)
 
-        else:
+        res = self.dumpContainerData()
+        if res[0]:
             self.signal.emit(('0', 'Preparation for download and update '
                                    'new data.<br>Please wait.'))
-
-            if self.updateNewData():
-                self.initial.run_service(comm=True)
-                self.initial.run_service()
+            self.__download_binary()
+            self.__unpack_binary()
+            self.move_binary()
+            if self.__migrate_data():
+                self.initial._sys_call('sudo rm -rf {}'.format(self.initial.contTmp))
                 self.signal.emit(('0', '0'))
             else:
                 logging.debug('Trouble when try update data.Rollback.')
+                self.initial.stop_services()
                 self.rolbackContainerData()
+
                 self.signal.emit(('1', 'An error has occurred.<br>'
                                        'Your data was not affected,'
                                        'it was saved and resumed.<br>'
                                        'Try again.'))
 
+        else:
+            self.run_service(comm=True)
+            self.run_service(comm=False)
+
+            self.signal.emit(('1', 'Trouble when try {}.<br>'
+                                   'Further work '
+                                   'cannot be continued.'.format(res[1])))
+
 
 class UnpackThread(QThread):
     signal = pyqtSignal(tuple)
 
-    def __init__(self, fdwnld, p_unpck, p_contr):
+    def __init__(self, fdwnld, p_unpck, p_contr, log, from_git=False):
         QThread.__init__(self)
         self.f_dwnld = fdwnld
         self.p_unpck = p_unpck
         self.p_contr = p_contr
+        self.from_git = from_git
+        self.log = log
 
     def run(self):
 
@@ -380,14 +396,25 @@ class UnpackThread(QThread):
                 if '.tar.xz' == f[-7:]:
                     mess = 'Unpacking {}.<br>Please wait.'.format(f)
                     self.signal.emit((True, mess))
+                    self.log.debug(mess)
+                    if self.from_git:
+                        cmd = 'sudo tar xpf {} -C {} --numeric-owner'.format(
+                            self.p_contr + f, self.p_contr)
+                        self.log.debug('CMD: {}'.format(cmd))
+                        system(cmd)
+                    else:
+                        for k, v in self.p_unpck.items():
+                            if k in f:
+                                if not isdir(self.p_contr + v[0]):
+                                    cmd = 'sudo mkdir {}'.format(self.p_contr + v[0])
+                                    self.log.debug('CMD: {}'.format(cmd))
+                                    system(cmd)
+                                    # mkdir(self.p_contr + v[0])
 
-                    for k, v in self.p_unpck.items():
-                        if k in f:
-                            if not isdir(self.p_contr + v[0]):
-                                mkdir(self.p_contr + v[0])
-                            cmd = 'sudo tar xpf {} -C {} --numeric-owner'.format(
-                                self.p_contr + f, self.p_contr + v[0])
-                            system(cmd)
+                                cmd = 'sudo tar xpf {} -C {} --numeric-owner'.format(
+                                    self.p_contr + f, self.p_contr + v[0])
+                                self.log.debug('CMD: {}'.format(cmd))
+                                system(cmd)
 
             self.signal.emit((True, 'end cycle'))
 
@@ -406,6 +433,8 @@ class InitGUI(QWidget):
         self.initial = mainInitialCycle(log=logging)
         self.rollbackEvent = None
         self._updateRollback = _updtRck  # declared in UpdateReinstall class
+        self.initial.get_latest_tag()
+        self.reldirname = None
 
 
     def progrBar(self, on=False):
@@ -527,11 +556,8 @@ class InitGUI(QWidget):
         self.initInteractiveLayout()
 
     def initInteractiveLayout(self):
-        # layout = QVBoxLayout(self.centralwidget)
         self.interLayout = QTextEdit(self.centralwidget)
         self.interLayout.setGeometry(225, 10, 350, 400)
-        # layout.addWidget(self.interLayout)
-        # self.setLayout(layout)
         self.interLayout.hide()
 
     def showStreamInterLayout(self, proc):
@@ -543,6 +569,7 @@ class InitGUI(QWidget):
 class UpdateReinstall(InitGUI):
     def __init__(self, MainW):
         InitGUI.__init__(self, MainW, self._updateRollback)
+        self.user = environ['USER']
 
     def finish(self, upt=False):
         """ Abstraction. Redefined in Prepare class """
@@ -680,7 +707,8 @@ class UpdateReinstall(InitGUI):
                     self.pageText.setHtml(resp[1])
 
         self.spinner.start()
-        self.thr = UpdaterThread(initial=self.initial)
+        self.thr = UpdaterThread(initial=self.initial,
+                                 rel_path=self.reldirname)
         self.thr.signal.connect(updateJobDone)
         self.thr.start()
 
@@ -695,6 +723,8 @@ class UpdateReinstall(InitGUI):
         def __clearDirs():
             logging.debug('Clear cont dirs')
             self.initial.clear_contr(True)
+            logging.debug('Clear dapp gui dirs')
+            self.initial._clear_dir(self.initial.gui_dapp.format(self.user))
             logging.debug('Clear gui dirs')
             self.initial._clear_dir(self.initial.gui_path)
             self.initial.use_ports = dict(vpn=[], common=[],
@@ -727,7 +757,7 @@ class UpdateReinstall(InitGUI):
                 self.pageText.setHtml(resp)
 
 
-        self.thr = DeleteThread(initial=self.initial)
+        self.thr = DeleteThread(initial=self.initial,user=self.user)
         self.thr.signal.connect(deleteJobDone)
         self.thr.start()
 
@@ -776,20 +806,6 @@ class Prepare(UpdateReinstall):
 
     def startCycle(self, purge=False):
 
-        # def install_done(res):
-        #     self.spinner.stop()
-        #
-        #     if res[0]:
-        #         self.pageText.setHtml(
-        #             'The package installation was successful done.<br>'
-        #             'Click `Next` to start the configuration.')
-        #         self.pageNext.show()
-        #         self.pageNext.clicked.connect(self.check_role)
-        #
-        #     else:
-        #         self.pageText.setHtml('Sorry that something went wrong.<br>'
-        #                               'The installation was canceled')
-
         def install_done(objResp):
             self.spinner.stop()
             exitCode = objResp.exitCode()
@@ -819,21 +835,18 @@ class Prepare(UpdateReinstall):
                     bar=self.progrBar,
                     page_t=self.pageText,
                     sys_pswd=chPsdw[1],
-                    sys_call_meth=self.sysCallWithPswd
+                    sys_call_meth=self.sysCallWithPswd,
+                    latest_tag=self.initial.latest_tag
                 )
                 if purge:
                     self.initial._sys_call(cmd=prepare.del_pack)
-                    # self.initial._clear_dir()
                 chPrep = prepare.preparation()
                 if chPrep[0]:
                     fin_res = self.initial._finalizer()
                     if fin_res[0]:
                         logging.debug('Install pack cmd: {}'.format(chPrep[1]))
                         self.spinner.start()
-                        # self.thr = ClassThread(meth=self.initial._sys_call,
-                        #                        cmd=chPrep[1])
-                        # self.thr.signal.connect(install_done)
-                        # self.thr.start()
+
                         self.interLayout.show()
                         self.process = QtCore.QProcess(self)
                         self.process.setProcessChannelMode(
@@ -856,10 +869,7 @@ class Prepare(UpdateReinstall):
 
     def sysCallWithPswd(self, cmd, pswd, only_check=None, manager=list()):
         logging.debug('Check pass cmd:{} Pswd: {}'.format(cmd, pswd))
-        # todo - delete this return!
-        # return True
         try:
-            # session = spawn(command='ls')
             session = spawn(cmd, timeout=3)
 
         except BaseException as sespawn:
@@ -884,32 +894,7 @@ class Prepare(UpdateReinstall):
         manager.append(False)
         return False
 
-    def pswdOnMultiProcc(self, cmd, pswd):
-        logging.debug('pswdOnMultiProcc: {}'.format(cmd))
-        from multiprocessing import Process, Manager
-        manager = Manager()
-        resp = manager.list()
-        p = Process(target=self.sysCallWithPswd, args=(cmd, pswd, None, resp))
-        p.start()
-        # sleep(2)
-        # p.terminate()
-        p.join()
-        print resp
-        exit(888)
-
-    def pswdOnThr(self, cmd, pswd):
-        logging.debug('pswdThr: {}'.format(cmd))
-        import threading
-
-        resp = list()
-        t1 = threading.Thread(target=self.sysCallWithPswd, args=(cmd, pswd))
-        t1.start()
-        t1.join()
-        print resp
-        exit(888)
-
     def enterPass(self):
-
         def checkPswdDone(res):
             logging.debug('Result sys call: {}'.format(res))
             if res:
@@ -939,13 +924,6 @@ class Prepare(UpdateReinstall):
                 check_pass_cmd = 'su - root -c \'date \'+%Y\'\''
             logging.debug('root* pswd: {}'.format(sysPswd))
             res = self.sysCallWithPswd(cmd=check_pass_cmd, pswd=sysPswd)
-            # res = self.pswdOnMultiProcc(check_pass_cmd,sysPswd)
-            # res = self.pswdOnThr(check_pass_cmd,sysPswd)
-
-            # self.thr = ClassThread(meth=self.sysCallWithPswd,cmd=[check_pass_cmd,sysPswd])
-            # self.thr.signal.connect(checkPswdDone)
-            # self.thr.start()
-            # self.thr.wait()
             logging.debug('Result sys call: {}'.format(res))
             if res:
                 logging.debug('Pass was accept')
@@ -1089,7 +1067,6 @@ class Prepare(UpdateReinstall):
                 self.spinner.stop()
                 self.pageText.setHtml(str(resp[1]))
 
-
         mess = 'Prepare configs.<br>Please wait, this may take a few minutes.'
         self.pageText.setHtml(mess)
         logging.debug(mess)
@@ -1127,13 +1104,17 @@ class Rdata(Prepare):
         self.pageNext.disconnect()
 
         def dw_done(result):
-            if result[0] > 100:
+            self.pageText.setHtml(result[1])
+            if result[0] > 500:
+                self.spinner.stop()
+                self.pageNext.setEnabled(False)
+
+            elif result[0] > 100:
                 self.progrBar()
                 sleep(2)
-                self.unpacking()
+                self.unpacking_git()
             else:
                 bar_act("value", result[0])
-            self.pageText.setHtml(result[1])
 
         self.pageNext.setEnabled(False)
         self.pageText.setHtml('Begin download files.<br>Please wait.')
@@ -1143,9 +1124,10 @@ class Rdata(Prepare):
         system('sudo mkdir {0};sudo chmod 777 {0};'.format(
             self.initial.p_contr))
 
-        self.thr = DownloadThread(self.initial.f_dwnld,
+        self.thr = DownloadThread(self.initial.f_dwnld_git,
                                   self.initial.url_dwnld,
-                                  self.initial.p_contr)
+                                  self.initial.p_contr,
+                                  logging)
         self.thr.signal.connect(dw_done)
         self.thr.start()
 
@@ -1154,17 +1136,12 @@ class Rdata(Prepare):
 
         def un_done(result):
             if result[0] and result[1] == 'end cycle':
-                # self.spinner.stop()
-                # system('sudo chmod -R 777 {0};'.format(
-                #     self.initial.p_contr))
                 try:
                     self.main_cycle()
                 except BaseException as mainexpt:
                     self.pageText.setHtml('Oops Trouble.')
                     self.spinner.stop()
                     logging.error('Main cycle: {}'.format(mainexpt))
-
-
             else:
                 self.pageText.setHtml(result[1])
                 logging.info('Unpack done: {}'.format(result))
@@ -1174,21 +1151,54 @@ class Rdata(Prepare):
         self.pageText.setHtml(mess)
         self.spinner.start()
 
-        self.thr = UnpackThread(self.initial.f_dwnld, self.initial.p_unpck,
-                                self.initial.p_contr)
+        self.thr = UnpackThread(
+            fdwnld=self.initial.f_dwnld,
+            p_unpck=self.initial.p_unpck,
+            p_contr=self.initial.p_contr,
+            log=logging
+        )
         self.thr.signal.connect(un_done)
         self.thr.start()
 
-    def clean(self):
-        logging.info('Delete downloaded files.')
+    def unpacking_git(self):
+        logging.debug(' - unpacking_git')
 
-        for f in self.f_dwnld:
-            logging.info('Delete {}'.format(f))
-            remove(self.p_contr + f)
+        def un_done(result):
+            if result[0] and result[1] == 'end cycle':
+                try:
+                    self.unpacking()
+                except BaseException as mainexpt:
+                    self.pageText.setHtml('Oops Trouble.')
+                    self.spinner.stop()
+                    logging.error('Main cycle: {}'.format(mainexpt))
+            else:
+                self.pageText.setHtml(result[1])
+                logging.info('Unpack done: {}'.format(result))
+
+        mess = 'Begin unpacking from git download files.'
+        logging.info(mess)
+        self.pageText.setHtml(mess)
+        self.spinner.start()
+
+        self.thr = UnpackThread(fdwnld=self.initial.f_dwnld_git,
+                                p_unpck=self.initial.p_unpck,
+                                p_contr=self.initial.p_contr,
+                                log=logging,
+                                from_git=True
+                                )
+        self.thr.signal.connect(un_done)
+        self.thr.start()
+
+    # def clean(self):
+    #     logging.info('Delete downloaded files.')
+    #
+    #     for f in self.f_dwnld + self.f_dwnld_git:
+    #         path = self.initial.p_contr + f
+    #         self.initial._clear_dir(path)
 
 
 class Interfaces(Rdata):
-    def __init__(self, MainW,check_role):
+    def __init__(self, MainW, check_role):
         Rdata.__init__(self, MainW)
         self.check_role = check_role
 
@@ -1257,8 +1267,6 @@ class Interfaces(Rdata):
                             'Correct addr: {}'.format(self.initial.addr))
                         self.pageNext.disconnect()
                         self.pageNext.clicked.connect(self.netwCheck)
-
-
                     break
                 else:
                     logging.debug('Choise NO')
@@ -1354,8 +1362,10 @@ class Interfaces(Rdata):
 
 
 class Configure(Interfaces):
-    def __init__(self, MainW):
+    def __init__(self, MainW,reldirname):
         Interfaces.__init__(self, MainW, self.check_role)
+        self.reldirname = reldirname
+        logging.debug('Reletive path: {}'.format(reldirname))
 
     def check_role(self):
         def select_role(text):
@@ -1365,7 +1375,6 @@ class Configure(Interfaces):
         self.interLayout.hide()
         self.interLayout.destroy()
         self.initial.target = 'both'  # install back & gui
-        # self.pageNext.setEnabled(False)
 
         self.pageText.setHtml('Begin configure.<br>'
                               'Please choose your role, and click `Next`.')
@@ -1403,15 +1412,3 @@ class Configure(Interfaces):
         self.thr = CheckOsThread(meth=self.initial._check_os)
         self.thr.signal.connect(check_os_done)
         self.thr.start()
-
-
-if __name__ == "__main__":
-    import sys
-
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Configure(MainWindow)
-    MainWindow.closeEvent = ui.UserEvent
-
-    MainWindow.show()
-    sys.exit(app.exec_())

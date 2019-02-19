@@ -1,51 +1,27 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""
-        Initializer on pure Python 2.7
-
-        Version 0.2.3
-
-        mode:
-    python initializer.py  -h                              get help information
-    python initializer.py                                  start full install
-    python initializer.py --build                          create cmd for dapp
-    python initializer.py --vpn start/stop/restart/status  control vpn servise
-    python initializer.py --comm start/stop/restart/status control common servise
-    python initializer.py --mass start/stop/restart/status control common + vpn servise
-    python initializer.py --test                           start in test mode
-    python initializer.py --no-gui                         install without GUI
-    python initializer.py --update-back                    update all contaiter without GUI
-    python initializer.py --update-mass                    update all contaiter with GUI
-    python initializer.py --update-gui                     update only GUI
-    python initializer.py --link                           use another link for download.if not use, def link in main_conf[link_download]
-    python initializer.py --branch                         use another branch than 'develop' for download. template https://raw.githubusercontent.com/Privatix/dappctrl/{ branch }/
-"""
 
 import sys
 import random
-import logging
 import socket
-from signal import SIGINT, signal, pause
+from signal import pause
 from contextlib import closing
-from re import search, sub, findall, compile, match, IGNORECASE
+from re import search, sub, findall, compile, match
 from codecs import open
 from uuid import uuid1
-from threading import Thread
-from shutil import copyfile, rmtree
+from shutil import copyfile
 from json import load, dump
 from time import time, sleep
 from urllib import URLopener
-from urllib2 import urlopen
+from urllib2 import urlopen, Request
 from os.path import isfile, isdir, exists
-from argparse import ArgumentParser
 from ConfigParser import ConfigParser
 from platform import linux_distribution
 from subprocess import Popen, PIPE, STDOUT
 from distutils.version import StrictVersion
-from stat import S_IEXEC, S_IXUSR, S_IXGRP, S_IXOTH
-from os import remove, mkdir, path, environ, stat, chmod, listdir, getcwd, \
-    system
+from stat import S_IXUSR, S_IXGRP, S_IXOTH
+from os import remove, mkdir, path, environ, stat, chmod, listdir, system
 
 """
 Exit code:
@@ -84,13 +60,13 @@ Exit code:
     33 - User click [X].
     34 - User click Cancel.
 
-    not save port 8000 from SessionServer and 9000 from PayServer if role is client
+    not save port 8000 from Sess and 9000 from PayServer if role is client
 """
 
 main_conf = dict(
     log_path='/var/log/initializer.log',
     branch='develop',
-    link_download='http://art.privatix.net/',
+    link_download='https://github.com/Privatix/privatix/releases/download/{}',
     mask=['/24', '255.255.255.0'],
     mark_final='/var/run/installer.pid',
     wait_mess='{}.Please wait until completed.\n It may take about 5-10 minutes.\n Do not turn it off.',
@@ -109,6 +85,10 @@ main_conf = dict(
         addr='10.217.3.0',
         ports=dict(vpn=[], common=[],
                    mangmt=dict(vpn=None, common=None)),
+
+        file_download_git=[
+            'systemd_containers_ubuntu_x64_{}.tar.xz',
+            'systemd_units_ubuntu_x64_{}.tar.xz'],
 
         file_download=[
             'vpn.tar.xz',
@@ -184,6 +164,10 @@ main_conf = dict(
             'hwaddr'
         ],
 
+        file_download_git=[
+            'systemd_containers_ubuntu_x64_{}.tar.xz',
+            'systemd_units_ubuntu_x64_{}.tar.xz'],
+
         file_download=[
             'dapp-common',
             'dapp-vpn',
@@ -222,6 +206,7 @@ main_conf = dict(
     gui={
         'gui_arch': 'dappctrlgui.tar.xz',
         'gui_path': '/opt/privatix/gui/',
+        'gui_dapp': '/home/{}/.config/dappctrlgui',
         'link_dev_gui': 'dappctrlgui/',
         'icon_name': 'privatix-dappgui.desktop',
         'icon_sh': 'privatix-dappgui.sh',
@@ -282,6 +267,7 @@ class Init:
     dappctrl_role = None  # the role: agent|client.
 
     def __init__(self):
+        self.url_obj = URLopener()
         self.uid_dict = dict(userid=str(uuid1()))
         self.mask = main_conf['mask']
         self.tmp_var = main_conf['tmp_var']
@@ -315,6 +301,7 @@ class Init:
         gui = main_conf['gui']
         self.gui_arch = gui['gui_arch']
         self.gui_path = gui['gui_path']
+        self.gui_dapp = gui['gui_dapp']
         self.gui_version = gui['version']
         self.gui_icon_sh = gui['icon_sh']
         self.dappctrlgui = gui['dappctrlgui']
@@ -338,12 +325,14 @@ class Init:
 
         self.contTmp = '/var/lib/container_tmp'
 
+
     def re_init(self):
         self.__init__()
 
     def __init_back(self, back):
         self.addr = back['addr']
         self.p_contr = back['path_container']
+        self.f_dwnld_git = back['file_download_git']
         self.f_dwnld = back['file_download']
         self.path_vpn = back['path_vpn']
         self.path_com = back['path_com']
@@ -398,46 +387,59 @@ class Init:
         self.def_comm_addr[-1] = back['common_octet']
         self.def_comm_addr = '.'.join(self.def_comm_addr)
 
-    @staticmethod
-    def long_waiting():
-        symb = ['|', '/', '-', '\\']
-
-        while Init.waiting:
-            for i in symb:
-                sys.stdout.write("\r[%s]" % (i))
-                sys.stdout.flush()
-                if not Init.waiting:
-                    break
-                sleep(0.3)
-                if not Init.waiting:
-                    break
-
-        sys.stdout.write("\r")
-        sys.stdout.write("")
-        sys.stdout.flush()
-        Init.waiting = True
-
-    @staticmethod
-    def wait_decor(self):
-        def wrap(obj, args=None):
-            logging.debug('Wait decor args: {}.'.format(args))
-            st = Thread(target=Init.long_waiting)
-            st.daemon = True
-            st.start()
-            if args:
-                res = self(obj, args)
-            else:
-                res = self(obj)
-            Init.waiting = False
-            sleep(0.5)
-            return res
-
-        return wrap
-
 
 class CommonCMD(Init):
     def __init__(self):
         Init.__init__(self)
+    def _byteify(self, data, ignore_dicts=False):
+        if isinstance(data, unicode):
+            return data.encode('utf-8')
+        if isinstance(data, list):
+            return [self._byteify(item, ignore_dicts=True) for item in data]
+        if isinstance(data, dict) and not ignore_dicts:
+            return {
+                self._byteify(key, ignore_dicts=True): self._byteify(value,
+                                                                     ignore_dicts=True)
+                for key, value in data.iteritems()
+            }
+        return data
+
+    def __json_load_byteified(self, file_handle):
+        return self._byteify(
+            load(file_handle, object_hook=self._byteify),
+            ignore_dicts=True
+        )
+
+    def _get_url(self, link, to_json=True):
+        resp = urlopen(url=link)
+        if to_json:
+            return self.__json_load_byteified(resp)
+        else:
+            return resp.read()
+
+    def get_latest_tag(self):
+        logging.info('Get latest tag in repo.')
+
+        owner = 'Privatix'
+        repo = 'privatix'
+        url_api = 'https://api.github.com/repos/{}/{}/releases/latest'.format(
+            owner, repo)
+
+        resp = self._get_url(link=url_api)
+
+        if resp and resp.get('tag_name'):
+            tag_name = resp['tag_name']
+            logging.info('Latest tag name: {}'.format(tag_name))
+            self.latest_tag = tag_name
+
+            self.url_dwnld = self.url_dwnld.format(tag_name)
+
+            for i, f in enumerate(self.f_dwnld_git):
+                self.f_dwnld_git[i] = f.format(tag_name)
+            self.bin_arch = 'privatix_ubuntu_x64_{}_binary.tar.xz'.format(tag_name)
+
+        else:
+            raise BaseException('GitHub not responding')
 
     def _sysctl(self):
         """ Return True if ip_forward=1 by default,
@@ -461,10 +463,11 @@ class CommonCMD(Init):
                 sys.exit(3)
         return True
 
-    def _reletive_path(self, name):
-        dirname = path.dirname(path.abspath(__file__))
-        logging.debug('Reletive path: {}'.format(dirname))
-        return path.join(dirname, name)
+    # def _reletive_path(self, name):
+    #     dirname = path.dirname(path.abspath(__file__))
+    #     # dirname = path.dirname(path.realpath(__file__))
+    #     logging.debug('Reletive path: {}'.format(dirname))
+    #     return path.join(dirname, name)
 
     def signal_handler(self, sign, frm):
         logging.info('You pressed Ctrl+C!')
@@ -540,7 +543,6 @@ class CommonCMD(Init):
             return None
         return all(raw_res)
 
-    @Init.wait_decor
     def clear_contr(self, pass_check=False):
         # Stop container.Check it if pass_check True.Clear conteiner path
         if pass_check:
@@ -642,10 +644,15 @@ class CommonCMD(Init):
 
                 self._sys_call('sudo service dapp-vpn start')
 
-    def _sys_call(self, cmd, rolback=True, s_exit=4):
-        resp = Popen(cmd, shell=True, stdout=PIPE,
-                     stderr=STDOUT).communicate()
-        logging.debug('Sys call cmd: {} . Stdout: {}'.format(cmd, resp))
+    def _sys_call(self, cmd, rolback=True, s_exit=4, code_ex=False):
+        obj = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+        resp = obj.communicate()
+        if code_ex:
+            exit_code = obj.returncode
+            logging.debug('Code: {}.\nResp: {}'.format(exit_code, resp))
+            return (exit_code, resp)
+
+        logging.debug('Sys call cmd: {}. Stdout: {}'.format(cmd, resp))
         if resp[1]:
             logging.debug('Error in sys call: {}'.format(resp[1]))
             if rolback:
@@ -768,7 +775,6 @@ class CommonCMD(Init):
 
         return port
 
-    @Init.wait_decor
     def _wait_up(self):
         logging.info(self.wait_mess.format('Run services'))
 
@@ -846,12 +852,40 @@ class CommonCMD(Init):
 
         return tmp_store
 
+    def __check_payaddr_addr(self, pay_addr):
+        logging.debug('Check PayAddress')
+        my_ip = self.url_obj.open('http://icanhazip.com').read().replace('\n',
+                                                                        '')
+        logging.debug('Found IP: {}. Write it.'.format(my_ip))
+
+        raw = pay_addr.split(':')
+
+        raw[1] = '//{}'.format(my_ip)
+
+        delim = '/'
+        rout = raw[-1].split(delim)
+        pay_port_old = rout[0]
+        pay_port_new = self.check_port(pay_port_old, True)
+        rout[0] = pay_port_new
+        raw[-1] = delim.join(rout)
+
+        pay_addr = ':'.join(raw)
+        logging.debug('PayAddress: {}'.format(pay_addr))
+
+        return pay_addr, pay_port_new
+
     def conf_dappctrl_json(self, old_vers=False):
         """Check ip addr, free ports and replace it in
-        common dappctrl.config.local.json"""
+        common dappctrl.config.local.json
+        default
+         PayServer  0.0.0.0:9000
+         UI         localhost:8888
+         Sess       localhost:8000
+         SOMCServer localhost:5555
+
+        """
         logging.debug('Check IP, Port in common dappctrl.local.json')
 
-        pay_port = dict(old=None, new=None)
         p = self.p_contr + self.path_com
         if old_vers:
             p += 'rootfs/'
@@ -869,22 +903,7 @@ class CommonCMD(Init):
             if r:
                 r.update({"host": self.p_unpck['common'][1]})
 
-        # Check and change self ip and port for PayAddress
-        my_ip = urlopen(url='http://icanhazip.com').read().replace('\n', '')
-        logging.debug('Found IP: {}. Write it.'.format(my_ip))
-
-        raw = data['PayAddress'].split(':')
-
-        raw[1] = '//{}'.format(my_ip)
-
-        delim = '/'
-        rout = raw[-1].split(delim)
-        pay_port['old'] = rout[0]
-        pay_port['new'] = self.check_port(pay_port['old'], True)
-        rout[0] = pay_port['new']
-        raw[-1] = delim.join(rout)
-
-        data['PayAddress'] = ':'.join(raw)
+        data['PayAddress'], pay_port_new = self.__check_payaddr_addr(data['PayAddress'])
 
         # change role: agent, client
         data['Role'] = self.dappctrl_role
@@ -901,9 +920,9 @@ class CommonCMD(Init):
                 if k == 'PayServer':
                     # default Addr is 0.0.0.0:9000
                     # ping only when role agent
-                    raw_row[-1] = pay_port['new']
+                    raw_row[-1] = pay_port_new
                     # if self.dappctrl_role == 'agent':
-                    tmp_store[k] = pay_port['new']
+                    tmp_store[k] = pay_port_new
 
                 else:
                     if old_vers and raw_row[0] == self.def_comm_addr:
@@ -919,14 +938,9 @@ class CommonCMD(Init):
                         self.wsEndpoint = port
                         self.use_ports['wsEndpoint'] = port
 
-                    elif k == 'SessionServer':
+                    elif k == 'Sess':
                         # default Addr is localhost:8000
                         self.sessServPort = port
-
-                    # elif k == 'SOMCServer' and self.dappctrl_role == 'client':
-                        # default Addr is localhost:5555
-                        # ping only when role agent
-                        # self.use_ports['common'].remove(port)
 
                 data[k]['Addr'] = delim.join(raw_row)
 
@@ -997,9 +1011,8 @@ class Tor(CommonCMD):
     def get_onion_key(self):
         logging.debug('TOR. Get onion key')
         hostname_config = self.p_contr + self.path_com + self.tor_hostname_config
-        # onion_key = self.file_rw(
-        #     p=hostname_config,
-        #     log='TOR. Read hostname conf')
+
+        logging.debug('TOR. Read hostname conf')
         onion_key = self._sys_call('sudo cat {}'.format(hostname_config))
         onion_key = onion_key.replace('\n', '')
         logging.debug('TOR. Onion key: {}'.format(onion_key))
@@ -1036,20 +1049,18 @@ class Tor(CommonCMD):
 
 
 class DB(Tor):
-    '''This class provides a check if the database is started from its logs'''
+    """This class provides work with DB.
+     Check if the database is started from its logs"""
 
     def __init__(self):
         Tor.__init__(self)
 
-    @Init.wait_decor
     def _check_db_run(self, code):
         # wait 't_wait' sec until the DB starts, if not started, exit.
+        t_wait, t_start = 300, time()
 
-        t_start = time()
-        t_wait = 300
-        mark = True
         logging.info('Waiting for the launch of the DB.')
-        while mark:
+        while True:
             logging.debug('Wait.')
             raw = self.file_rw(p=self.db_log,
                                log='Read DB log')
@@ -1058,7 +1069,6 @@ class DB(Tor):
 
                 if self.db_stat in i:
                     logging.info('DB was run.')
-                    mark = False
                     return True
             if time() - t_start > t_wait:
                 logging.error(
@@ -1076,7 +1086,8 @@ class DB(Tor):
 
 class Params(DB):
     """ This class provide check
-    sysctl, iptables, port, ip"""
+    sysctl, iptables, port, ip.
+    Rewrite dapp config, unit_files """
 
     def __init__(self):
         DB.__init__(self)
@@ -1119,6 +1130,15 @@ class Params(DB):
             logging.error('R/W unit file: {}'.format(f_rw))
             self._rolback(code)
 
+    def _add_updown_path(self, raw_data):
+        # Edit dappvpn.config.json and add up/down script path
+        # up/down script path - /etc/openvpn/update-resolv-conf
+        up_down = '/etc/openvpn/update-resolv-conf'
+        oVpn = raw_data.get('OpenVPN')
+        if oVpn:
+            oVpn['UpScript'], oVpn['DownScript'] = up_down, up_down
+        return raw_data
+
     def _check_dapp_conf(self):
         for servs, port in self.use_ports['mangmt'].iteritems():
 
@@ -1134,6 +1154,10 @@ class Params(DB):
                                     json_r=True)
             if not raw_data:
                 self._rolback(23)
+
+            if servs == 'common':
+                raw_data = self._add_updown_path(raw_data)
+
             # "localhost:7505"
             logging.debug('dapp {} conf: {}'.format(servs, raw_data))
             delim = ':'
@@ -1144,18 +1168,36 @@ class Params(DB):
                 'Monitor Addr: {}.'.format(raw_data['Monitor']['Addr']))
 
             if hasattr(self, 'sessServPort'):
+                # "Endpoint": "ws://localhost:8000/ws"
                 delim = ':'
-                raw_tmp = raw_data['Connector']['Addr'].split(delim)
-                raw_tmp[-1] = str(self.sessServPort)
-                raw_data['Connector']['Addr'] = delim.join(raw_tmp)
+                raw_tmp = raw_data['Sess']['Endpoint'].split(delim)
+                raw_tmp[-1] = '{}/ws'.format(self.sessServPort)
+                raw_data['Sess']['Endpoint'] = delim.join(raw_tmp)
                 logging.debug(
-                    'Connector Addr: {}.'.format(raw_data['Connector']['Addr']))
+                    'Sess Endpoint: {}.'.format(raw_data['Sess']['Endpoint']))
 
             self.file_rw(p=p,
                          log='Rewrite {} conf'.format(servs),
                          data=raw_data,
                          w=True,
                          json_r=True)
+
+    def _read_dapp_cmd(self):
+        data = self.file_rw(
+            # p=self._reletive_path(self.build_cmd_path),
+            p='/opt/privatix/initializer/.dapp_cmd',
+            log='Read dapp cmd')
+        logging.debug('Data dapp cmd: {}'.format(data))
+        if data:
+            for row in data[0].split(' -'):
+                if 'connstr=' in row:
+                    db_con = row.replace('connstr=', '')
+
+                    db_port = [x for x in db_con.split(' ')
+                               if 'port' in x]
+                    db_port = findall('\d+', db_port[0])[0]
+                    return db_con, db_port
+        return False, False
 
     def _run_dapp_cmd(self):
         # generate two conf in path:
@@ -1178,47 +1220,80 @@ class Params(DB):
                           'in build mode.'.format(self.build_cmd_path))
             self._rolback(10)
 
+
 class Rdata(CommonCMD):
-    ''' Class for download, unpack, clear data '''
+    """ Class for download, unpack, clear data """
 
     def __init__(self):
         CommonCMD.__init__(self)
 
-    @Init.wait_decor
-    def download(self, code=6):
+    def download_git(self):
         try:
-            logging.info('Begin download files.')
-            dev_url = ''
-            if not isdir(self.p_contr):
-                logging.debug('Create dir: {}'.format(self.p_contr))
-                mkdir(self.p_contr)
 
-            obj = URLopener()
-            if hasattr(self, 'back_route'):
-                dev_url = self.back_route + '/'
-                logging.debug('Back dev rout: "{}"'.format(self.back_route))
+            logging.info('Begin download from git repo')
 
-            for f in self.f_dwnld:
+            for f in self.f_dwnld_git:
                 logging.info(
                     self.wait_mess.format('Start download {}'.format(f)))
 
-                logging.debug(
-                    'url_dwnld:{}, dev_url:{} ,f: {}'.format(self.url_dwnld,
-                                                             dev_url, f))
-                dwnld_url = self.url_dwnld + '/' + dev_url + f
+                dwnld_url = self.url_dwnld + '/' + f
                 dwnld_url = dwnld_url.replace('///', '/')
-                logging.debug(' - dwnld url: "{}"'.format(dwnld_url))
-                obj.retrieve(dwnld_url, self.p_contr + f)
+                logging.debug('Url git: {}'.format(dwnld_url))
+                self._sys_call(cmd='wget -N {} -P {}'.format(dwnld_url, self.p_contr))
                 sleep(0.1)
                 logging.info('Download {} done.'.format(f))
             return True
 
         except BaseException as down:
             logging.error('Download: {}.'.format(down))
-            self._rolback(code)
-            return False
+            self._rolback(6)
 
-    @Init.wait_decor
+    # def download(self, code=6):
+    #     try:
+    #         logging.info('Begin download files.')
+    #         dev_url = ''
+    #         if not isdir(self.p_contr):
+    #             logging.debug('Create dir: {}'.format(self.p_contr))
+    #             mkdir(self.p_contr)
+    #
+    #         if hasattr(self, 'back_route'):
+    #             dev_url = self.back_route + '/'
+    #             logging.debug('Back dev rout: "{}"'.format(self.back_route))
+    #
+    #         for f in self.f_dwnld:
+    #             logging.info(
+    #                 self.wait_mess.format('Start download {}'.format(f)))
+    #
+    #             logging.debug(
+    #                 'url_dwnld:{}, dev_url:{} ,f: {}'.format(self.url_dwnld,
+    #                                                          dev_url, f))
+    #             dwnld_url = self.url_dwnld + '/' + dev_url + f
+    #             dwnld_url = dwnld_url.replace('///', '/')
+    #             logging.debug(' - dwnld url: "{}"'.format(dwnld_url))
+    #             self.url_obj.retrieve(dwnld_url, self.p_contr + f)
+    #             sleep(0.1)
+    #             logging.info('Download {} done.'.format(f))
+    #         return True
+    #
+    #     except BaseException as down:
+    #         logging.error('Download: {}.'.format(down))
+    #         self._rolback(code)
+    #         return False
+
+    def unpacking_git(self):
+        logging.info('Begin unpacking download files.')
+        try:
+            for f in self.f_dwnld_git:
+                logging.info('Unpacking {}.'.format(f))
+
+                cmd = 'tar xpf {} -C {} --numeric-owner'.format(
+                    self.p_contr + f, self.p_contr)
+                self._sys_call(cmd)
+                logging.info('Unpacking git {} done.'.format(f))
+
+        except BaseException as expt_unpck:
+            logging.error('Unpack git: {}.'.format(expt_unpck))
+
     def unpacking(self):
         logging.info('Begin unpacking download files.')
         try:
@@ -1239,11 +1314,12 @@ class Rdata(CommonCMD):
             logging.error('Unpack: {}.'.format(expt_unpck))
 
     def clean(self):
-        logging.info('Delete downloaded files.')
+        logging.info('Delete files.')
 
-        for f in self.f_dwnld:
+        for f in self.f_dwnld + self.f_dwnld_git:
+            path = self.p_contr + f
             logging.info('Delete {}'.format(f))
-            remove(self.p_contr + f)
+            self._clear_dir(path)
 
 
 class GUI(CommonCMD):
@@ -1253,6 +1329,8 @@ class GUI(CommonCMD):
         self.__init_icon_path()
 
     def __init_icon_path(self):
+        logging.debug('Init icon path. env[SUDO_USER]: {}'.format(environ.get('SUDO_USER')))
+
         if environ.get('SUDO_USER'):
             logging.debug('SUDO_USER')
             if self.__check_desctop_dir('/home/', environ['SUDO_USER']):
@@ -1300,11 +1378,13 @@ class GUI(CommonCMD):
         return mess
 
     def __check_desctop_dir(self, p, u):
+        logging.debug('Check desctop dir')
+
         if not isdir(self.gui_icon_path.format(p, u)):
             logging.debug(
                 '{} not exist'.format(self.gui_icon_path.format(p, u)))
             return False
-        logging.debug('{} exist'.format(self.gui_icon_path.format(p, u)))
+        logging.debug('Path {} exist'.format(self.gui_icon_path.format(p, u)))
         return True
 
     def __create_icon_sh(self):
@@ -1316,7 +1396,6 @@ class GUI(CommonCMD):
                      'you will need to run the file "sudo {}".\n'
                      'Press enter to continue.'.format(self.gui_icon))
 
-        raw_input('')
         with open(self.gui_icon, 'w') as icon:
             cmd = self.gui_icon_tmpl['Exec']
 
@@ -1347,7 +1426,6 @@ class GUI(CommonCMD):
 
         self.__icon_rights()
 
-    @Init.wait_decor
     def __get_gui(self):
         if hasattr(self, 'gui_route'):
             try:
@@ -1355,8 +1433,7 @@ class GUI(CommonCMD):
                 dev_url = self.url_dwnld + self.gui_dev_link + self.gui_route + '/' + self.gui_arch
                 self._sys_call(self.gui_installer[0], s_exit=11)
                 logging.debug('Gui dev rout: "{}"'.format(dev_url))
-                obj = URLopener()
-                obj.retrieve(dev_url, self.gui_path + self.gui_arch)
+                self.url_obj.retrieve(dev_url, self.gui_path + self.gui_arch)
                 logging.info('Download {} done.'.format(self.gui_arch))
                 logging.info('Begin unpacking download file.')
 
@@ -1397,21 +1474,6 @@ class GUI(CommonCMD):
         return True, ''
 
     def __rewrite_config(self):
-        """
-        /opt/privatix/gui/node_modules/dappctrlgui/settings.json
-        example data structure:
-        {
-            "firstStart": false,
-            "accountCreated": true,
-            "wsEndpoint": "ws://localhost:8888/ws",
-            "gas": {
-                "acceptOffering": 100000,
-                "createOffering": 100000,
-                "transfer": 100000
-            },
-            "network": "rinkeby"
-        }
-        """
         try:
             raw_data = self.file_rw(p=self.dappctrlgui,
                                     log='Read settings.json',
@@ -1443,7 +1505,6 @@ class GUI(CommonCMD):
             self._rolback(25)
             return False, rwconf
 
-    @Init.wait_decor
     def __get_npm(self):
         # install npm and nodejs
         logging.debug('Get NPM for GUI.')
@@ -1457,10 +1518,12 @@ class GUI(CommonCMD):
             self._sys_call(cmd=cmd, s_exit=11)
 
         else:
+            npm_raw = self.url_obj.open('https://deb.nodesource.com/setup_9.x').read()
+
             self.file_rw(
                 p=npm_path,
                 w=True,
-                data=urlopen(self.gui_npm_url),
+                data=npm_raw,
                 log='Download nodesource'
             )
 
@@ -1508,21 +1571,7 @@ class GUI(CommonCMD):
                     user_mess[0] = True
                     user_mess[1].append(mess)
         logging.debug('Mess. {}'.format(user_mess))
-
         return user_mess
-        #
-        # for k, v in self.gui_version.items():
-        #     if v[1]:
-        #         logging.info('Preparing for deletion '
-        #                      '{} {}'.format(k, v[2]))
-        #         cmd = main_conf['del_pack'].format(k)
-        #         self._sys_call(cmd=cmd)
-        #
-        # if self.__get_pack_ver():
-        #     logging.info('The problem with deleting one of the listed '
-        #                  'packages. Try to delete in manual mode '
-        #                  'and repeat the process again.')
-        #     self._rolback(16)
 
     def install_gui(self, perm):
         logging.debug('Install GUI.')
@@ -1537,22 +1586,6 @@ class GUI(CommonCMD):
                 return True, icon_mess
             return res
         return res
-
-    # def _clear_gui(self):
-    #     logging.info('Clear GUI.')
-    #     p = self.gui_path
-    #     self._clear_dir(p)
-
-    # def update_gui(self):
-    #     logging.info('Update GUI.')
-    #     self.wsEndpoint = self.use_ports.get('wsEndpoint')
-    #     if not self.use_ports.get('wsEndpoint'):
-    #         logging.info('You can not upgrade GUI before '
-    #                      'you not complete the installation.')
-    #         sys.exit()
-    #
-    #     self._clear_gui()
-    #     self.__get_gui()
 
 
 class Nspawn(Params):
@@ -1612,7 +1645,6 @@ class Nspawn(Params):
                     raw_row[-1] = '{}\n'.format(
                         self.use_ports['mangmt']['vpn'])
                     tmp_data[indx] = delim.join(raw_row)
-            logging.debug('--server.conf')
 
             # rewrite server.conf file
             if not self.file_rw(
@@ -1690,7 +1722,6 @@ class LXC(DB):
     def conf_dappvpn_json(self):
         """Check addr in vpn dappvpn.config.json"""
         logging.debug('Check addr in vpn dappvpn.config.json')
-        search_keys = ['Monitor', 'Connector']
         delim = ":"
         for cont_path in (self.path_com, self.path_vpn):
 
@@ -1701,13 +1732,13 @@ class LXC(DB):
             if not data:
                 self._rolback(22)
 
-            serv_addr = data.get('Connector').get('Addr')
+            serv_addr = data.get('Sess').get('Endpoint')
             if serv_addr:
                 raw = serv_addr.split(delim)
                 raw[0] = self.p_unpck['common'][1]
-                data['Connector']['Addr'] = delim.join(raw)
+                data['Sess']['Endpoint'] = delim.join(raw)
             else:
-                logging.error('Field Connector not exist')
+                logging.error('Field Sess not exist')
 
             monit_addr = data.get('Monitor').get('Addr')
             if monit_addr:
@@ -1786,7 +1817,6 @@ class LXC(DB):
             logging.error('R/W server.conf: {}'.format(f_rw))
             self._rolback(code)
 
-    @Init.wait_decor
     def __install_lxc(self):
         logging.debug('Install lxc')
 
@@ -1867,7 +1897,6 @@ class LXC(DB):
                 logging.error('R/W LXC run sh: {}'.format(f_rw))
                 self._rolback(32)
 
-    @Init.wait_decor
     def _rw_container_intrfs(self):
         logging.debug('LXC containers: {}'.format(self.name_in_main_conf))
         for target_name, cont_name in self.p_unpck.items():
@@ -2054,7 +2083,6 @@ class LXC(DB):
         # todo add folder where may be stored user containers
         # folders.append('')
 
-
         logging.debug('Check by path: {}'.format(folders))
         # read config file in container.Get data from it
         for folder in folders:
@@ -2213,7 +2241,6 @@ def checker_fabric(inherit_class, old_vers, ver, dist_name):
             logging.debug('Debian: {}'.format(self.ver))
             self._nsp_deb_pack()
 
-        @Init.wait_decor
         def _check_os(self):
             logging.debug('Check OS')
             self.task = dict(ubuntu=self.__ubuntu,

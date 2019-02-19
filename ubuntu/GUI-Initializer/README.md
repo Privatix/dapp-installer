@@ -11,7 +11,7 @@ The following packages must be installed before compiling
 
 To compile, go to the directory where the main Initializer.py is located,
 and execute:
-    pyinstaller -F -w -i=/sources/icon/icon.png --clean Initializer.py
+pyinstaller -F -w -i=/sources/icon/icon.png --clean Initializer.py
 
 
 After successful completion,

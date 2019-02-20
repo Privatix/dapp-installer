@@ -30,6 +30,10 @@ func NewConfig() *DBEngine {
 
 // CreateDatabase creates new database.
 func (engine *DBEngine) CreateDatabase(fileName string) error {
+	if err := engine.checkRunning(); err != nil {
+		return err
+	}
+
 	if err := engine.executor(engine.createDatabase, fileName); err != nil {
 		return err
 	}

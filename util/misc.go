@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
@@ -337,4 +338,20 @@ func SelfRemove(dir string) error {
 // TimeOutInSec returns time duration in seconds.
 func TimeOutInSec(timeout uint64) time.Duration {
 	return time.Duration(timeout) * time.Second
+}
+
+// RetryTillSucceed tries execute func till succeed or returns timeout error.
+func RetryTillSucceed(ctx context.Context, f func() error) error {
+	t := time.NewTicker(200 * time.Millisecond)
+	defer t.Stop()
+	for {
+		select {
+		case <-t.C:
+			if err := f(); err == nil {
+				return nil
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
@@ -34,7 +33,6 @@ func installContainer(d *dapp.Dapp) error {
 }
 
 func startContainer(d *dapp.Dapp) error {
-	time.Sleep(2 * time.Second)
 	c := getContainer(d)
 
 	if err := c.Start(); err != nil {
@@ -45,13 +43,21 @@ func startContainer(d *dapp.Dapp) error {
 }
 
 func stopContainer(d *dapp.Dapp) error {
-	time.Sleep(2 * time.Second)
 	c := getContainer(d)
 
 	if err := c.Stop(); err != nil {
 		return fmt.Errorf("failed to stop container: %v", err)
 	}
 
+	return nil
+}
+
+func restartContainer(d *dapp.Dapp) error {
+	c := getContainer(d)
+
+	if err := c.Restart(); err != nil {
+		return fmt.Errorf("failed to restart container: %v", err)
+	}
 	return nil
 }
 

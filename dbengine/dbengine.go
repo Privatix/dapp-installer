@@ -1,6 +1,7 @@
 package dbengine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -191,42 +192,15 @@ func (engine *DBEngine) checkRunning() error {
 func (engine DBEngine) Ping() error {
 	conn := engine.DB.ConnectionString()
 
-	done := make(chan bool)
-	go func() {
-		for {
-			if err := data.Ping(conn); err == nil {
-				break
-			}
-			time.Sleep(200 * time.Millisecond)
-		}
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		return nil
-	case <-time.After(util.TimeOutInSec(engine.Timeout)):
-		return errors.New("failed to ping database. timeout expired")
-	}
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(engine.Timeout))
+	defer cancel()
+	return util.RetryTillSucceed(ctx, func() error { return data.Ping(conn) })
 }
 
 func (engine DBEngine) executor(f func(string) error, param string) error {
-	done := make(chan bool)
-	go func() {
-		for {
-			err := f(param)
-			if err == nil {
-				break
-			}
-			time.Sleep(200 * time.Millisecond)
-		}
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		return nil
-	case <-time.After(util.TimeOutInSec(engine.Timeout)):
-		return errors.New("failed to create db. timeout expired")
-	}
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(engine.Timeout))
+	defer cancel()
+	return util.RetryTillSucceed(ctx, func() error { return f(param) })
 }

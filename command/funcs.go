@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -328,8 +329,6 @@ func enableDaemons(d *dapp.Dapp) error {
 }
 
 func createDatabase(d *dapp.Dapp) error {
-	time.Sleep(10 * time.Second)
-
 	file := filepath.Join(d.Path, d.Controller.EntryPoint)
 	if err := d.DBEngine.CreateDatabase(file); err != nil {
 		return fmt.Errorf("failed to create db: %v", err)
@@ -364,13 +363,11 @@ func updateDatabase(d *dapp.Dapp) error {
 }
 
 func finalize(d *dapp.Dapp) error {
-	if err := stopContainer(d); err != nil {
-		return err
-	}
-
-	time.Sleep(10 * time.Second)
-
-	return startContainer(d)
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(d.Timeout))
+	defer cancel()
+	return util.RetryTillSucceed(ctx,
+		func() error { return restartContainer(d) })
 }
 
 func removeBackup(d *dapp.Dapp) error {

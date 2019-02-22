@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
@@ -20,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/go-ps"
+	ps "github.com/keybase/go-ps"
 )
 
 const (
@@ -137,6 +138,10 @@ func TempPath(volume string) string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
 		return filepath.Join(volume, "temporary")
+	}
+
+	if len(volume) == 0 {
+		volume = "/tmp"
 	}
 
 	path := filepath.Join(volume, fmt.Sprintf("%x", b))
@@ -333,4 +338,20 @@ func SelfRemove(dir string) error {
 // TimeOutInSec returns time duration in seconds.
 func TimeOutInSec(timeout uint64) time.Duration {
 	return time.Duration(timeout) * time.Second
+}
+
+// RetryTillSucceed tries execute func till succeed or returns timeout error.
+func RetryTillSucceed(ctx context.Context, f func() error) error {
+	t := time.NewTicker(200 * time.Millisecond)
+	defer t.Stop()
+	for {
+		select {
+		case <-t.C:
+			if err := f(); err == nil {
+				return nil
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }

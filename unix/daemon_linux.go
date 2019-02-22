@@ -2,26 +2,24 @@
 
 package unix
 
-import "errors"
-
 // Install installs the daemon.
 func (d *Daemon) Install() error {
-	return errors.New("not implemented")
+	return nil
 }
 
 // Start starts the daemon.
 func (d *Daemon) Start() error {
-	return errors.New("not implemented")
+	return nil
 }
 
 // Stop stops the daemon.
 func (d *Daemon) Stop() error {
-	return errors.New("not implemented")
+	return nil
 }
 
 // Remove removes the daemon.
 func (d *Daemon) Remove() error {
-	return errors.New("not implemented")
+	return nil
 }
 
 // IsStopped returns the daemon stopped status.

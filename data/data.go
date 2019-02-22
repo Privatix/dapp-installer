@@ -24,7 +24,7 @@ type DB struct {
 // NewConfig creates a default DB configuration.
 func NewConfig() *DB {
 	return &DB{
-		Host:   "localhost",
+		Host:   "127.0.0.1",
 		DBName: "dappctrl",
 		User:   "postgres",
 		Port:   "5433",

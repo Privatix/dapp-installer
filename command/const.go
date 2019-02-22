@@ -8,6 +8,7 @@ const (
 )
 
 const envFile = ".env.config.json"
+const dappCtrlDaemonOnLinux = "lib/systemd/system/dappctrl.service"
 
 const rootHelp = `
 Usage:

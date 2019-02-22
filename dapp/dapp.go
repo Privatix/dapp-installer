@@ -50,15 +50,15 @@ type InstallerEntity struct {
 
 // NewDapp creates a default Dapp configuration.
 func NewDapp() *Dapp {
-	gc := "dappgui/dapp-gui.app/Contents/Resources/app/settings.json"
+	gc := "dappgui/resources/app/settings.json"
 
-	if runtime.GOOS == "windows" {
-		gc = "dappgui/resources/app/settings.json"
+	if runtime.GOOS == "darwin" {
+		gc = "dappgui/dapp-gui.app/Contents/Resources/app/settings.json"
 	}
 
 	return &Dapp{
 		Role: "agent",
-		Path: ".",
+		Path: "./agent",
 		Controller: &InstallerEntity{
 			EntryPoint:    "dappctrl/dappctrl",
 			Configuration: "dappctrl/dappctrl.config.json",
@@ -164,8 +164,12 @@ func (d *Dapp) modifyDappConfig() error {
 	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
 		d.Tor.TargetPort)
 	settings["Report.userid"] = d.UserID
-	settings["FileLog.Filename"] = filepath.Join(d.Path,
-		"log/dappctrl-%Y-%m-%d.log")
+
+	if runtime.GOOS != "linux" {
+		settings["FileLog.Filename"] = filepath.Join(d.Path,
+			"log/dappctrl-%Y-%m-%d.log")
+	}
+	settings["DB.Conn.host"] = d.DBEngine.DB.Host
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
 	settings["DB.Conn.port"] = d.DBEngine.DB.Port
 	settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
@@ -385,4 +389,9 @@ func (d *Dapp) setUIConfig() error {
 	defer write.Close()
 
 	return json.NewEncoder(write).Encode(jsonMap)
+}
+
+// ReadConfig reads dappctrl configuration file.
+func (d *Dapp) ReadConfig() error {
+	return d.fromConfig()
 }

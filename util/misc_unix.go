@@ -57,16 +57,6 @@ func IsServiceStopped(id string) bool {
 	return unix.NewDaemon(id).IsStopped()
 }
 
-// Unzip will decompress a zip archive, moving all files and folders
-// within the zip file (parameter 1) to an output directory (parameter 2).
-func Unzip(src string, dest string) error {
-	if err := ExecuteCommand("unzip", "-o", src, "-d", dest); err != nil {
-		return err
-	}
-	// Removes all extended attributes recursively.
-	return ExecuteCommand("xattr", "-rc", dest)
-}
-
 // ExecuteCommand does executing file.
 func ExecuteCommand(filename string, args ...string) (err error) {
 	cmd := exec.Command(filename, args...)

@@ -178,8 +178,11 @@ func (v command) execute(path string) error {
 		n[i] = strings.Replace(s, "..", path, -1)
 	}
 	file := filepath.Join(path, n[0])
-	if _, err := os.Stat(file); err != nil {
-		file = n[0]
+
+	if runtime.GOOS == "linux" {
+		if _, err := os.Stat(file); err != nil {
+			file = n[0]
+		}
 	}
 
 	var err error

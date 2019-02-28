@@ -143,8 +143,9 @@ func SetPort(pgconf, oldPort, newPort string) error {
 		return err
 	}
 
-	newContents := strings.Replace(string(read),
-		"#port = "+oldPort, "port = "+newPort, -1)
+	p := "port = "
+	newContents := strings.Replace(string(read), p+oldPort, p+newPort, -1)
+	newContents = strings.Replace(newContents, "#"+p, p, -1)
 
 	return ioutil.WriteFile(pgconf, []byte(newContents), 0)
 }

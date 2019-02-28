@@ -91,7 +91,7 @@ func (engine *DBEngine) Install(installPath string) error {
 	util.GrantAccess(installPath)
 
 	fileName := filepath.Join(installPath, "pgsql", "bin", "initdb")
-	err := util.ExecuteCommand(fileName, "-E UTF8", "-D", dataPath)
+	err := util.ExecuteCommand(fileName, "-D", dataPath)
 
 	if err != nil {
 		return fmt.Errorf("failed to init db: %v", err)

@@ -436,6 +436,8 @@ ${program_stderr}</text>
         </propertiesFileSet>
         <deleteFile>
             <path>${installdir}/app.zip</path>
+        </deleteFile>
+        <deleteFile>
             <path>${installdir}/app.tar.xz</path>
         </deleteFile>
         <readFile>

@@ -291,14 +291,6 @@ ${program_stderr}</text>
                                             <value>unknown variable</value>
                                         </compareText>
                                     </conditionRuleList>
-                                    <elseActionList>
-                                        <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update-products -role ${install_type} -workdir ./${install_type}</programArguments>
-                                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                                            <workingDirectory>${installdir}</workingDirectory>
-                                        </runProgram>
-                                    </elseActionList>
                                 </if>
                             </actionList>
                             <conditionRuleList>

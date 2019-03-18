@@ -1,6 +1,7 @@
 package dapp
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -284,11 +285,14 @@ func (d *Dapp) merge(s *Dapp) error {
 	}
 
 	s.BackupPath = util.RenamePath(s.Path, "backup")
-	if err := os.Rename(s.Path, s.BackupPath); err != nil {
-		time.Sleep(10 * time.Second)
-		if err := os.Rename(s.Path, s.BackupPath); err != nil {
-			return err
-		}
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(d.Timeout))
+	defer cancel()
+
+	err := util.RetryTillSucceed(ctx,
+		func() error { return os.Rename(s.Path, s.BackupPath) })
+	if err != nil {
+		return	fmt.Errorf("failed to rename: %v", err)
 	}
 
 	return os.Rename(d.Path, s.Path)

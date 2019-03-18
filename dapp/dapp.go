@@ -272,7 +272,7 @@ func (d *Dapp) merge(s *Dapp) error {
 	// Merge dappctrl config.
 	dstConfig := filepath.Join(d.Path, d.Controller.Configuration)
 	srcConfig := filepath.Join(s.Path, s.Controller.Configuration)
-	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
+	if err := util.MergeJSONFile(dstConfig, srcConfig, "PSCAddrHex"); err != nil {
 		return err
 	}
 

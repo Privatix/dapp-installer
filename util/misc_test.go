@@ -86,7 +86,27 @@ func TestMergeJSON(t *testing.T) {
 	json.Unmarshal([]byte(dst), &dstMap)
 	json.Unmarshal([]byte(src), &srcMap)
 
-	mergeJSON(dstMap, srcMap)
+	m := &merger{}
+	m.merge(dstMap, srcMap)
+
+	r, _ := json.Marshal(dstMap)
+
+	if string(r) != result {
+		t.Error("Expected", result, "got", string(r))
+	}
+}
+
+func TestMergeJSONWithExceptions(t *testing.T) {
+	dst := `{"A":1,"B":{"b":2,"bb":3,"bbbb":4},"C":true}`
+	src := `{"B":{"b":2,"bb":30,"bbb":4},"C":false}`
+	result := `{"A":1,"B":{"b":2,"bb":3,"bbbb":4},"C":true}`
+
+	var dstMap, srcMap map[string]interface{}
+	json.Unmarshal([]byte(dst), &dstMap)
+	json.Unmarshal([]byte(src), &srcMap)
+
+	m := &merger{exceptions: []string{"bb", "C", "bbbb"}}
+	m.merge(dstMap, srcMap)
 
 	r, _ := json.Marshal(dstMap)
 

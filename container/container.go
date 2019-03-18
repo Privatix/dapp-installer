@@ -122,7 +122,7 @@ func (c *Container) Update(newPath, oldPath string, copies []string,
 	for _, value := range merges {
 		dst := filepath.Join(newPath, value)
 		src := filepath.Join(oldPath, value)
-		if err := util.MergeJSONFile(dst, src); err != nil {
+		if err := util.MergeJSONFile(dst, src, "PSCAddrHex"); err != nil {
 			return err
 		}
 	}

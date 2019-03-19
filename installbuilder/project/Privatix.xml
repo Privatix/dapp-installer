@@ -147,44 +147,16 @@
                                         </compareText>
                                     </conditionRuleList>
                                     <elseActionList>
-                                        <if>
-                                            <explanation>${forceUpdate}</explanation>
-                                            <actionList>
-                                                <runProgram>
-                                                    <program>${installdir}/dapp-installer</program>
-                                                    <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
-                                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
-                                                    <workingDirectory>${installdir}</workingDirectory>
-                                                </runProgram>
-                                                <registryDelete>
-                                                    <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
-                                                    <name></name>
-                                                </registryDelete>
-                                            </actionList>
-                                            <conditionRuleList>
-                                                <isFalse>
-                                                    <value>${forceUpdate}</value>
-                                                </isFalse>
-                                            </conditionRuleList>
-                                            <elseActionList>
-                                                <runProgram>
-                                                    <program>${installdir}/dapp-installer</program>
-                                                    <programArguments>remove -workdir ./${install_type}</programArguments>
-                                                    <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
-                                                    <workingDirectory>${installdir}</workingDirectory>
-                                                </runProgram>
-                                                <registryDelete>
-                                                    <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
-                                                    <name></name>
-                                                </registryDelete>
-                                                <runProgram>
-                                                    <program>${installdir}/dapp-installer</program>
-                                                    <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
-                                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
-                                                    <workingDirectory>${installdir}</workingDirectory>
-                                                </runProgram>
-                                            </elseActionList>
-                                        </if>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                        <registryDelete>
+                                            <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
+                                            <name></name>
+                                        </registryDelete>
                                     </elseActionList>
                                 </if>
                             </actionList>
@@ -213,44 +185,16 @@
                                         </compareText>
                                     </conditionRuleList>
                                     <elseActionList>
-                                        <if>
-                                            <explanation>${forceUpdate}</explanation>
-                                            <actionList>
-                                                <runProgram>
-                                                    <program>${installdir}/dapp-installer</program>
-                                                    <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
-                                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
-                                                    <workingDirectory>${installdir}</workingDirectory>
-                                                </runProgram>
-                                                <registryDelete>
-                                                    <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
-                                                    <name></name>
-                                                </registryDelete>
-                                            </actionList>
-                                            <conditionRuleList>
-                                                <isFalse>
-                                                    <value>${forceUpdate}</value>
-                                                </isFalse>
-                                            </conditionRuleList>
-                                            <elseActionList>
-                                                <runProgram>
-                                                    <program>${installdir}/dapp-installer</program>
-                                                    <programArguments>remove -workdir ./${install_type}</programArguments>
-                                                    <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
-                                                    <workingDirectory>${installdir}</workingDirectory>
-                                                </runProgram>
-                                                <registryDelete>
-                                                    <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
-                                                    <name></name>
-                                                </registryDelete>
-                                                <runProgram>
-                                                    <program>${installdir}/dapp-installer</program>
-                                                    <programArguments>install -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
-                                                    <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
-                                                    <workingDirectory>${installdir}</workingDirectory>
-                                                </runProgram>
-                                            </elseActionList>
-                                        </if>
+                                        <runProgram>
+                                            <program>${installdir}/dapp-installer</program>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
+                                            <workingDirectory>${installdir}</workingDirectory>
+                                        </runProgram>
+                                        <registryDelete>
+                                            <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
+                                            <name></name>
+                                        </registryDelete>
                                     </elseActionList>
                                 </if>
                             </elseActionList>
@@ -481,6 +425,31 @@ ${program_stderr}</text>
                     <text>${install_type}</text>
                     <value>${old_install_type}</value>
                 </compareText>
+            </ruleList>
+        </exit>
+        <showWarning>
+            <text>${msg(Installer.ForceUpdate)}</text>
+            <ruleList>
+                <compareVersions>
+                    <logic>less</logic>
+                    <version1>${installed_version}</version1>
+                    <version2>${project.version}</version2>
+                </compareVersions>
+                <isTrue>
+                    <value>${forceUpdate}</value>
+                </isTrue>
+            </ruleList>
+        </showWarning>
+        <exit>
+            <ruleList>
+                <compareVersions>
+                    <logic>less</logic>
+                    <version1>${installed_version}</version1>
+                    <version2>${project.version}</version2>
+                </compareVersions>
+                <isTrue>
+                    <value>${forceUpdate}</value>
+                </isTrue>
             </ruleList>
         </exit>
     </readyToInstallActionList>

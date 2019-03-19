@@ -1,7 +1,7 @@
 <project>
     <shortName>Privatix</shortName>
     <fullName>Privatix Network</fullName>
-    <version>0.19.0</version>
+    <version>0.21.0</version>
     <licenseFile>PN.lic</licenseFile>
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
@@ -153,6 +153,10 @@
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
+                                        <registryDelete>
+                                            <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
+                                            <name></name>
+                                        </registryDelete>
                                     </elseActionList>
                                 </if>
                             </actionList>
@@ -187,6 +191,10 @@
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
+                                        <registryDelete>
+                                            <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
+                                            <name></name>
+                                        </registryDelete>
                                     </elseActionList>
                                 </if>
                             </elseActionList>

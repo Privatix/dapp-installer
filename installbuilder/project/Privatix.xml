@@ -435,6 +435,11 @@ ${program_stderr}</text>
                     <version1>${installed_version}</version1>
                     <version2>${project.version}</version2>
                 </compareVersions>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${installed_version}</text>
+                    <value>unknown variable</value>
+                </compareText>
                 <isTrue>
                     <value>${forceUpdate}</value>
                 </isTrue>
@@ -447,6 +452,11 @@ ${program_stderr}</text>
                     <version1>${installed_version}</version1>
                     <version2>${project.version}</version2>
                 </compareVersions>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${installed_version}</text>
+                    <value>unknown variable</value>
+                </compareText>
                 <isTrue>
                     <value>${forceUpdate}</value>
                 </isTrue>

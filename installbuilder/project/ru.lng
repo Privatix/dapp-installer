@@ -35,3 +35,4 @@ Installer.Button.OK=OK
 Installer.Button.Cancel=Отменить
 Installer.Button.Back=< &Назад
 Installer.Button.Next=&Далее >
+Installer.ForceUpdate=Обновление не поддерживается, удалите текущую установку и снова запустите программу установки. Не забудьте сделать резервную копию вашего аккаунта.

@@ -1,10 +1,10 @@
 package dapp
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -51,15 +51,15 @@ type InstallerEntity struct {
 
 // NewDapp creates a default Dapp configuration.
 func NewDapp() *Dapp {
-	gc := "dappgui/dapp-gui.app/Contents/Resources/app/settings.json"
+	gc := "dappgui/resources/app/settings.json"
 
-	if runtime.GOOS == "windows" {
-		gc = "dappgui/resources/app/settings.json"
+	if runtime.GOOS == "darwin" {
+		gc = "dappgui/dapp-gui.app/Contents/Resources/app/settings.json"
 	}
 
 	return &Dapp{
 		Role: "agent",
-		Path: ".",
+		Path: "./agent",
 		Controller: &InstallerEntity{
 			EntryPoint:    "dappctrl/dappctrl",
 			Configuration: "dappctrl/dappctrl.config.json",
@@ -165,8 +165,12 @@ func (d *Dapp) modifyDappConfig() error {
 	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
 		d.Tor.TargetPort)
 	settings["Report.userid"] = d.UserID
-	settings["FileLog.Filename"] = filepath.Join(d.Path,
-		"log/dappctrl-%Y-%m-%d.log")
+
+	if runtime.GOOS != "linux" {
+		settings["FileLog.Filename"] = filepath.Join(d.Path,
+			"log/dappctrl-%Y-%m-%d.log")
+	}
+	settings["DB.Conn.host"] = d.DBEngine.DB.Host
 	settings["DB.Conn.user"] = d.DBEngine.DB.User
 	settings["DB.Conn.port"] = d.DBEngine.DB.Port
 	settings["DB.Conn.dbname"] = d.DBEngine.DB.DBName
@@ -211,24 +215,7 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	u, err := user.Current()
-	if err != nil {
-		return err
-	}
-	path := u.HomeDir
-	switch runtime.GOOS {
-	case "darwin":
-		path = filepath.Join(path, "Library", "Application Support",
-			"dappctrlgui")
-	case "linux":
-		path = filepath.Join(path, ".config", "dappctrlgui")
-	case "windows":
-		path = filepath.Join(path, "AppData", "Roaming", "dappctrlgui")
-	default:
-		return fmt.Errorf("unsupported OS")
-	}
-
-	if err := os.RemoveAll(path); err != nil {
+	if err := clearGuiStorage(); err != nil {
 		return err
 	}
 
@@ -286,7 +273,7 @@ func (d *Dapp) merge(s *Dapp) error {
 	// Merge dappctrl config.
 	dstConfig := filepath.Join(d.Path, d.Controller.Configuration)
 	srcConfig := filepath.Join(s.Path, s.Controller.Configuration)
-	if err := util.MergeJSONFile(dstConfig, srcConfig); err != nil {
+	if err := util.MergeJSONFile(dstConfig, srcConfig, "PSCAddrHex"); err != nil {
 		return err
 	}
 
@@ -298,11 +285,14 @@ func (d *Dapp) merge(s *Dapp) error {
 	}
 
 	s.BackupPath = util.RenamePath(s.Path, "backup")
-	if err := os.Rename(s.Path, s.BackupPath); err != nil {
-		time.Sleep(10 * time.Second)
-		if err := os.Rename(s.Path, s.BackupPath); err != nil {
-			return err
-		}
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(d.Timeout))
+	defer cancel()
+
+	err := util.RetryTillSucceed(ctx,
+		func() error { return os.Rename(s.Path, s.BackupPath) })
+	if err != nil {
+		return	fmt.Errorf("failed to rename: %v", err)
 	}
 
 	return os.Rename(d.Path, s.Path)
@@ -403,4 +393,9 @@ func (d *Dapp) setUIConfig() error {
 	defer write.Close()
 
 	return json.NewEncoder(write).Encode(jsonMap)
+}
+
+// ReadConfig reads dappctrl configuration file.
+func (d *Dapp) ReadConfig() error {
+	return d.fromConfig()
 }

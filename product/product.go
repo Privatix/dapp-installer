@@ -3,12 +3,13 @@ package product
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
-	"gopkg.in/reform.v1"
+	reform "gopkg.in/reform.v1"
 
 	dappdata "github.com/privatix/dappctrl/data"
 	dapputil "github.com/privatix/dappctrl/util"
@@ -177,6 +178,12 @@ func (v command) execute(path string) error {
 		n[i] = strings.Replace(s, "..", path, -1)
 	}
 	file := filepath.Join(path, n[0])
+
+	if runtime.GOOS == "linux" {
+		if _, err := os.Stat(file); err != nil {
+			file = n[0]
+		}
+	}
 
 	var err error
 	if v.Admin && runtime.GOOS == "darwin" {

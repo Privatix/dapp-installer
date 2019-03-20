@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rdegges/go-ipify"
+	ipify "github.com/rdegges/go-ipify"
 
 	"github.com/privatix/dapp-installer/util"
 )

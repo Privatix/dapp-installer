@@ -4,7 +4,10 @@ package dapp
 
 import (
 	"fmt"
+	"os"
+	"os/user"
 	"path/filepath"
+	"strings"
 
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/util"
@@ -103,4 +106,32 @@ func copyServiceWrapper(d, s *Dapp) {
 		filepath.Join(d.Path, scvExe))
 	util.CopyFile(filepath.Join(s.Path, scvConfig),
 		filepath.Join(d.Path, scvConfig))
+}
+
+func clearGuiStorage() error {
+	output, err := util.ExecuteCommandOutput("wmic", "useraccount",
+		"where", "Status='OK'", "get", "Name", "/value")
+
+	if err != nil {
+		return err
+	}
+
+	users := strings.Split(strings.TrimSpace(output), "Name=")
+
+	for _, username := range users {
+		username = strings.TrimSpace(username)
+		if len(username) == 0 {
+			continue
+		}
+		u, err := user.Lookup(username)
+		if err != nil {
+			return err
+		}
+		path := filepath.Join(u.HomeDir, "AppData", "Roaming", "dappctrlgui")
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

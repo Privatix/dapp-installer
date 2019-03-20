@@ -1,6 +1,7 @@
 package dbengine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -30,11 +31,15 @@ func NewConfig() *DBEngine {
 
 // CreateDatabase creates new database.
 func (engine *DBEngine) CreateDatabase(fileName string) error {
-	if err := engine.createDatabase(fileName); err != nil {
+	if err := engine.checkRunning(); err != nil {
 		return err
 	}
 
-	if err := engine.databaseMigrate(fileName); err != nil {
+	if err := engine.executor(engine.createDatabase, fileName); err != nil {
+		return err
+	}
+
+	if err := engine.executor(engine.databaseMigrate, fileName); err != nil {
 		return err
 	}
 
@@ -59,25 +64,11 @@ func (engine DBEngine) createDatabase(fileName string) error {
 }
 
 func (engine DBEngine) databaseMigrate(fileName string) error {
-	conn := engine.DB.ConnectionString()
-
-	done := make(chan bool)
-	go func() {
-		for {
-			if err := data.Ping(conn); err == nil {
-				break
-			}
-			time.Sleep(200 * time.Millisecond)
-		}
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		return util.ExecuteCommand(fileName, "db-migrate", "-conn", conn)
-	case <-time.After(util.TimeOutInSec(engine.Timeout)):
-		return errors.New("failed to ping database. timeout expired")
+	if err := engine.Ping(); err != nil {
+		return err
 	}
+	conn := engine.DB.ConnectionString()
+	return util.ExecuteCommand(fileName, "db-migrate", "-conn", conn)
 }
 
 func (engine DBEngine) databaseInit(fileName string) error {
@@ -100,7 +91,7 @@ func (engine *DBEngine) Install(installPath string) error {
 	util.GrantAccess(installPath)
 
 	fileName := filepath.Join(installPath, "pgsql", "bin", "initdb")
-	err := util.ExecuteCommand(fileName, "-E UTF8", "-D", dataPath)
+	err := util.ExecuteCommand(fileName, "-D", dataPath)
 
 	if err != nil {
 		return fmt.Errorf("failed to init db: %v", err)
@@ -109,7 +100,7 @@ func (engine *DBEngine) Install(installPath string) error {
 	engine.DB.Port, _ = util.FreePort(engine.DB.Host, engine.DB.Port)
 
 	pgconf := filepath.Join(dataPath, "postgresql.conf")
-	if err := configDBEngine(pgconf, engine.DB.Port); err != nil {
+	if err := SetPort(pgconf, "5432", engine.DB.Port); err != nil {
 		return fmt.Errorf("failed to configure db conf: %v", err)
 	}
 
@@ -145,14 +136,16 @@ func (engine *DBEngine) createUser(fileName string) error {
 	}
 }
 
-func configDBEngine(pgconf, port string) error {
+// SetPort sets db engine port number.
+func SetPort(pgconf, oldPort, newPort string) error {
 	read, err := ioutil.ReadFile(pgconf)
 	if err != nil {
 		return err
 	}
 
-	newContents := strings.Replace(string(read),
-		"#port = 5432", "port = "+port, -1)
+	p := "port = "
+	newContents := strings.Replace(string(read), p+oldPort, p+newPort, -1)
+	newContents = strings.Replace(newContents, "#"+p, p, -1)
 
 	return ioutil.WriteFile(pgconf, []byte(newContents), 0)
 }
@@ -194,4 +187,21 @@ func (engine *DBEngine) checkRunning() error {
 	case <-time.After(util.TimeOutInSec(engine.Timeout)):
 		return errors.New("failed to check running dbengine. timeout expired")
 	}
+}
+
+// Ping tests connection to database.
+func (engine DBEngine) Ping() error {
+	conn := engine.DB.ConnectionString()
+
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(engine.Timeout))
+	defer cancel()
+	return util.RetryTillSucceed(ctx, func() error { return data.Ping(conn) })
+}
+
+func (engine DBEngine) executor(f func(string) error, param string) error {
+	ctx, cancel := context.WithTimeout(context.Background(),
+		util.TimeOutInSec(engine.Timeout))
+	defer cancel()
+	return util.RetryTillSucceed(ctx, func() error { return f(param) })
 }

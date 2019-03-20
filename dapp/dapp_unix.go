@@ -4,7 +4,10 @@ package dapp
 
 import (
 	"fmt"
+	"os"
+	"os/user"
 	"path/filepath"
+	"runtime"
 
 	"github.com/privatix/dapp-installer/unix"
 	"github.com/privatix/dapp-installer/util"
@@ -55,4 +58,20 @@ func (d *Dapp) Configurate() error {
 }
 
 func copyServiceWrapper(d, s *Dapp) {
+}
+
+func clearGuiStorage() error {
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+	path := u.HomeDir
+	if runtime.GOOS == "darwin" {
+		path = filepath.Join(path, "Library", "Application Support",
+			"dappctrlgui")
+	} else {
+		path = filepath.Join(os.Getenv("HOME"), ".config", "dappctrlgui")
+	}
+
+	return os.RemoveAll(path)
 }

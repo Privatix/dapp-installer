@@ -1,7 +1,7 @@
 <project>
     <shortName>Privatix</shortName>
     <fullName>Privatix Network</fullName>
-    <version>0.19.0</version>
+    <version>0.21.0</version>
     <licenseFile>PN.lic</licenseFile>
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
@@ -26,6 +26,20 @@
                     <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
                     <windowsIcon>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsIcon>
+                    <windowsPath></windowsPath>
+                </shortcut>
+                <shortcut>
+                    <comment></comment>
+                    <exec>${installdir}/${install_type}/dappgui/dapp-gui</exec>
+                    <icon>${installdir}/${install_type}/dappgui/resources/app/icon_64.png</icon>
+                    <name>Privatix ${install_type}</name>
+                    <path></path>
+                    <platforms>linux-x64</platforms>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec></windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon></windowsIcon>
                     <windowsPath></windowsPath>
                 </shortcut>
             </desktopShortcutList>
@@ -56,7 +70,18 @@
                     <description>Program Files</description>
                     <destination>${installdir}</destination>
                     <name>programfileslinux</name>
-                    <platforms>linux</platforms>
+                    <platforms>linux-x64</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>../linux-dapp-installer/app.tar.xz</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../linux-dapp-installer/dapp-installer</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../linux-dapp-installer/dapp-installer.config.json</origin>
+                        </distributionFile>
+                    </distributionFileList>
                 </folder>
                 <folder>
                     <description>Program Files</description>
@@ -128,6 +153,10 @@
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
+                                        <registryDelete>
+                                            <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
+                                            <name></name>
+                                        </registryDelete>
                                     </elseActionList>
                                 </if>
                             </actionList>
@@ -162,6 +191,10 @@
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
+                                        <registryDelete>
+                                            <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
+                                            <name></name>
+                                        </registryDelete>
                                     </elseActionList>
                                 </if>
                             </elseActionList>
@@ -266,14 +299,6 @@ ${program_stderr}</text>
                                             <value>unknown variable</value>
                                         </compareText>
                                     </conditionRuleList>
-                                    <elseActionList>
-                                        <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update-products -role ${install_type} -workdir ./${install_type}</programArguments>
-                                            <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
-                                            <workingDirectory>${installdir}</workingDirectory>
-                                        </runProgram>
-                                    </elseActionList>
                                 </if>
                             </actionList>
                             <conditionRuleList>
@@ -402,6 +427,41 @@ ${program_stderr}</text>
                 </compareText>
             </ruleList>
         </exit>
+        <showWarning>
+            <text>${msg(Installer.ForceUpdate)}</text>
+            <ruleList>
+                <compareVersions>
+                    <logic>less</logic>
+                    <version1>${installed_version}</version1>
+                    <version2>${project.version}</version2>
+                </compareVersions>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${installed_version}</text>
+                    <value>unknown variable</value>
+                </compareText>
+                <isTrue>
+                    <value>${forceUpdate}</value>
+                </isTrue>
+            </ruleList>
+        </showWarning>
+        <exit>
+            <ruleList>
+                <compareVersions>
+                    <logic>less</logic>
+                    <version1>${installed_version}</version1>
+                    <version2>${project.version}</version2>
+                </compareVersions>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${installed_version}</text>
+                    <value>unknown variable</value>
+                </compareText>
+                <isTrue>
+                    <value>${forceUpdate}</value>
+                </isTrue>
+            </ruleList>
+        </exit>
     </readyToInstallActionList>
     <postInstallationActionList>
         <propertiesFileSet>
@@ -411,6 +471,9 @@ ${program_stderr}</text>
         </propertiesFileSet>
         <deleteFile>
             <path>${installdir}/app.zip</path>
+        </deleteFile>
+        <deleteFile>
+            <path>${installdir}/app.tar.xz</path>
         </deleteFile>
         <readFile>
             <name>dappctrl_config</name>
@@ -513,6 +576,7 @@ ${program_stderr}</text>
     <osxApplicationBundleIcon>images/icons/macIcons.icns</osxApplicationBundleIcon>
     <osxUninstallerApplicationBundleIcon>images/icons/macIcons.icns</osxUninstallerApplicationBundleIcon>
     <outputDirectory>out</outputDirectory>
+    <requireInstallationByRootUser>0</requireInstallationByRootUser>
     <saveRelativePaths>1</saveRelativePaths>
     <singleInstanceCheck>1</singleInstanceCheck>
     <vendor>Privatix LTD</vendor>
@@ -618,6 +682,14 @@ ${program_stderr}</text>
                 </option>
             </optionList>
         </choiceParameter>
+        <booleanParameter>
+            <name>forceUpdate</name>
+            <description></description>
+            <explanation></explanation>
+            <value>1</value>
+            <default>0</default>
+            <ask>0</ask>
+        </booleanParameter>
     </parameterList>
     <platformOptionsList>
         <platformOptions>

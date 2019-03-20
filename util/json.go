@@ -6,8 +6,12 @@ import (
 	"reflect"
 )
 
+type merger struct {
+	exceptions []string
+}
+
 // MergeJSONFile merges two json files.
-func MergeJSONFile(dstFile, srcFile string) error {
+func MergeJSONFile(dstFile, srcFile string, exceptions ...string) error {
 	dstRead, err := os.Open(dstFile)
 	if err != nil {
 		return err
@@ -26,7 +30,8 @@ func MergeJSONFile(dstFile, srcFile string) error {
 	srcMap := make(map[string]interface{})
 	json.NewDecoder(srcRead).Decode(&srcMap)
 
-	mergeJSON(dstMap, srcMap)
+	m := &merger{exceptions: exceptions}
+	m.merge(dstMap, srcMap)
 
 	write, err := os.Create(dstFile)
 	if err != nil {
@@ -37,13 +42,14 @@ func MergeJSONFile(dstFile, srcFile string) error {
 	return json.NewEncoder(write).Encode(dstMap)
 }
 
-func mergeJSON(dstMap, srcMap map[string]interface{}) {
+func (m *merger) merge(dstMap, srcMap map[string]interface{}) {
 	for key := range dstMap {
-		mergeJSONKey(key, dstMap[key], srcMap[key], dstMap)
+		m.mergeKey(key, dstMap[key], srcMap[key], dstMap)
 	}
 }
 
-func mergeJSONKey(key string, dst interface{}, src interface{}, result map[string]interface{}) {
+func (m *merger) mergeKey(key string, dst interface{}, src interface{},
+	result map[string]interface{}) {
 	if !reflect.DeepEqual(dst, src) {
 		switch dst.(type) {
 		case map[string]interface{}:
@@ -51,13 +57,22 @@ func mergeJSONKey(key string, dst interface{}, src interface{}, result map[strin
 				dstMap := dst.(map[string]interface{})
 				srcMap := src.(map[string]interface{})
 				for k := range dstMap {
-					mergeJSONKey(k, dstMap[k], srcMap[k], dstMap)
+					m.mergeKey(k, dstMap[k], srcMap[k], dstMap)
 				}
 			}
 		default:
-			if src != nil {
+			if src != nil && !contains(m.exceptions, key) {
 				result[key] = src
 			}
 		}
 	}
+}
+
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }

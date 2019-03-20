@@ -39,3 +39,28 @@ cd installbuilder/project
 [Path to InstallBuilder]/bin/builder build Privatix.xml windows  
 ```
 
+## Settings
+
+The `forceUpdate` parameter is used to control the update mode.
+Set `1` to enable the forced update mode:
+```
+        <booleanParameter>
+            <name>forceUpdate</name>
+            <description></description>
+            <explanation></explanation>
+            <value>1</value>
+            <default>0</default>
+            <ask>0</ask>
+        </booleanParameter>
+```
+or set `0` to disable the forced update mode:
+```
+        <booleanParameter>
+            <name>forceUpdate</name>
+            <description></description>
+            <explanation></explanation>
+            <value>0</value>
+            <default>0</default>
+            <ask>0</ask>
+        </booleanParameter>
+```

@@ -24,7 +24,7 @@ echo deb http://mirror.yandex.ru/debian stretch-backports main > /etc/apt/source
 
 apt-get update
 apt-get -t stretch-backports install -y systemd
-apt-get install -y dbus
+apt-get install -y dbus net-tools
 
 # install locale
 apt-get install -y locales

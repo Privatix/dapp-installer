@@ -7,7 +7,7 @@ dappcoredir="./app"
 echo "App folder path:" ${dappcoredir}
 
 # create container
-sudo debootstrap jessie ./${container} http://mirror.yandex.ru/debian
+sudo debootstrap stretch ./${container} http://mirror.yandex.ru/debian
 #sudo chroot ${container} dpkg --print-architecture
 
 # copy dappcore
@@ -19,12 +19,12 @@ sudo systemd-nspawn -D ${container}/ << EOF
 #set root password: xHd26ksN
 echo -e "xHd26ksN\nxHd26ksN\n" | passwd
 
-echo "pts/0" >> /etc/securetty 
-echo deb http://http.debian.net/debian jessie-backports main > /etc/apt/sources.list.d/jessie-backports.list
+echo "pts/0" >> /etc/securetty
+echo deb http://mirror.yandex.ru/debian stretch-backports main > /etc/apt/sources.list.d/stretch-backports.list
 
 apt-get update
-apt-get -t jessie-backports install -y systemd
-apt-get install -y dbus
+apt-get -t stretch-backports install -y systemd
+apt-get install -y dbus net-tools
 
 # install locale
 apt-get install -y locales
@@ -37,7 +37,7 @@ update-locale LANG=en_US.UTF-8
 apt-get update
 apt-get install -y ca-certificates
 
-echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 apt-get update
 apt-get install -y postgresql-10
@@ -51,6 +51,10 @@ service postgresql start
 
 # install Tor
 apt-get install -y tor
+service tor stop
+sed -i.bup 's/AppArmorProfile=system_tor/AppArmorProfile=/g' /lib/systemd/system/tor@default.service
+systemctl daemon-reload
+service tor start
 
 # enable dappctrl daemon
 mv /dappctrl/dappctrl.service /lib/systemd/system/

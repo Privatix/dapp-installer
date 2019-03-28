@@ -7,7 +7,7 @@ dappcoredir="./app"
 echo "App folder path:" ${dappcoredir}
 
 # create container
-sudo debootstrap stretch ./${container} http://mirror.yandex.ru/debian
+sudo debootstrap stretch ./${container} http://deb.debian.org/debian
 #sudo chroot ${container} dpkg --print-architecture
 
 # copy dappcore
@@ -20,7 +20,7 @@ sudo systemd-nspawn -D ${container}/ << EOF
 echo -e "xHd26ksN\nxHd26ksN\n" | passwd
 
 echo "pts/0" >> /etc/securetty
-echo deb http://mirror.yandex.ru/debian stretch-backports main > /etc/apt/sources.list.d/stretch-backports.list
+echo deb http://deb.debian.org/debian stretch-backports main > /etc/apt/sources.list.d/stretch-backports.list
 
 apt-get update
 apt-get -t stretch-backports install -y systemd

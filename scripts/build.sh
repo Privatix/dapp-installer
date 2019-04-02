@@ -26,9 +26,9 @@ echo
 echo go build
 echo
 
-echo $GOPATH/bin/dapp-installer
 go build -o $GOPATH/bin/dapp-installer \
 -ldflags "-X main.Commit=$GIT_COMMIT -X main.Version=$GIT_RELEASE" -tags=notest || exit 1
 
+echo $GOPATH/bin/dapp-installer
 echo
 echo done

@@ -1,33 +1,23 @@
 #!/usr/bin/env bash
-DAPPINST=github.com/privatix/dapp-installer
+MY_PATH="`dirname \"$0\"`" # relative bash file path
+DAPPINST_DIR="`( cd \"$MY_PATH/..\" && pwd )`"  # absolutized and normalized dappctrl path
 
-echo ${DAPPINST_DIR:=${GOPATH}/src/${DAPPINST}}
+echo ${DAPPINST_DIR}
 
-if [ ! -f "${GOPATH}"/bin/dep ]; then
-    curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-fi
-
-echo
-echo dep ensure
-echo
-
-cd "${DAPPINST_DIR}" && dep ensure -v
 
 echo
 echo go get
 echo
 
-go get -d -v ${DAPPINST}/...
 go get -u -v github.com/rakyll/statik
 go get -u -v github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 go get -u -v github.com/denisbrodbeck/machineid
-go get -u -v gopkg.in/reform.v1/reform
 
 echo
 echo go generate
 echo
 
-go generate -x ${DAPPINST}/...
+go generate -x ${DAPPINST_DIR}/...
 
 GIT_COMMIT=$(git rev-list -1 HEAD)
 GIT_RELEASE=$(git tag -l --points-at HEAD)

@@ -21,11 +21,6 @@ cd dapp-installer
 git checkout master
 
 ```
-Create `Gopkg.toml`:
-
-```bash
-./scripts/toml.sh ./Gopkg.toml.template > ./Gopkg.toml
-```
 
 Build `dapp-installer` package:
 

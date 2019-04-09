@@ -2,11 +2,13 @@ package product
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/sethvargo/go-password/password"
 	"gopkg.in/reform.v1"
 
@@ -86,7 +88,7 @@ func handler(dir string, tx *reform.TX) (srvProduct,
 	offerTplFile := filepath.Join(dir, templatePath, offeringTemplate)
 	accessTplFile := filepath.Join(dir, templatePath, accessTemplate)
 
-	offerTpl, _, err := templates(tx, offerTplFile, accessTplFile)
+	offerTpl, accessTpl, err := templates(tx, offerTplFile, accessTplFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -94,7 +96,7 @@ func handler(dir string, tx *reform.TX) (srvProduct,
 	serverProductFile := filepath.Join(dir, productPath, serverProduct)
 	clientProductFile := filepath.Join(dir, productPath, clientProduct)
 
-	return products(serverProductFile, clientProductFile, offerTpl.ID)
+	return products(serverProductFile, clientProductFile, offerTpl.ID, accessTpl.ID)
 }
 
 func adjustment(product *data.Product, configFile string) error {
@@ -135,9 +137,9 @@ func templates(tx *reform.TX, offer,
 	return offerTpl, accessTpl, err
 }
 
-func products(serverFile, clientFile, templateID string) (srvProduct,
+func products(serverFile, clientFile, templateID, accessID string) (srvProduct,
 	cliProduct *data.Product, err error) {
-	srvProduct, err = productFromFile(serverFile)
+	srvProduct, err = productFromFile(serverFile, templateID, accessID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,7 +148,7 @@ func products(serverFile, clientFile, templateID string) (srvProduct,
 		return nil, nil, ErrNotAssociated
 	}
 
-	cliProduct, err = productFromFile(clientFile)
+	cliProduct, err = productFromFile(clientFile, templateID, accessID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -239,12 +241,17 @@ func productConcord(product *data.Product, tplID string) bool {
 }
 
 func importTemplate(file string, tx *reform.TX) (*data.Template, error) {
-	var template *data.Template
+	var schema json.RawMessage
 
-	err := util.ReadJSONFile(file, &template)
+	err := util.ReadJSONFile(file, &schema)
 	if err != nil {
 		return nil, err
 	}
+
+	template := new(data.Template)
+	template.ID = util.NewUUID()
+	template.Raw = schema
+	template.Hash = data.HexFromBytes(crypto.Keccak256([]byte(schema)))
 
 	err = tx.Insert(template)
 	if err != nil {
@@ -257,8 +264,10 @@ func importProduct(tx *reform.TX, product *data.Product) error {
 	return tx.Insert(product)
 }
 
-func productFromFile(file string) (product *data.Product, err error) {
+func productFromFile(file, offerID, accessID string) (product *data.Product, err error) {
 	err = util.ReadJSONFile(file, &product)
+	product.OfferTplID = &offerID
+	product.OfferAccessID = &accessID
 	return product, err
 }
 

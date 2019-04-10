@@ -5,6 +5,7 @@ require (
 	github.com/allegro/bigcache v1.2.0 // indirect
 	github.com/aristanetworks/goarista v0.0.0-20190325233358-a123909ec740 // indirect
 	github.com/denisbrodbeck/machineid v1.0.1
+	github.com/ethereum/go-ethereum v1.8.23
 	github.com/josephspurrier/goversioninfo v0.0.0-20190209210621-63e6d1acd3dd // indirect
 	github.com/jpillora/backoff v0.0.0-20180909062703-3050d21c67d7 // indirect
 	github.com/keybase/go-ps v0.0.0-20161005175911-668c8856d999

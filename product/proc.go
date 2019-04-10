@@ -125,12 +125,12 @@ func adjustment(product *data.Product, configFile string) error {
 
 func templates(tx *reform.TX, offer,
 	access string) (offerTpl, accessTpl *data.Template, err error) {
-	offerTpl, err = importTemplate(offer, tx)
+	offerTpl, err = importTemplate(offer, data.TemplateOffer, tx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	accessTpl, err = importTemplate(access, tx)
+	accessTpl, err = importTemplate(access, data.TemplateAccess, tx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -240,7 +240,7 @@ func productConcord(product *data.Product, tplID string) bool {
 	return *product.OfferTplID == tplID
 }
 
-func importTemplate(file string, tx *reform.TX) (*data.Template, error) {
+func importTemplate(file, kind string, tx *reform.TX) (*data.Template, error) {
 	var schema json.RawMessage
 
 	err := util.ReadJSONFile(file, &schema)
@@ -252,6 +252,7 @@ func importTemplate(file string, tx *reform.TX) (*data.Template, error) {
 	template.ID = util.NewUUID()
 	template.Raw = schema
 	template.Hash = data.HexFromBytes(crypto.Keccak256([]byte(schema)))
+	template.Kind = kind
 
 	err = tx.Insert(template)
 	if err != nil {

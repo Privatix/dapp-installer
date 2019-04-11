@@ -1,0 +1,9 @@
+{
+    "PackageFilesDir": "path/to/repo",
+    "CopyFiles": [
+        {
+            "From": "example.txt",
+            "To": "data/example.txt"
+        }
+    ]
+}

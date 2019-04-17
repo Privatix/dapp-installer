@@ -271,8 +271,8 @@ ${program_stderr}</text>
             </startMenuShortcutList>
         </component>
         <component>
-            <name>vpn</name>
-            <description>VPN service</description>
+            <name>product</name>
+            <description>${product_name} service</description>
             <canBeEdited>0</canBeEdited>
             <selected>1</selected>
             <show>1</show>
@@ -314,7 +314,7 @@ ${program_stderr}</text>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
                                             <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
-                                            <progressText>${msg(Installer.showProgressDialog.TextVPN)}</progressText>
+                                            <progressText>${msg(Installer.showProgressDialog.TextProduct)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
                                     </actionList>
@@ -500,8 +500,8 @@ ${program_stderr}</text>
             </ruleList>
         </setInstallerVariableFromRegEx>
         <readFile>
-            <name>servers_config</name>
-            <path>${installdir}/agent/product/73e17130-2a1d-4f7d-97a8-93a9aaa6f10d/config/server.conf</path>
+            <name>agent_product_config</name>
+            <path>${installdir}/agent/product/${product_id}/config/${agent_product_config_name}</path>
             <ruleList>
                 <compareValues>
                     <logic>equals</logic>
@@ -511,10 +511,10 @@ ${program_stderr}</text>
             </ruleList>
         </readFile>
         <setInstallerVariableFromRegEx>
-            <name>vpn_port</name>
+            <name>product_port</name>
             <pattern>.*port\s+(\d+).*?</pattern>
             <substitution>\1</substitution>
-            <text>${servers_config}</text>
+            <text>${agent_product_config}</text>
             <ruleList>
                 <compareValues>
                     <logic>equals</logic>
@@ -691,6 +691,8 @@ ${program_stderr}</text>
             <ask>0</ask>
         </booleanParameter>
         <stringParameter name="product_id" value="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0"/>
+        <stringParameter name="product_name" value="VPN" ask="0"/>
+        <stringParameter name="agent_product_config_name" value="server.conf" ask="0"/>
     </parameterList>
     <platformOptionsList>
         <platformOptions>

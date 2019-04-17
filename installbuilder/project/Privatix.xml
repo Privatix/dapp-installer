@@ -313,7 +313,7 @@ ${program_stderr}</text>
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product 73e17130-2a1d-4f7d-97a8-93a9aaa6f10d</programArguments>
+                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextVPN)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -690,6 +690,7 @@ ${program_stderr}</text>
             <default>0</default>
             <ask>0</ask>
         </booleanParameter>
+        <stringParameter name="product_id" value="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0"/>
     </parameterList>
     <platformOptionsList>
         <platformOptions>

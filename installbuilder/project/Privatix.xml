@@ -531,6 +531,11 @@ ${program_stderr}</text>
                     <value1>${install_type}</value1>
                     <value2>agent</value2>
                 </compareValues>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${product_name}</value1>
+                    <value2>VPN</value2>
+                </compareValues>
             </ruleList>
         </showInfo>
         <createSymLink>

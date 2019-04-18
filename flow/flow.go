@@ -44,7 +44,7 @@ func (flow Flow) Run(logger log.Logger, flowContext interface{}) error {
 
 		if err != nil {
 			logger.Warn(fmt.Sprintf("failed to execute '%s': %v", v.Name(), err))
-			rollback(flow.Steps[:i+1])
+			rollback(flow.Steps[:i])
 			break
 		}
 		logger.Info(fmt.Sprintf("'%v' is done", v.Name()))

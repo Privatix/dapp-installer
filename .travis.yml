@@ -1,0 +1,17 @@
+language: go
+
+go:
+    - 1.11.2
+
+env:
+    - GO111MODULE=on
+
+install:
+    - ${TRAVIS_BUILD_DIR}/scripts/build.sh
+
+script:
+
+notifications:
+    slack:
+        rooms:
+            - privatix:ntmw2wh4PAHoodqtMc95KFDt#dapp-tech

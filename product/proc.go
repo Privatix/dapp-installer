@@ -241,17 +241,25 @@ func productConcord(product *data.Product, tplID string) bool {
 }
 
 func importTemplate(file, kind string, tx *reform.TX) (*data.Template, error) {
-	var schema json.RawMessage
+	// Reading to map[string]interface{} and marshaling it compreses
+	// initial json by removing spaces and newlines which is what should be used
+	// to produce correct hash.
+	var schema map[string]interface{}
 
 	err := util.ReadJSONFile(file, &schema)
+	if err != nil { 
+		return nil, err
+	}
+
+	schemaB, err := json.Marshal(schema)
 	if err != nil {
 		return nil, err
 	}
 
 	template := new(data.Template)
 	template.ID = util.NewUUID()
-	template.Raw = schema
-	template.Hash = data.HexFromBytes(crypto.Keccak256([]byte(schema)))
+	template.Raw = schemaB
+	template.Hash = data.HexFromBytes(crypto.Keccak256([]byte(schemaB)))
 	template.Kind = kind
 
 	err = tx.Insert(template)

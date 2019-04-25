@@ -3,7 +3,7 @@ MY_PATH="`dirname \"$0\"`" # relative bash file path
 DAPPINST_DIR="`( cd \"$MY_PATH/..\" && pwd )`"  # absolutized and normalized dappctrl path
 
 echo ${DAPPINST_DIR}
-
+cd "${DAPPINST_DIR}"
 
 echo
 echo go get

@@ -26,9 +26,14 @@ echo
 echo go build
 echo
 
+if [[ ! -d "${GOPATH}/bin/" ]]; then
+    mkdir "${GOPATH}/bin/" || exit 1
+fi
+
+echo $GOPATH/bin/dapp-installer
+
 go build -o $GOPATH/bin/dapp-installer \
 -ldflags "-X main.Commit=$GIT_COMMIT -X main.Version=$GIT_RELEASE" -tags=notest || exit 1
 
-echo $GOPATH/bin/dapp-installer
 echo
 echo done

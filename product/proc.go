@@ -2,11 +2,13 @@ package product
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/sethvargo/go-password/password"
 	"gopkg.in/reform.v1"
 
@@ -86,7 +88,7 @@ func handler(dir string, tx *reform.TX) (srvProduct,
 	offerTplFile := filepath.Join(dir, templatePath, offeringTemplate)
 	accessTplFile := filepath.Join(dir, templatePath, accessTemplate)
 
-	offerTpl, _, err := templates(tx, offerTplFile, accessTplFile)
+	offerTpl, accessTpl, err := templates(tx, offerTplFile, accessTplFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -94,7 +96,7 @@ func handler(dir string, tx *reform.TX) (srvProduct,
 	serverProductFile := filepath.Join(dir, productPath, serverProduct)
 	clientProductFile := filepath.Join(dir, productPath, clientProduct)
 
-	return products(serverProductFile, clientProductFile, offerTpl.ID)
+	return products(serverProductFile, clientProductFile, offerTpl.ID, accessTpl.ID)
 }
 
 func adjustment(product *data.Product, configFile string) error {
@@ -123,21 +125,21 @@ func adjustment(product *data.Product, configFile string) error {
 
 func templates(tx *reform.TX, offer,
 	access string) (offerTpl, accessTpl *data.Template, err error) {
-	offerTpl, err = importTemplate(offer, tx)
+	offerTpl, err = importTemplate(offer, data.TemplateOffer, tx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	accessTpl, err = importTemplate(access, tx)
+	accessTpl, err = importTemplate(access, data.TemplateAccess, tx)
 	if err != nil {
 		return nil, nil, err
 	}
 	return offerTpl, accessTpl, err
 }
 
-func products(serverFile, clientFile, templateID string) (srvProduct,
+func products(serverFile, clientFile, templateID, accessID string) (srvProduct,
 	cliProduct *data.Product, err error) {
-	srvProduct, err = productFromFile(serverFile)
+	srvProduct, err = productFromFile(serverFile, templateID, accessID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,7 +148,7 @@ func products(serverFile, clientFile, templateID string) (srvProduct,
 		return nil, nil, ErrNotAssociated
 	}
 
-	cliProduct, err = productFromFile(clientFile)
+	cliProduct, err = productFromFile(clientFile, templateID, accessID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -238,13 +240,27 @@ func productConcord(product *data.Product, tplID string) bool {
 	return *product.OfferTplID == tplID
 }
 
-func importTemplate(file string, tx *reform.TX) (*data.Template, error) {
-	var template *data.Template
+func importTemplate(file, kind string, tx *reform.TX) (*data.Template, error) {
+	// Reading to map[string]interface{} and marshaling it compreses
+	// initial json by removing spaces and newlines which is what should be used
+	// to produce correct hash.
+	var schema map[string]interface{}
 
-	err := util.ReadJSONFile(file, &template)
+	err := util.ReadJSONFile(file, &schema)
+	if err != nil { 
+		return nil, err
+	}
+
+	schemaB, err := json.Marshal(schema)
 	if err != nil {
 		return nil, err
 	}
+
+	template := new(data.Template)
+	template.ID = util.NewUUID()
+	template.Raw = schemaB
+	template.Hash = data.HexFromBytes(crypto.Keccak256([]byte(schemaB)))
+	template.Kind = kind
 
 	err = tx.Insert(template)
 	if err != nil {
@@ -257,8 +273,10 @@ func importProduct(tx *reform.TX, product *data.Product) error {
 	return tx.Insert(product)
 }
 
-func productFromFile(file string) (product *data.Product, err error) {
+func productFromFile(file, offerID, accessID string) (product *data.Product, err error) {
 	err = util.ReadJSONFile(file, &product)
+	product.OfferTplID = &offerID
+	product.OfferAccessID = &accessID
 	return product, err
 }
 

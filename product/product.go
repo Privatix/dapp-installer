@@ -17,8 +17,6 @@ import (
 	"github.com/privatix/dapp-installer/util"
 )
 
-//go:generate go generate ../vendor/github.com/privatix/dappctrl/data/schema.go
-
 type product struct {
 	CoreDapp bool
 	Install  []command

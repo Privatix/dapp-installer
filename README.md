@@ -1,7 +1,7 @@
+[![Build Status](https://travis-ci.org/Privatix/dapp-installer.svg?branch=master)](https://travis-ci.org/Privatix/dapp-installer)
 [![Go Report Card](http://goreportcard.com/badge/github.com/Privatix/dapp-installer)](https://goreportcard.com/report/github.com/Privatix/dapp-installer)
 [![Maintainability](https://api.codeclimate.com/v1/badges/603af7ec449bf3ae153c/maintainability)](https://codeclimate.com/github/Privatix/dapp-installer/maintainability)
 [![GoDoc](https://godoc.org/github.com/Privatix/dapp-installer?status.svg)](https://godoc.org/github.com/Privatix/dapp-installer)
-[![pullreminders](https://pullreminders.com/badge.svg)](https://pullreminders.com?ref=badge)
 
 # Getting Started
 
@@ -20,11 +20,6 @@ git clone https://github.com/privatix/dapp-installer.git
 cd dapp-installer
 git checkout master
 
-```
-Create `Gopkg.toml`:
-
-```bash
-./scripts/toml.sh ./Gopkg.toml.template > ./Gopkg.toml
 ```
 
 Build `dapp-installer` package:

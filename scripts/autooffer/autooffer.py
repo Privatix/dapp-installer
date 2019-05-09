@@ -152,6 +152,7 @@ class AutoOffer():
         self.waitBot = 1
         self.waitblockchain = 90
         self.vpnConf = '/var/lib/container/agent/product/73e17130-2a1d-4f7d-97a8-93a9aaa6f10d/config/adapter.config.json'
+        self.template_id=""
 
     def _getAgentOffer(self, mark):
         logging.info('Get Offerings. Mark: {}'.format(mark))
@@ -210,10 +211,10 @@ class AutoOffer():
         logging.debug('Check offer data')
         params = {
             "product": self.product_id,
-            "template": "efc61769-96c8-4c0d-b50a-e4d11fc30523",
+            "template": self.template_id,
             "agent": self.agent_id,
-            "serviceName": "my service",
-            "description": "my service description",
+            "serviceName": "name",
+            "description": "description",
             "country": self.__getCountryName(),
             "supply": 30,
             "unitName": "MB",
@@ -351,6 +352,8 @@ class AutoOffer():
             if not res[0]:
                 return res
             self._wait_blockchain(target='psc')
+            template = self._get_template()
+            self.template_id = template['id']
             res = self._createOffer()
             logging.debug('product_id: {}'.format(self.product_id))
             logging.debug('offer_id: {}'.format(self.offer_id))
@@ -401,6 +404,20 @@ class AutoOffer():
             return self._getAgentOffer(mark)
         else:
             return False, res[1]
+
+    def _get_template(self):
+        logging.info('Get template')
+        data = {
+            'method': 'ui_getTemplates',
+            'params': [
+                self.token,
+                "offer"
+            ],
+            'id': self.id,
+        }
+        res = self.__urlOpen(data=data, key='result')
+        return res[1][0]
+
 
     def _createOffer(self):
         logging.info('Offering create')

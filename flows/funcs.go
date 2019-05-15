@@ -1,4 +1,4 @@
-package command
+package flows
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/privatix/dapp-installer/util"
 )
 
-func validatePath(d *dapp.Dapp) error {
+func validatePathAndSetAsRootPathForTorIfValid(d *dapp.Dapp) error {
 	path, err := filepath.Abs(d.Path)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func validatePath(d *dapp.Dapp) error {
 }
 
 func validateToInstall(d *dapp.Dapp) error {
-	if err := validatePath(d); err != nil {
+	if err := validatePathAndSetAsRootPathForTorIfValid(d); err != nil {
 		return err
 	}
 
@@ -145,7 +145,7 @@ func update(d *dapp.Dapp) error {
 }
 
 func checkInstallation(d *dapp.Dapp) error {
-	if err := validatePath(d); err != nil {
+	if err := validatePathAndSetAsRootPathForTorIfValid(d); err != nil {
 		return err
 	}
 
@@ -218,7 +218,7 @@ func removeDapp(d *dapp.Dapp) error {
 }
 
 func printStatus(d *dapp.Dapp) error {
-	if err := validatePath(d); err != nil {
+	if err := validatePathAndSetAsRootPathForTorIfValid(d); err != nil {
 		return err
 	}
 

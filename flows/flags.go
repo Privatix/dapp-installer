@@ -1,4 +1,4 @@
-package command
+package flows
 
 import (
 	"flag"
@@ -10,19 +10,6 @@ import (
 
 	"github.com/privatix/dapp-installer/dapp"
 )
-
-func processedRootFlags(printVersion func()) {
-	v := flag.Bool("version", false, "Prints current dapp-installer version")
-
-	flag.Parse()
-
-	if *v {
-		printVersion()
-		os.Exit(0)
-	}
-
-	fmt.Printf(rootHelp)
-}
 
 func processedInstallFlags(d *dapp.Dapp) error {
 	return processedCommonFlags(d, installHelp)

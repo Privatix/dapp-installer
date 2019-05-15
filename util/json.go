@@ -19,7 +19,9 @@ func MergeJSONFile(dstFile, srcFile string, exceptions ...string) error {
 	defer dstRead.Close()
 
 	dstMap := make(map[string]interface{})
-	json.NewDecoder(dstRead).Decode(&dstMap)
+	if err := json.NewDecoder(dstRead).Decode(&dstMap); err != nil {
+		return err
+	}
 
 	srcRead, err := os.Open(srcFile)
 	if err != nil {
@@ -28,7 +30,9 @@ func MergeJSONFile(dstFile, srcFile string, exceptions ...string) error {
 	defer srcRead.Close()
 
 	srcMap := make(map[string]interface{})
-	json.NewDecoder(srcRead).Decode(&srcMap)
+	if err := json.NewDecoder(srcRead).Decode(&srcMap); err != nil {
+		return err
+	}
 
 	m := &merger{exceptions: exceptions}
 	m.merge(dstMap, srcMap)

@@ -102,6 +102,8 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 
 	// Merge with exist dapp.
 	if err := d.merge(oldDapp); err != nil {
+		// TODO: refactor. this block knows about ambugious side effects
+		// (renaming dirs) of d.merge and acts accordingly.
 		os.RemoveAll(d.Path)
 		if len(oldDapp.BackupPath) > 0 {
 			os.Rename(oldDapp.BackupPath, oldDapp.Path)
@@ -109,10 +111,15 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 		return err
 	}
 
+	// TODO: refactor, can you guess what's the value of oldDapp.Path?
+	// Ambiguously it is not changed but that directory doesn't exists anymore,
+	// it is "backup" now.
 	d.Path = oldDapp.Path
 
 	// Start dbengine.
-	d.DBEngine.Start(d.Path)
+	if err := d.DBEngine.Start(d.Path); err != nil {
+		return err
+	}
 
 	// Update DB schema.
 	filePath := filepath.Join(d.Path, d.Controller.EntryPoint)
@@ -151,7 +158,9 @@ func (d *Dapp) modifyDappConfig() error {
 
 	jsonMap := make(map[string]interface{})
 
-	json.NewDecoder(read).Decode(&jsonMap)
+	if err := json.NewDecoder(read).Decode(&jsonMap); err != nil {
+		return err
+	}
 
 	d.UserID, err = machineid.ProtectedID("privatix")
 	if err != nil {
@@ -162,6 +171,8 @@ func (d *Dapp) modifyDappConfig() error {
 	settings[role] = d.Role
 	settings[torHostname] = d.Tor.Hostname
 	settings[torSocksListener] = d.Tor.SocksPort
+	// TODO: check. call to setDynamicPort above set free port to SOMCServer.Addr,
+	// what is Tot.TargetPort is busy?
 	settings["SOMCServer.Addr"] = fmt.Sprintf("localhost:%v",
 		d.Tor.TargetPort)
 	settings["Report.userid"] = d.UserID
@@ -284,6 +295,8 @@ func (d *Dapp) merge(s *Dapp) error {
 		return err
 	}
 
+	// Unexpected side effect in func called `merge`.
+	// TODO: Rename this func or move this out of here.
 	s.BackupPath = util.RenamePath(s.Path, "backup")
 	ctx, cancel := context.WithTimeout(context.Background(),
 		util.TimeOutInSec(d.Timeout))
@@ -292,7 +305,7 @@ func (d *Dapp) merge(s *Dapp) error {
 	err := util.RetryTillSucceed(ctx,
 		func() error { return os.Rename(s.Path, s.BackupPath) })
 	if err != nil {
-		return	fmt.Errorf("failed to rename: %v", err)
+		return fmt.Errorf("failed to rename: %v", err)
 	}
 
 	return os.Rename(d.Path, s.Path)

@@ -268,12 +268,12 @@ func executeOperation(role, path, command, oldPath,
 		productPath := filepath.Join(path, f.Name())
 
 		if len(oldPath) > 0 {
-			oldPath = filepath.Join(oldPath, productDir, f.Name())
+			oldProdPath := filepath.Join(oldPath, productDir, f.Name())
 
-			util.CopyFile(filepath.Join(oldPath, "config", envFile),
+			util.CopyFile(filepath.Join(oldProdPath, "config", envFile),
 				filepath.Join(productPath, "config", envFile))
 
-			util.CopyFile(filepath.Join(oldPath, "config",
+			util.CopyFile(filepath.Join(oldProdPath, "config",
 				".env.config.json"), filepath.Join(productPath,
 				"config", ".env.config.json"))
 		}

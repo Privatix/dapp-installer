@@ -682,16 +682,9 @@ ${program_stderr}</text>
                 </option>
             </optionList>
         </choiceParameter>
-        <booleanParameter>
-            <name>forceUpdate</name>
-            <description></description>
-            <explanation></explanation>
-            <value>1</value>
-            <default>0</default>
-            <ask>0</ask>
-        </booleanParameter>
-        <stringParameter name="product_id" value="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0"/>
-        <stringParameter name="product_name" value="VPN" ask="0"/>
+        <booleanParameter name="forceUpdate" default="0" ask="0"/>
+        <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0"/>
+        <stringParameter name="product_name" default="VPN" ask="0"/>
     </parameterList>
     <platformOptionsList>
         <platformOptions>

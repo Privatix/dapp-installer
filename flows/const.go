@@ -1,4 +1,4 @@
-package command
+package flows
 
 // status constants
 const (
@@ -10,7 +10,9 @@ const (
 const envFile = ".env.config.json"
 const dappCtrlDaemonOnLinux = "lib/systemd/system/dappctrl.service"
 
-const rootHelp = `
+// Help messages.
+const (
+	RootHelp = `
 Usage:
   dapp-installer [command] [flags]
 
@@ -30,8 +32,7 @@ Flags:
 
 Use "dapp-installer [command] --help" for more information about a command.
 `
-
-const updateHelp = `
+	updateHelp = `
 Usage:
 	dapp-installer update [flags]
 
@@ -42,8 +43,7 @@ Flags:
 	--verbose	Display log to console log
 	--help		Display help information
 `
-
-const removeHelp = `
+	removeHelp = `
 Usage:
 	dapp-installer remove [flags]
 
@@ -53,7 +53,7 @@ Flags:
 	--verbose	Display log to console log
 `
 
-const installHelp = `
+	installHelp = `
 Usage:
 	dapp-installer install [flags]
 
@@ -67,7 +67,7 @@ Flags:
 	--help		Display help information
 `
 
-const statusHelp = `
+	statusHelp = `
 Usage:
 	dapp-installer status [flags]
 
@@ -77,7 +77,7 @@ Flags:
 	--verbose	Display log to console log
 `
 
-const installProductHelp = `
+	installProductHelp = `
 Usage:
 	dapp-installer install-products [flags]
 
@@ -89,7 +89,7 @@ Flags:
 	--help		Display help information
 `
 
-const updateProductHelp = `
+	updateProductHelp = `
 Usage:
 	dapp-installer update-products [flags]
 
@@ -102,7 +102,7 @@ Flags:
 	--help		Display help information
 `
 
-const removeProductHelp = `
+	removeProductHelp = `
 Usage:
 	dapp-installer remove-products [flags]
 
@@ -113,3 +113,4 @@ Flags:
 	--verbose	Display log to console log
 	--help		Display help information
 `
+)

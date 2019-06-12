@@ -47,7 +47,6 @@ func Update() flow.Flow {
 			newStep("write version", writeVersion, nil),
 			newStep("write env", writeEnvironmentVariable, nil),
 			newStep("start tor", startTor, nil),
-			newStep("start products", startProducts, nil),
 			newStep("remove temp", removeTemp, nil),
 		},
 	}

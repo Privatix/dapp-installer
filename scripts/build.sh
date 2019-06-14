@@ -19,6 +19,7 @@ echo
 
 go generate -x ${DAPPINST_DIR}/...
 
+GIT_COMMIT=$(git rev-list -1 HEAD | head -n 1)
 if [ -z ${VERSION_TO_SET_IN_BUILDER} ]; then
     GIT_RELEASE=$(git tag -l --points-at HEAD | head -n 1)
     # if $GIT_RELEASE is zero:

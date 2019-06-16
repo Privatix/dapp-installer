@@ -367,7 +367,14 @@ func finalize(d *dapp.Dapp) error {
 		util.TimeOutInSec(d.Timeout))
 	defer cancel()
 	return util.RetryTillSucceed(ctx,
-		func() error { return restartContainer(d) })
+		func() error {
+			err := restartContainer(d)
+			if err != nil {
+				stopContainer(d)
+				time.Sleep(time.Second)
+			}
+			return err
+		})
 }
 
 func removeBackup(d *dapp.Dapp) error {

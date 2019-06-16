@@ -52,6 +52,26 @@ func stopContainer(d *dapp.Dapp) error {
 	return nil
 }
 
+func enableAndStartContainer(d *dapp.Dapp) error {
+	c := getContainer(d)
+
+	if err := c.EnableAndStart(); err != nil {
+		return fmt.Errorf("failed to enable and start container: %v", err)
+	}
+
+	return nil
+}
+
+func disableAndStopContainer(d *dapp.Dapp) error {
+	c := getContainer(d)
+
+	if err := c.DisableAndStop(); err != nil {
+		return fmt.Errorf("failed to disable and stop container: %v", err)
+	}
+
+	return nil
+}
+
 func restartContainer(d *dapp.Dapp) error {
 	c := getContainer(d)
 

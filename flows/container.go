@@ -117,19 +117,20 @@ func updateContainer(d *dapp.Dapp) error {
 
 	oldDapp := *d
 
+	// Extract.
 	b, dir := filepath.Split(d.Path)
 	newPath := filepath.Join(b, dir+"_new")
 	d.Path = newPath
-
-	if err := extract(d); err != nil {
+	if err := extractAndUpdateVersion(d); err != nil {
 		d.Path = oldDapp.Path
 		return err
 	}
+	d.Path = oldDapp.Path
 
 	defer os.RemoveAll(newPath)
 
+	// Read and store new version value.
 	version := util.ParseVersion(d.Version)
-	d.Path = oldDapp.Path
 	if util.ParseVersion(oldDapp.Version) >= version {
 		return fmt.Errorf(
 			"dapp current version: %s, update is not required",

@@ -341,17 +341,18 @@ func TimeOutInSec(timeout uint64) time.Duration {
 }
 
 // RetryTillSucceed tries execute func till succeed or returns timeout error.
-func RetryTillSucceed(ctx context.Context, f func() error) error {
+func RetryTillSucceed(ctx context.Context, f func() error) (err error) {
 	t := time.NewTicker(200 * time.Millisecond)
 	defer t.Stop()
 	for {
 		select {
 		case <-t.C:
-			if err := f(); err == nil {
-				return nil
+			err = f()
+			if err == nil {
+				return
 			}
 		case <-ctx.Done():
-			return ctx.Err()
+			return
 		}
 	}
 }

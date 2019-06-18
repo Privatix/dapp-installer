@@ -43,6 +43,7 @@ func Update() flow.Flow {
 			newStep("init temp", initTemp, removeTemp),
 			newStep("stop tor", stopTor, startTor),
 			newStep("stop services", stopServices, startServices),
+			newStep("stop product services", stopProducts, nil),
 			newStep("update", update, startProducts),
 			newStep("write version", writeVersion, nil),
 			newStep("write env", writeEnvironmentVariable, nil),

@@ -1,0 +1,24 @@
+{
+    "serviceName": "vpn",
+    "description": "vpn",
+    "country": "zz",
+    "supply": 30,
+    "unitName": "MB",
+    "autoPopUp": true,
+    "unitType": "units",
+    "billingType": "postpaid",
+    "setupPrice": 0,
+    "unitPrice": 1000,
+    "minUnits": 10000,
+    "maxUnit": 30000,
+    "billingInterval": 1,
+    "maxBillingUnitLag": 100,
+    "maxSuspendTime": 1800,
+    "maxInactiveTimeSec": 1800,
+    "freeUnits": 0,
+    "additionalParams": {
+        "minDownloadMbits": 100,
+        "minUploadMbits": 80
+    }
+}
+

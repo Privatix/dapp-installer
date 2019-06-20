@@ -1,5 +1,3 @@
-import json
-
 from dappctrl_rpc import *
 
 token = get_token(default_password)
@@ -12,4 +10,10 @@ for product in products:
                                      "popping_up", "popped_up", "removing",
                                      "removed"]
                                     , 0, 100)
-    print("\tOfferings: {}".format(json.dumps(offerings, indent=8)))
+
+    for offering in offerings:
+        print("\n\t{} ({}):".format(offering["serviceName"], offering["id"]))
+        print("\t\tstatus: {}".format(offering["status"]))
+        print("\t\thash: {}".format(offering["hash"]))
+        print("\t\tsupply: {}".format(offering["supply"]))
+        print("\t\tcurrentSupply: {}".format(offering["currentSupply"]))

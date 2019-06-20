@@ -195,5 +195,22 @@ def get_agent_offerings(token, product_id, status, offset, limit):
     _check_ok(
         "Get agent offerings (product_id: {}, status: {}, offset: {}, limit: {})".format(product_id, status, offset,
                                                                                          limit), response)
+    return response.json()["result"]["items"]
 
-    return response.json()["result"]
+
+def change_offering_status(token, offering_id, action, gas_price=6000000000):
+    data = {
+        'method': 'ui_changeOfferingStatus',
+        'params': [
+            token,
+            offering_id,
+            action,
+            gas_price,
+
+        ],
+        'id': default_id,
+    }
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok(
+        "Change offering status (offering_id: {}, action: {})".format(offering_id, action), response)

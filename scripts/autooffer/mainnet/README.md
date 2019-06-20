@@ -1,4 +1,4 @@
-# mainnet tools for offering publication
+# Tools for step-by-step offering publications
 
 ## Offering's publication steps
 
@@ -43,7 +43,13 @@ python check_account.py
 python publish_offering.py ./offering.json
 ```
 
-### 6. Transfer all PRIX from PSC to PTS  
+Ensure, that the offering has been published (usually it takes 5-10 min):
+
+```bash
+python get_offerings.py
+```
+
+### 6. Transfer all earned PRIX from PSC to PTS  
 
 ```bash
 python transfer_all_to_ptc.py
@@ -87,12 +93,12 @@ Export private key
 	Private key file: /Users/user/tmp/private_key.json
 ```
 
-### check_account.py
+### check_accounts.py
 
 #### Usage
 
 ```bash
-python check_account.py
+python check_accounts.py
 ```
 
 #### Output
@@ -188,51 +194,85 @@ python get_offerings.py
 ```
 Get token
 	Ok: <Response [200]>
-	Token: iB60moN_beJFSRGIEY77NicS-gr31fHKsfpWLqpCb2s=
+	Token: Rt-Xb27IqCZ-va-j8zQ6GzefEIWwrJR8EIyYu-aFbqY=
 
 Get products
 	Ok: <Response [200]>
 
 Get agent offerings (product_id: 89e338bf-f594-4c6d-89fc-6ccda002cf26, status: ['empty', 'registering', 'registered', 'popping_up', 'popped_up', 'removing', 'removed'], offset: 0, limit: 100)
 	Ok: <Response [200]>
-	Offerings: {
-        "totalItems": 1, 
-        "items": [
-                {
-                        "somcSuccessPing": null, 
-                        "somcType": 0, 
-                        "supply": 30, 
-                        "billingType": "postpaid", 
-                        "agent": "9486205adc7147ae551804c97c5bbb723ec7b826", 
-                        "billingInterval": 1, 
-                        "unitType": "units", 
-                        "somcData": "", 
-                        "id": "11400304-a20c-4348-aa88-999d2d309631", 
-                        "autoPopUp": true, 
-                        "isLocal": false, 
-                        "rawMsg": "eyJhZ2VudFB1YmxpY0tleSI6IkJOM0ZRU2VLS2pRQXhkVUM3dkdDZDJRd1VsYUZvQ29mUnFMU0RMSEJzVkRuTlF5RzlzUzVoa0dqYlBiUkRzSGZPZ3JFM1FCU2ZUTjVkUUt0cEMzXzQ3dz0iLCJ0ZW1wbGF0ZUhhc2giOiI5ZWE5NjU5YTk2OWRjYjkzMWM3ZjgxOWRlODNlNmUxNGRhNTMxNmY1YWJlM2M5NWFiOGM2MzhkNWZmOGRkNTFjIiwiY291bnRyeSI6IlJVIiwic2VydmljZVN1cHBseSI6MzAsInVuaXROYW1lIjoiTUIiLCJ1bml0VHlwZSI6InVuaXRzIiwiYmlsbGluZ1R5cGUiOiJwb3N0cGFpZCIsInNldHVwUHJpY2UiOjAsInVuaXRQcmljZSI6MTAwMCwibWluVW5pdHMiOjEwMDAwLCJtYXhVbml0IjozMDAwMCwiYmlsbGluZ0ludGVydmFsIjoxLCJtYXhCaWxsaW5nVW5pdExhZyI6MTAwLCJtYXhTdXNwZW5kVGltZSI6MTgwMCwibWF4SW5hY3RpdmVUaW1lU2VjIjoxODAwLCJmcmVlVW5pdHMiOjAsIm5vbmNlIjoiMTE0MDAzMDQtYTIwYy00MzQ4LWFhODgtOTk5ZDJkMzA5NjMxIiwic2VydmljZVNwZWNpZmljUGFyYW1ldGVycyI6ImV5SnRhVzVFYjNkdWJHOWhaRTFpYVhSeklqb2dNVEF3TENBaWJXbHVWWEJzYjJGa1RXSnBkSE1pT2lBNE1IMD0ifanU7oonyfly9wGllllnbP3BdTOBTSRyM9uSpE-cnob6L2gr6zV-PZy19MaEeg3Zl1u0WzD53cCmdEyHLVRf8BE=", 
-                        "maxInactiveTimeSec": 1800, 
-                        "maxSuspendTime": 1800, 
-                        "serviceName": "VPN", 
-                        "template": "ab6964b8-5586-4bed-a546-795e944af586", 
-                        "blockNumberUpdated": 1, 
-                        "setupPrice": 0, 
-                        "status": "empty", 
-                        "product": "89e338bf-f594-4c6d-89fc-6ccda002cf26", 
-                        "hash": "1efb5586c5a6506047e555cfe0126fb076a7a7b3ae8d65fff0c71772dc04a98c", 
-                        "description": "VPN", 
-                        "unitName": "MB", 
-                        "maxBillingUnitLag": 100, 
-                        "currentSupply": 30, 
-                        "unitPrice": 1000, 
-                        "country": "RU", 
-                        "freeUnits": 0, 
-                        "minUnits": 10000, 
-                        "additionalParams": {
-                                "minDownloadMbits": 100, 
-                                "minUploadMbits": 80
-                        }, 
-                        "maxUnit": 30000
-                }
-        ]
-}```
+
+	VPN (ec4a47f7-3c56-4cd3-b3c4-41553f3cf6f1):
+		status: registered
+		hash: d902ddbcdefa0c924bee6a41825c19b0cd00e3153c68abbd930e43e7b00401d8
+		supply: 30
+		currentSupply: 30
+
+	VPN (11400304-a20c-4348-aa88-999d2d309631):
+		status: empty
+		hash: 1efb5586c5a6506047e555cfe0126fb076a7a7b3ae8d65fff0c71772dc04a98c
+		supply: 30
+		currentSupply: 30
+```
+
+
+### publish_offering.py
+
+#### Usage
+
+```bash
+python publish_offering.py offering.json
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+	Token: 4EWTKhTbP1zhHnhzQl45i7ixLHI0FTM6I9Tse2Ksal0=
+
+Get products
+	Ok: <Response [200]>
+
+Get accounts
+	Ok: <Response [200]>
+
+Used product: VPN
+
+Used account: main
+
+Offering: {
+        "billingType": "postpaid", 
+        "maxInactiveTimeSec": 1800, 
+        "autoPopUp": true, 
+        "description": "VPN", 
+        "unitName": "MB", 
+        "unitPrice": 1000, 
+        "maxBillingUnitLag": 100, 
+        "supply": 30, 
+        "freeUnits": 0, 
+        "agent": "eec83276-bc94-4dc4-b04f-cc5e5173a6fb", 
+        "maxSuspendTime": 1800, 
+        "product": "89e338bf-f594-4c6d-89fc-6ccda002cf26", 
+        "billingInterval": 1, 
+        "unitType": "units", 
+        "serviceName": "VPN", 
+        "template": "ab6964b8-5586-4bed-a546-795e944af586", 
+        "minUnits": 10000, 
+        "additionalParams": {
+                "minDownloadMbits": 100, 
+                "minUploadMbits": 80
+        }, 
+        "country": "RU", 
+        "setupPrice": 0, 
+        "maxUnit": 30000
+}
+
+Create offering
+	Ok: <Response [200]>
+
+Offering id: b706c092-dbcf-4847-b0f6-cf6c095d2cdd
+
+Change offering status (offering_id: b706c092-dbcf-4847-b0f6-cf6c095d2cdd, action: publish)
+	Ok: <Response [200]>
+```

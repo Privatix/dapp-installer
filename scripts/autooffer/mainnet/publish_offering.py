@@ -32,4 +32,4 @@ print("\nOffering: {}".format(json.dumps(offering, indent=8)))
 offering_id = create_offering(token, offering)
 print("\nOffering id: {}".format(offering_id))
 
-# 11400304-a20c-4348-aa88-999d2d309631
+change_offering_status(token, offering_id, "publish")

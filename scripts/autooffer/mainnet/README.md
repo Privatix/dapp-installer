@@ -1,8 +1,12 @@
 # Tools for step-by-step offering publications
 
+Prerequisites:
+
+* python 3+
+
 ## Offering's publication steps
 
-### 0. Install prerequisites
+### 0. Install dependencies
 
 ```bash
 ./install_dependencies.sh

@@ -18,23 +18,23 @@ def _check_ok(text, response):
     print('\tOk: ' + str(response))
 
 
-def set_password(password):
-    data = {
-        'method': "ui_setPassword",
-        'params': [password],
+def _request_payload(method, args):
+    return {
+        'method': method,
+        'params': args,
         'id': default_id,
     }
+
+
+def set_password(password):
+    data = _request_payload("ui_setPassword", [password])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Set password", response)
 
 
 def get_token(password):
-    data = {
-        'method': "ui_getToken",
-        'params': [password],
-        'id': default_id,
-    }
+    data = _request_payload("ui_getToken", [password])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Get token", response)
@@ -43,13 +43,7 @@ def get_token(password):
 
 
 def get_accounts(token):
-    data = {
-        'method': "ui_getAccounts",
-        'params': [
-            token
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_getAccounts", [token])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Get accounts", response)
@@ -58,49 +52,30 @@ def get_accounts(token):
 
 
 def create_account(token, name="main"):
-    data = {
-        'method': 'ui_generateAccount',
-        'params': [
-            token,
-            {
-                'name': name,
-                'isDefault': True,
-                'inUse': True,
-            }
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_generateAccount", [token,
+                                                   {
+                                                       'name': name,
+                                                       'isDefault': True,
+                                                       'inUse': True,
+                                                   }])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Generate account (name: {})".format(name), response)
+
     return response.json()["result"]
 
 
 def get_object(token, object_type, object_id):
-    data = {
-        'method': 'ui_getObject',
-        'params': [
-            token,
-            object_type,
-            object_id,
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_getObject", [token, object_type, object_id])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Get object (type: {}, id: {})".format(object_type, object_id), response)
+
     return response.json()["result"]
 
 
 def export_private_key(token, account_id):
-    data = {
-        'method': 'ui_exportPrivateKey',
-        'params': [
-            token,
-            account_id
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_exportPrivateKey", [token, account_id])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Export private key (account: {})".format(account_id), response)
@@ -109,17 +84,8 @@ def export_private_key(token, account_id):
 
 
 def transfer_tokens(token, account_id, token_amount, direction, gas_price=6000000000):
-    data = {
-        'method': 'ui_transferTokens',
-        'params': [
-            token,
-            account_id,
-            direction,
-            token_amount,
-            gas_price
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_transferTokens", [token, account_id, direction,
+                                                  token_amount, gas_price])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Transfer tokens (amount: {}, gas price: {}, direction: {})".format(token_amount, gas_price, direction),
@@ -127,17 +93,8 @@ def transfer_tokens(token, account_id, token_amount, direction, gas_price=600000
 
 
 def get_eth_transactions(token, type, related_id, offset, limit):
-    data = {
-        'method': 'ui_getEthTransactions',
-        'params': [
-            token,
-            type,
-            related_id,
-            offset,
-            limit,
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_getEthTransactions", [token, type, related_id,
+                                                      offset, limit])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Get eth transactions (type: {}, id: {}, offset: {}, limit: {})".format(type, related_id, offset, limit),
@@ -147,15 +104,7 @@ def get_eth_transactions(token, type, related_id, offset, limit):
 
 
 def create_offering(token, offering):
-    data = {
-        'method': 'ui_createOffering',
-        'params': [
-            token,
-            offering
-
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_createOffering", [token, offering])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Create offering", response)
@@ -164,13 +113,7 @@ def create_offering(token, offering):
 
 
 def get_products(token):
-    data = {
-        'method': 'ui_getProducts',
-        'params': [
-            token
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_getProducts", [token])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Get products", response)
@@ -179,17 +122,8 @@ def get_products(token):
 
 
 def get_agent_offerings(token, product_id, status, offset, limit):
-    data = {
-        'method': 'ui_getAgentOfferings',
-        'params': [
-            token,
-            product_id,
-            status,
-            offset,
-            limit
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_getAgentOfferings", [token, product_id, status,
+                                                     offset, limit])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok(
@@ -199,17 +133,8 @@ def get_agent_offerings(token, product_id, status, offset, limit):
 
 
 def change_offering_status(token, offering_id, action, gas_price=6000000000):
-    data = {
-        'method': 'ui_changeOfferingStatus',
-        'params': [
-            token,
-            offering_id,
-            action,
-            gas_price,
-
-        ],
-        'id': default_id,
-    }
+    data = _request_payload("ui_changeOfferingStatus", [token, offering_id,
+                                                        action, gas_price])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok(

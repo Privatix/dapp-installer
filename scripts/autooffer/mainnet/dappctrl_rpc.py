@@ -5,6 +5,8 @@ header = {
 }
 
 default_password = "Qwerty=999"
+default_id = 1
+
 endpoint = "http://localhost:8888/http"
 
 
@@ -20,7 +22,7 @@ def set_password(password):
     data = {
         'method': "ui_setPassword",
         'params': [password],
-        'id': 1,
+        'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
@@ -31,7 +33,7 @@ def get_token(password):
     data = {
         'method': "ui_getToken",
         'params': [password],
-        'id': 1,
+        'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
@@ -40,13 +42,13 @@ def get_token(password):
     return response.json()["result"]
 
 
-def get_account(token):
+def get_accounts(token):
     data = {
         'method': "ui_getAccounts",
         'params': [
             token
         ],
-        'id': 1,
+        'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
@@ -55,22 +57,22 @@ def get_account(token):
     return response.json()["result"]
 
 
-def create_account(token):
+def create_account(token, name="main"):
     data = {
         'method': 'ui_generateAccount',
         'params': [
             token,
             {
-                'name': 'main',
+                'name': name,
                 'isDefault': True,
                 'inUse': True,
             }
         ],
-        'id': 1,
+        'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
-    _check_ok("Generate account", response)
+    _check_ok("Generate account (name: {})".format(name), response)
     return response.json()["result"]
 
 
@@ -82,11 +84,11 @@ def get_eth_address(token, account):
             'account',
             account,
         ],
-        'id': 1,
+        'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
-    _check_ok("Get public address", response)
+    _check_ok("Get public address (account: {})".format(account), response)
     return response.json()["result"]["ethAddr"]
 
 
@@ -97,10 +99,48 @@ def export_private_key(token, account):
             token,
             account
         ],
-        'id': 1,
+        'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
-    _check_ok("Export private key", response)
+    _check_ok("Export private key (account: {})".format(account), response)
 
     return response.json()["result"]
+
+
+def transfer_tokens(token, account, token_amount, direction, gas_price=6000000000):
+    data = {
+        'method': 'ui_transferTokens',
+        'params': [
+            token,
+            account,
+            direction,
+            token_amount,
+            gas_price
+        ],
+        'id': default_id,
+    }
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Transfer tokens (amount: {}, gas price: {}, direction: {})".format(token_amount, gas_price, direction),
+              response)
+
+
+def get_eth_transactions(token, type, related_id, offset, limit):
+    data = {
+        'method': 'ui_getEthTransactions',
+        'params': [
+            token,
+            type,
+            related_id,
+            offset,
+            limit,
+        ],
+        'id': default_id,
+    }
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Get eth transactions (type: {}, id: {}, offset: {}, limit: {})".format(type, related_id, offset, limit),
+              response)
+
+    return response.json()["result"]["items"]

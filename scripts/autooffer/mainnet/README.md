@@ -109,3 +109,35 @@ Get account
                 "isDefault": true
         }
 ]
+```
+
+### transfer_all_to_psc.py
+
+#### Usage
+
+```bash
+python transfer_all_to_psc.py
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+	Token: CGWMRsSDVJQ0Immnt90VlCBswDv0L6FGymRK1iBPgl4=
+
+Get accounts
+	Ok: <Response [200]>
+
+Processing account: main (eec83276-bc94-4dc4-b04f-cc5e5173a6fb)
+
+Transfer tokens (amount: 1000000000, gas price: 6000000000, direction: psc)
+	Ok: <Response [200]>
+	
+Get eth transactions (type: accountAggregated, id: eec83276-bc94-4dc4-b04f-cc5e5173a6fb, offset: 0, limit: 100)
+	Ok: <Response [200]>
+
+	PTCIncreaseApproval: 
+		sent 2019-06-20T12:10:01.500787+03:00
+		https://etherscan.io/tx/0xc5bb8da80d7f68e1637c6d455e11a8c3cf6316d095dfd30fe09e1912d1c34a3e
+```

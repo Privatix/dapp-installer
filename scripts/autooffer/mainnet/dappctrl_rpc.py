@@ -76,44 +76,44 @@ def create_account(token, name="main"):
     return response.json()["result"]
 
 
-def get_eth_address(token, account):
+def get_object(token, object_type, object_id):
     data = {
         'method': 'ui_getObject',
         'params': [
             token,
-            'account',
-            account,
+            object_type,
+            object_id,
         ],
         'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
-    _check_ok("Get public address (account: {})".format(account), response)
-    return response.json()["result"]["ethAddr"]
+    _check_ok("Get object (type: {}, id: {})".format(object_type, object_id), response)
+    return response.json()["result"]
 
 
-def export_private_key(token, account):
+def export_private_key(token, account_id):
     data = {
         'method': 'ui_exportPrivateKey',
         'params': [
             token,
-            account
+            account_id
         ],
         'id': default_id,
     }
 
     response = requests.post(endpoint, json=data, headers=header)
-    _check_ok("Export private key (account: {})".format(account), response)
+    _check_ok("Export private key (account: {})".format(account_id), response)
 
     return response.json()["result"]
 
 
-def transfer_tokens(token, account, token_amount, direction, gas_price=6000000000):
+def transfer_tokens(token, account_id, token_amount, direction, gas_price=6000000000):
     data = {
         'method': 'ui_transferTokens',
         'params': [
             token,
-            account,
+            account_id,
             direction,
             token_amount,
             gas_price

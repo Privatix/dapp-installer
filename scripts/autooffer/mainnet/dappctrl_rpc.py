@@ -144,3 +144,56 @@ def get_eth_transactions(token, type, related_id, offset, limit):
               response)
 
     return response.json()["result"]["items"]
+
+
+def create_offering(token, offering):
+    data = {
+        'method': 'ui_createOffering',
+        'params': [
+            token,
+            offering
+
+        ],
+        'id': default_id,
+    }
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Create offering", response)
+
+    return response.json()["result"]
+
+
+def get_products(token):
+    data = {
+        'method': 'ui_getProducts',
+        'params': [
+            token
+        ],
+        'id': default_id,
+    }
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Get products", response)
+
+    return response.json()["result"]
+
+
+def get_agent_offerings(token, product_id, status, offset, limit):
+    data = {
+        'method': 'ui_getAgentOfferings',
+        'params': [
+            token,
+            product_id,
+            status,
+            offset,
+            limit
+        ],
+        'id': default_id,
+    }
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok(
+        "Get agent offerings (product_id: {}, status: {}, offset: {}, limit: {})".format(product_id, status, offset,
+                                                                                         limit), response)
+
+    return response.json()["result"]

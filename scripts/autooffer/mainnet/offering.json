@@ -1,7 +1,4 @@
 {
-    "serviceName": "vpn",
-    "description": "vpn",
-    "country": "zz",
     "supply": 30,
     "unitName": "MB",
     "autoPopUp": true,

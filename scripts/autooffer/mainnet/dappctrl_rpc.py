@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 # rpc doc:
@@ -7,7 +9,7 @@ header = {
     'Content-Type': 'application/json',
 }
 
-default_password = "Qwerty=999"
+default_password = os.environ.get("DAPP_PASSWORD", "Qwerty=999")
 default_id = 1
 
 endpoint = "http://localhost:8888/http"

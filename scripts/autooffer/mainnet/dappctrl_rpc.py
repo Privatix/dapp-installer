@@ -1,5 +1,8 @@
 import requests
 
+# rpc doc:
+#   https://github.com/Privatix/dappctrl/blob/master/doc/ui/rpc.md
+
 header = {
     'Content-Type': 'application/json',
 }

@@ -34,3 +34,5 @@ dapp-installer\.iml
 !.keep
 
 Gopkg\.toml
+
+*.pyc

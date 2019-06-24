@@ -58,7 +58,7 @@ func removeTemp(d *dapp.Dapp) error {
 	return nil
 }
 
-func extract(d *dapp.Dapp) error {
+func extractAndUpdateVersion(d *dapp.Dapp) error {
 	path := d.Download()
 
 	if _, err := os.Stat(d.Path); os.IsNotExist(err) {
@@ -116,20 +116,22 @@ func remove(d *dapp.Dapp) error {
 func update(d *dapp.Dapp) error {
 	oldDapp := *d
 
+	// Extract.
 	b, dir := filepath.Split(oldDapp.Path)
 	newPath := filepath.Join(b, dir+"_new")
 	d.Path = newPath
-
-	if err := extract(d); err != nil {
+	if err := extractAndUpdateVersion(d); err != nil {
 		d.Path = oldDapp.Path
 		return err
 	}
+	defer func() {
+		d.Path = oldDapp.Path
+		os.RemoveAll(newPath)
+	}()
 
-	defer os.RemoveAll(newPath)
-
+	// Read and store new version value.
 	version := util.ParseVersion(d.Version)
 	if util.ParseVersion(oldDapp.Version) >= version {
-		d.Path = oldDapp.Path
 		return fmt.Errorf(
 			"dapp current version: %s, update is not required",
 			oldDapp.Version)
@@ -137,7 +139,6 @@ func update(d *dapp.Dapp) error {
 
 	// Update dapp core.
 	if err := d.Update(&oldDapp); err != nil {
-		d.Path = oldDapp.Path
 		return fmt.Errorf("failed to update dapp: %v", err)
 	}
 
@@ -367,7 +368,14 @@ func finalize(d *dapp.Dapp) error {
 		util.TimeOutInSec(d.Timeout))
 	defer cancel()
 	return util.RetryTillSucceed(ctx,
-		func() error { return restartContainer(d) })
+		func() error {
+			err := restartContainer(d)
+			if err != nil {
+				stopContainer(d)
+				time.Sleep(time.Second)
+			}
+			return err
+		})
 }
 
 func removeBackup(d *dapp.Dapp) error {

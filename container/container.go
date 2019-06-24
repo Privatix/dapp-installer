@@ -56,11 +56,19 @@ func (c *Container) Install() error {
 		return err
 	}
 
-	if err := util.ExecuteCommand("systemctl", "daemon-reload"); err != nil {
-		return err
-	}
+	return util.ExecuteCommand("systemctl", "daemon-reload")
+}
 
-	return util.ExecuteCommand("systemctl", "enable", c.daemonName())
+// EnableAndStart container nspawn service.
+func (c *Container) EnableAndStart() error {
+	// --now start a service
+	return util.ExecuteCommand("systemctl", "enable", "--now", c.daemonName())
+}
+
+// DisableAndStop container nspawn service.
+func (c *Container) DisableAndStop() error {
+	// --now stops a service
+	return util.ExecuteCommand("systemctl", "disable", "--now", c.daemonName())
 }
 
 // Start starts the container.

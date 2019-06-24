@@ -43,12 +43,16 @@ func (engine *DBEngine) CreateDatabase(fileName string) error {
 		return err
 	}
 
-	return engine.databaseInit(fileName)
+	return engine.loadproddata(fileName)
 }
 
 // UpdateDatabase executes db migrations scripts.
 func (engine DBEngine) UpdateDatabase(fileName string) error {
-	return engine.databaseMigrate(fileName)
+	if err := engine.databaseMigrate(fileName); err != nil {
+		return err
+	}
+
+	return engine.loadproddata(fileName)
 }
 
 func (engine DBEngine) createDatabase(fileName string) error {
@@ -71,9 +75,9 @@ func (engine DBEngine) databaseMigrate(fileName string) error {
 	return util.ExecuteCommand(fileName, "db-migrate", "-conn", conn)
 }
 
-func (engine DBEngine) databaseInit(fileName string) error {
+func (engine DBEngine) loadproddata(fileName string) error {
 	conn := engine.DB.ConnectionString()
-	return util.ExecuteCommand(fileName, "db-init-data", "-conn", conn)
+	return util.ExecuteCommand(fileName, "db-load-data", "-conn", conn)
 }
 
 // Install installs a DB engine.

@@ -14,6 +14,17 @@ Prerequisites:
 
 ### 1. Create an account
 
+Set up password for the account:
+
+```bash
+export DAPP_PASSWORD=some_password
+```
+
+This password will be used as:
+
+* Application password
+* Passphrase for a private key encryption
+
 ```bash
 python create_account.py
 ```

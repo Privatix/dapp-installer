@@ -11,7 +11,7 @@ token = get_token(default_password)
 print("\tToken: {}".format(token))
 
 account_id = create_account(token)
-print("\tAccount: {}".format(account))
+print("\tAccount id: {}".format(account_id))
 
 account = get_object(token, "account", account_id)
 print("\tEth address: 0x{}".format(account["ethAddr"]))

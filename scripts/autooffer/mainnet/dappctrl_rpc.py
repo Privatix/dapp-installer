@@ -96,7 +96,7 @@ def transfer_tokens(token, account_id, token_amount, direction, gas_price=600000
     _check_ok("Transfer tokens (amount: {}, gas price: {}, direction: {})".format(token_amount, gas_price, direction),
               response)
 
-
+# type: offering, channel, endpoint, account, accountAggregated
 def get_eth_transactions(token, type, related_id, offset, limit):
     data = _request_payload("ui_getEthTransactions", [token, type, related_id,
                                                       offset, limit])

@@ -96,6 +96,7 @@ def transfer_tokens(token, account_id, token_amount, direction, gas_price=600000
     _check_ok("Transfer tokens (amount: {}, gas price: {}, direction: {})".format(token_amount, gas_price, direction),
               response)
 
+
 # type: offering, channel, endpoint, account, accountAggregated
 def get_eth_transactions(token, type, related_id, offset, limit):
     data = _request_payload("ui_getEthTransactions", [token, type, related_id,
@@ -144,3 +145,24 @@ def change_offering_status(token, offering_id, action, gas_price=6000000000):
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok(
         "Change offering status (offering_id: {}, action: {})".format(offering_id, action), response)
+
+
+def get_logs(token, levels, text, lower_bound, upper_bound, offset, limit):
+    data = _request_payload("ui_getLogs", [token, [levels], text, lower_bound, upper_bound, offset, limit])
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok(
+        "Get logs (levels: {}, text: [{}], lower_bound: {}, upper_bound: {}, offset: {}, limit: {})".format(levels,
+                                                                                                            text,
+                                                                                                            lower_bound,
+                                                                                                            upper_bound,
+                                                                                                            offset,
+                                                                                                            limit),
+        response)
+
+
+def update_balance(token, account_id):
+    data = _request_payload("ui_updateBalance", [token, account_id])
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Update balance (account_id: {})".format(account_id), response)

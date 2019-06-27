@@ -8,7 +8,7 @@
     "unitPrice": 1000,
     "minUnits": 10000,
     "maxUnit": 30000,
-    "billingInterval": 1,
+    "billingInterval": 70,
     "maxBillingUnitLag": 100,
     "maxSuspendTime": 1800,
     "maxInactiveTimeSec": 1800,

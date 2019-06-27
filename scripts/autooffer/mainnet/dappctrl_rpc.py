@@ -159,6 +159,7 @@ def get_logs(token, levels, text, lower_bound, upper_bound, offset, limit):
                                                                                                             offset,
                                                                                                             limit),
         response)
+    return response["result"]["items"]
 
 
 def update_balance(token, account_id):

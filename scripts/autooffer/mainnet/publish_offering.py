@@ -3,6 +3,7 @@ import sys
 
 from dappctrl_rpc import *
 
+# "unitPrice": 1000 == 0.00001 PRIX
 offering_file_name = sys.argv[1]
 
 token = get_token(default_password)

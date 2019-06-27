@@ -7,7 +7,6 @@ from dappctrl_rpc import *
 offering_file_name = sys.argv[1]
 
 token = get_token(default_password)
-print("\tToken: {}".format(token))
 
 products = get_products(token)
 product = products[0]

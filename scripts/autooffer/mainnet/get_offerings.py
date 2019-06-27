@@ -1,7 +1,6 @@
 from dappctrl_rpc import *
 
 token = get_token(default_password)
-print("\tToken: {}".format(token))
 
 products = get_products(token)
 for product in products:

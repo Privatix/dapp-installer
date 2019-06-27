@@ -1,7 +1,24 @@
+import json
+from datetime import datetime, timedelta
+
 from dappctrl_rpc import *
 
-token = get_token(default_password)
-print("\tToken: {}".format(token))
+minutes = 30
+print("Show errors for the last {} minutes".format(minutes))
 
-errors = get_logs(token, ["error"], "", "2017-1-1T1:1:1", "2217-1-1T1:1:1", 0, 100)
-print("Errors: {}", errors)
+current_date = datetime.now()
+past_date = current_date - timedelta(minutes=minutes)
+
+token = get_token(default_password)
+
+errors = get_logs(token, ["error"], "", str(past_date.isoformat()), str(current_date.isoformat()), 0, 100)
+if errors is None:
+    exit(0)
+
+for error in errors:
+    print("-" * 80)
+    print("\n{}:\n\tMessage: {}\n\n\tContext: {}\n\n\tTime: {}".format(
+        error["level"],
+        error["message"],
+        json.dumps(error["context"]),
+        error["time"]))

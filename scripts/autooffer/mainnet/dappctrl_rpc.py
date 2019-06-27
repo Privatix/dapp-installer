@@ -17,9 +17,17 @@ endpoint = "http://localhost:8888/http"
 
 def _check_ok(text, response):
     print("\n{}".format(text))
+
     if not response.ok:
         print("\tError: {0}({1})".format(response.text, response.reason))
         exit(1)
+
+    response_in_json = response.json()
+
+    if "error" in response_in_json:
+        print("\tError: {0}".format(response_in_json["error"]))
+        exit(1)
+
     print('\tOk: ' + str(response))
 
 
@@ -148,18 +156,18 @@ def change_offering_status(token, offering_id, action, gas_price=6000000000):
 
 
 def get_logs(token, levels, text, lower_bound, upper_bound, offset, limit):
-    data = _request_payload("ui_getLogs", [token, [levels], text, lower_bound, upper_bound, offset, limit])
+    data = _request_payload("ui_getLogs", [token, levels, text, lower_bound, upper_bound, offset, limit])
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok(
-        "Get logs (levels: {}, text: [{}], lower_bound: {}, upper_bound: {}, offset: {}, limit: {})".format(levels,
-                                                                                                            text,
-                                                                                                            lower_bound,
-                                                                                                            upper_bound,
-                                                                                                            offset,
-                                                                                                            limit),
+        "Get logs (levels: {}, text: \"{}\", lower_bound: {}, upper_bound: {}, offset: {}, limit: {})".format(levels,
+                                                                                                              text,
+                                                                                                              lower_bound,
+                                                                                                              upper_bound,
+                                                                                                              offset,
+                                                                                                              limit),
         response)
-    return response["result"]["items"]
+    return response.json()["result"]["items"]
 
 
 def update_balance(token, account_id):

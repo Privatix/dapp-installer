@@ -5,4 +5,17 @@ from dappctrl_rpc import *
 token = get_token(default_password)
 
 accounts = get_accounts(token)
-print("\tAccounts: {}".format(json.dumps(accounts, indent=8)))
+for account in accounts:
+    print("-" * 80)
+    print(
+        "\n{}:\n\tAddr: 0x{}\n\tETH: {}\n\tPTC: {} PRIX\n\tPSC: {} PRIX\n\n\tLast check: {}\n\tIn use: {}\n\tIs default: {}\n\tId: {}".format(
+            account["name"],
+            account["ethAddr"],
+            eth(int(account["ethBalance"])),
+            prix(int(account["ptcBalance"])),
+            prix(int(account["pscBalance"])),
+            account["lastBalanceCheck"],
+            account["inUse"],
+            account["isDefault"],
+            account["id"],
+        ))

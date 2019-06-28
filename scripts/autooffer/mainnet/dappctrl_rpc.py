@@ -39,6 +39,18 @@ def _request_payload(method, args):
     }
 
 
+def gwei(raw_eth):
+    return raw_eth * 1000000000
+
+
+def prix(raw_prix):
+    return float(raw_prix) / 10000000
+
+
+def eth(raw_eth):
+    return float(raw_eth) / 1000000000000000000
+
+
 def set_password(password):
     data = _request_payload("ui_setPassword", [password])
 
@@ -96,7 +108,7 @@ def export_private_key(token, account_id):
     return response.json()["result"]
 
 
-def transfer_tokens(token, account_id, token_amount, direction, gas_price=6000000000):
+def transfer_tokens(token, account_id, token_amount, direction, gas_price=gwei(6)):
     data = _request_payload("ui_transferTokens", [token, account_id, direction,
                                                   token_amount, gas_price])
 
@@ -146,7 +158,7 @@ def get_agent_offerings(token, product_id, status, offset, limit):
     return response.json()["result"]["items"]
 
 
-def change_offering_status(token, offering_id, action, gas_price=6000000000):
+def change_offering_status(token, offering_id, action, gas_price=gwei(6)):
     data = _request_payload("ui_changeOfferingStatus", [token, offering_id,
                                                         action, gas_price])
 

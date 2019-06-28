@@ -11,8 +11,12 @@ for product in products:
                                     , 0, 100)
 
     for offering in offerings:
-        print("\n\t{} ({}):".format(offering["serviceName"], offering["id"]))
-        print("\t\tstatus: {}".format(offering["status"]))
-        print("\t\thash: {}".format(offering["hash"]))
-        print("\t\tsupply: {}".format(offering["supply"]))
-        print("\t\tcurrentSupply: {}".format(offering["currentSupply"]))
+        print("-" * 80)
+        print("\n{}:\n\tHash: 0x{}\n\tStatus: {}\n\n\tSupply: {}\n\tCurrent supply: {}\n\n\tId: {}".format(
+            offering["serviceName"],
+            offering["hash"],
+            offering["status"],
+            offering["supply"],
+            offering["currentSupply"],
+            offering["id"],
+        ))

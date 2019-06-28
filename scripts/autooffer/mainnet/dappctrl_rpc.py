@@ -14,6 +14,10 @@ default_id = 1
 
 endpoint = "http://localhost:8888/http"
 
+_prix_multiplier = 10000000
+_gwei_multiplier = 1000000000
+_eth_multiplier = 1000000000000000000
+
 
 def _check_ok(text, response):
     print("\n{}".format(text))
@@ -40,15 +44,19 @@ def _request_payload(method, args):
 
 
 def gwei(raw_eth):
-    return raw_eth * 1000000000
+    return raw_eth * _gwei_multiplier
 
 
 def prix(raw_prix):
-    return float(raw_prix) / 10000000
+    return float(raw_prix) / _prix_multiplier
+
+
+def raw_prix(prix):
+    return prix * _prix_multiplier
 
 
 def eth(raw_eth):
-    return float(raw_eth) / 1000000000000000000
+    return float(raw_eth) / _eth_multiplier
 
 
 def set_password(password):

@@ -3,7 +3,6 @@ import sys
 
 from dappctrl_rpc import *
 
-# "unitPrice": 1 == 0.00000001 PRIX
 offering_file_name = sys.argv[1]
 
 token = get_token(default_password)
@@ -26,6 +25,9 @@ offering["template"] = product["offerTplID"]
 offering["agent"] = account["id"]
 offering["serviceName"] = product["name"]
 offering["description"] = product["name"]
+
+offering["unitPrice"] = raw_prix(float(offering["unitPrice"]))
+offering["setupPrice"] = raw_prix(float(offering["setupPrice"]))
 
 print("\nOffering: {}".format(json.dumps(offering, indent=8)))
 

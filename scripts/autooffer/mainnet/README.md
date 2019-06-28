@@ -37,7 +37,7 @@ By using exchange or own wallet.
 
 ```bash
 python update_balance.py
-python check_account.py
+python get_accounts.py
 ```
 
 ### 4. Transfer all PRIX from PTS to PSC 
@@ -50,7 +50,7 @@ Ensure, that PRIX has been transferred to PSC (usually it takes 5-10 min):
 
 ```bash
 python get_transactions.py
-python check_account.py
+python get_accounts.py
 ```
 
 ### 5. Publish an offering
@@ -75,7 +75,7 @@ Ensure, that PRIX has been transferred to PTC (usually it takes 5-10 min):
 
 ```bash
 python get_transactions.py
-python check_account.py
+python get_accounts.py
 ```
 
 ## Tools

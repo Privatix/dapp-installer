@@ -379,3 +379,43 @@ Get token
 Update settings (settings: {u'offering.autopopup': u'false'})
 	Ok: <Response [200]>
 ```
+
+## remove_offering.py
+
+#### Usage
+
+Remove offering `89763b49-5ef3-4467-8f9a-339544e0ed5e`
+
+```bash
+python remove_offering.py '89763b49-5ef3-4467-8f9a-339544e0ed5e'
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+
+Change offering status (offering_id: 89763b49-5ef3-4467-8f9a-339544e0ed5e, action: deactivate)
+	Ok: <Response [200]>
+```
+
+## popup_offering.py
+
+#### Usage
+
+Popup offering `89763b49-5ef3-4467-8f9a-339544e0ed5e`
+
+```bash
+python popup_offering.py '89763b49-5ef3-4467-8f9a-339544e0ed5e'
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+
+Change offering status (offering_id: 89763b49-5ef3-4467-8f9a-339544e0ed5e, action: popup)
+	Ok: <Response [200]>
+```

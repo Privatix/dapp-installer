@@ -20,3 +20,11 @@ for product in products:
             offering["currentSupply"],
             offering["id"],
         ))
+
+        transactions = get_eth_transactions(token, "offering", offering["id"], 0, 100)
+        for transaction in transactions:
+            print("\n\tTransaction: {}:\n\t\tStatus: {}\n\t\tIssued: {}\n\\thttps://etherscan.io/tx/0x{}".format(
+                transaction["method"],
+                transaction["status"],
+                transaction["issued"],
+                transaction["hash"]))

@@ -195,3 +195,12 @@ def update_balance(token, account_id):
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Update balance (account_id: {})".format(account_id), response)
+
+
+def get_settings(token):
+    data = _request_payload("ui_getSettings", [token])
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Get settings".format(), response)
+
+    return response.json()["result"]

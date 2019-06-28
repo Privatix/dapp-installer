@@ -14,7 +14,7 @@ default_id = 1
 
 endpoint = "http://localhost:8888/http"
 
-_prix_multiplier = 10000000
+_prix_multiplier = 100000000
 _gwei_multiplier = 1000000000
 _eth_multiplier = 1000000000000000000
 

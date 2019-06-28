@@ -26,8 +26,8 @@ offering["agent"] = account["id"]
 offering["serviceName"] = product["name"]
 offering["description"] = product["name"]
 
-offering["unitPrice"] = raw_prix(float(offering["unitPrice"]))
-offering["setupPrice"] = raw_prix(float(offering["setupPrice"]))
+offering["unitPrice"] = int(raw_prix(float(offering["unitPrice"])))
+offering["setupPrice"] = int(raw_prix(float(offering["setupPrice"])))
 
 print("\nOffering: {}".format(json.dumps(offering, indent=8)))
 

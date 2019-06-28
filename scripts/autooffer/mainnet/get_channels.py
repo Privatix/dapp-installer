@@ -11,8 +11,8 @@ all_channel_statuses = ['pending', 'active', 'wait_coop', 'closed_coop', 'wait_c
 for service_status in ['pending', 'activating', 'active', 'suspending',
                        'suspended', 'terminating', 'terminated']:
     print("-" * 80)
+    print("\n{}:\n".format(service_status))
     channels = get_agent_channels(token, all_channel_statuses, [service_status], 0, 100)
-    print("{}:".format(service_status))
     print("\n\tChannels: {}".format(json.dumps(channels, indent=8)))
 
 print("-" * 80)

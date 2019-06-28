@@ -36,6 +36,7 @@ By using exchange or own wallet.
 ### 3. Check that founds has been delivered
 
 ```bash
+python update_balance.py
 python check_account.py
 ```
 
@@ -92,7 +93,6 @@ python create_account.py
 ```
 Get token
 	Ok: <Response [200]>
-	token: Bep9ISGVH6JD1KIQcyRZdRsCp_lf4e9BEv21iBqIMiI=
 	
 Generate account
 	Ok: <Response [200]>
@@ -108,12 +108,12 @@ Export private key
 	Private key file: /Users/user/tmp/private_key.json
 ```
 
-### check_accounts.py
+### get_accounts.py
 
 #### Usage
 
 ```bash
-python check_accounts.py
+python get_accounts.py
 ```
 
 #### Output
@@ -121,7 +121,6 @@ python check_accounts.py
 ```
 Get token
 	Ok: <Response [200]>
-	Token: cjx0AdPBH36habnp1N6lWJnb1hw_ixxau0Ydq0H-AeE=
 
 Get account
 	Ok: <Response [200]>
@@ -153,7 +152,6 @@ python transfer_all_to_psc.py
 ```
 Get token
 	Ok: <Response [200]>
-	Token: CGWMRsSDVJQ0Immnt90VlCBswDv0L6FGymRK1iBPgl4=
 
 Get accounts
 	Ok: <Response [200]>
@@ -177,7 +175,6 @@ python get_transactions.py
 ```
 Get token
 	Ok: <Response [200]>
-	Token: U0me_ixhZahaSCK2brwzQYfi7xz2OIseB-_j-zash1Y=
 
 Get accounts
 	Ok: <Response [200]>
@@ -209,7 +206,6 @@ python get_offerings.py
 ```
 Get token
 	Ok: <Response [200]>
-	Token: Rt-Xb27IqCZ-va-j8zQ6GzefEIWwrJR8EIyYu-aFbqY=
 
 Get products
 	Ok: <Response [200]>
@@ -244,7 +240,6 @@ python publish_offering.py offering.json
 ```
 Get token
 	Ok: <Response [200]>
-	Token: 4EWTKhTbP1zhHnhzQl45i7ixLHI0FTM6I9Tse2Ksal0=
 
 Get products
 	Ok: <Response [200]>
@@ -290,4 +285,38 @@ Offering id: b706c092-dbcf-4847-b0f6-cf6c095d2cdd
 
 Change offering status (offering_id: b706c092-dbcf-4847-b0f6-cf6c095d2cdd, action: publish)
 	Ok: <Response [200]>
+```
+
+## get_errors.py
+
+#### Usage
+
+Get errors for the last 330 minutes:
+
+```bash
+python geterrors.py 330
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+
+Get logs (levels: ['error'], text: "", lower_bound: 2019-06-27T17:11:07.342929, upper_bound: 2019-06-27T22:11:07.342929, offset: 0, limit: 100)
+	Ok: <Response [200]>
+--------------------------------------------------------------------------------
+
+error:
+	job agentPreOfferingMsgBCPublish is failed
+
+	{"job": "2c5e8877-4085-4dda-99f3-1992e2ef9939", "type": "agentPreOfferingMsgBCPublish", "method": "processWorker"}
+--------------------------------------------------------------------------------
+
+error:
+	failed to register service offering: insufficient funds for gas * price + value
+
+	{"GasLimit": 200000, "job": {"Status": "active", "NotBefore": "2019-06-27T17:40:52.172886Z", "Data": "eyJHYXNQcmljZSI6NjAwMDAwMDAwMH0=", "RelatedType": "offering", "CreatedBy": "user", "TryCount": 2, "RelatedID": "89763b49-5ef3-4467-8f9a-339544e0ed5e", "Type": "agentPreOfferingMsgBCPublish", "ID": "2c5e8877-4085-4dda-99f3-1992e2ef9939", "CreatedAt": "2019-06-27T17:38:39.164401Z"}, "type": "proc/worker.Worker", "method": "AgentPreOfferingMsgBCPublish", "GasPrice": 6000000000}
+--------------------------------------------------------------------------------
+
 ```

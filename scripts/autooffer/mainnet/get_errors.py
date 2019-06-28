@@ -1,9 +1,11 @@
 import json
+import sys
 from datetime import datetime, timedelta
 
 from dappctrl_rpc import *
 
-minutes = 30
+minutes = sys.argv[1] if (len(sys.argv)) >= 2 else 30
+
 print("Show errors for the last {} minutes".format(minutes))
 
 current_date = datetime.now()

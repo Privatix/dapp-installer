@@ -7,7 +7,7 @@ for account in accounts:
     transactions = get_eth_transactions(token, "accountAggregated", account["id"], 0, 100)
     for transaction in transactions:
         print("-" * 80)
-        print("\n{}:\n\t{} {}\n\thttps://etherscan.io/tx/0x{}".format(
+        print("\nTransaction: {}:\n\tStatus: {}\n\tIssued: {}\n\thttps://etherscan.io/tx/0x{}".format(
             transaction["method"],
             transaction["status"],
             transaction["issued"],

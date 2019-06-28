@@ -211,3 +211,30 @@ def update_settings(token, settings):
 
     response = requests.post(endpoint, json=data, headers=header)
     _check_ok("Update settings (settings: {})".format(settings), response)
+
+
+# channel_statuses = ['pending', 'active', 'wait_coop', 'closed_coop', 'wait_challenge', 'in_challenge', 'wait_uncoop',
+#                     'closed_uncoop']
+# service_statuses = ['pending', 'activating', 'active', 'suspending', 'suspended','terminating','terminated']
+
+def get_agent_channels(token, channel_statuses, service_statuses, offset, limit):
+    data = _request_payload("ui_getAgentChannels", [token, channel_statuses, service_statuses,
+                                                    offset, limit])
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Get agent channels (channel_statuses: {}, service_statuses: {}, offset: {}, limit: {})".format(
+        channel_statuses,
+        service_statuses,
+        offset,
+        limit), response)
+
+    return response.json()["result"]["items"]
+
+
+def get_total_income(token):
+    data = _request_payload("ui_getTotalIncome", [token])
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Get total income".format(), response)
+
+    return response.json()["result"]

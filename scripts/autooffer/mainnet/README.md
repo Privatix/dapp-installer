@@ -320,3 +320,62 @@ error:
 --------------------------------------------------------------------------------
 
 ```
+
+## get_settings.py
+
+#### Usage
+
+Update settings:
+
+```bash
+python get_settings.py
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+
+Get settings
+	Ok: <Response [200]>
+
+eth.event.freshblocks: 11520
+	Permissions: readWrite
+
+updateDismissVersion: 
+	Permissions: readWrite
+
+eth.event.lastProcessedBlock: 8045538
+	Permissions: readOnly
+
+eth.max.deposit: 30000000000
+	Permissions: readWrite
+
+eth.event.blocklimit: 500
+	Permissions: readWrite
+
+error.sendremote: true
+	Permissions: readWrite
+
+```
+
+## update_settings.py
+
+#### Usage
+
+Update settings:
+
+```bash
+python update_settings.py '{"offering.autopopup": "false"}'
+```
+
+#### Output
+
+```
+Get token
+	Ok: <Response [200]>
+
+Update settings (settings: {u'offering.autopopup': u'false'})
+	Ok: <Response [200]>
+```

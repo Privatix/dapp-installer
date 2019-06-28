@@ -204,3 +204,10 @@ def get_settings(token):
     _check_ok("Get settings".format(), response)
 
     return response.json()["result"]
+
+
+def update_settings(token, settings):
+    data = _request_payload("ui_updateSettings", [token, settings])
+
+    response = requests.post(endpoint, json=data, headers=header)
+    _check_ok("Update settings (settings: {})".format(settings), response)

@@ -116,7 +116,7 @@ def export_private_key(token, account_id):
     return response.json()["result"]
 
 
-def transfer_tokens(token, account_id, token_amount, direction, gas_price=gwei(6)):
+def transfer_tokens(token, account_id, token_amount, direction, gas_price=gwei(10)):
     data = _request_payload("ui_transferTokens", [token, account_id, direction,
                                                   token_amount, gas_price])
 
@@ -166,7 +166,7 @@ def get_agent_offerings(token, product_id, status, offset, limit):
     return response.json()["result"]["items"]
 
 
-def change_offering_status(token, offering_id, action, gas_price=gwei(6)):
+def change_offering_status(token, offering_id, action, gas_price=gwei(10)):
     data = _request_payload("ui_changeOfferingStatus", [token, offering_id,
                                                         action, gas_price])
 

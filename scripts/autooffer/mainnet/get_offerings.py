@@ -1,7 +1,6 @@
 from dappctrl_rpc import *
 
 token = get_token(default_password)
-print("\tToken: {}".format(token))
 
 products = get_products(token)
 for product in products:
@@ -12,8 +11,20 @@ for product in products:
                                     , 0, 100)
 
     for offering in offerings:
-        print("\n\t{} ({}):".format(offering["serviceName"], offering["id"]))
-        print("\t\tstatus: {}".format(offering["status"]))
-        print("\t\thash: {}".format(offering["hash"]))
-        print("\t\tsupply: {}".format(offering["supply"]))
-        print("\t\tcurrentSupply: {}".format(offering["currentSupply"]))
+        print("-" * 80)
+        print("\n{}:\n\tHash: 0x{}\n\tStatus: {}\n\n\tSupply: {}\n\tCurrent supply: {}\n\n\tId: {}".format(
+            offering["serviceName"],
+            offering["hash"],
+            offering["status"],
+            offering["supply"],
+            offering["currentSupply"],
+            offering["id"],
+        ))
+
+        transactions = get_eth_transactions(token, "offering", offering["id"], 0, 100)
+        for transaction in transactions:
+            print("\n\tTransaction: {}:\n\t\tStatus: {}\n\t\tIssued: {}\n\t\thttps://etherscan.io/tx/0x{}".format(
+                transaction["method"],
+                transaction["status"],
+                transaction["issued"],
+                transaction["hash"]))

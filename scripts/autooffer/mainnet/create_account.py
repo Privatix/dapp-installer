@@ -8,7 +8,6 @@ private_key_file_name = "private_key.json"
 set_password(default_password)
 
 token = get_token(default_password)
-print("\tToken: {}".format(token))
 
 account_id = create_account(token)
 print("\tAccount id: {}".format(account_id))

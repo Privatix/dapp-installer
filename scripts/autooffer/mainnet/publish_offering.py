@@ -6,7 +6,6 @@ from dappctrl_rpc import *
 offering_file_name = sys.argv[1]
 
 token = get_token(default_password)
-print("\tToken: {}".format(token))
 
 products = get_products(token)
 product = products[0]
@@ -26,6 +25,9 @@ offering["template"] = product["offerTplID"]
 offering["agent"] = account["id"]
 offering["serviceName"] = product["name"]
 offering["description"] = product["name"]
+
+offering["unitPrice"] = int(raw_prix(float(offering["unitPrice"])))
+offering["setupPrice"] = int(raw_prix(float(offering["setupPrice"])))
 
 print("\nOffering: {}".format(json.dumps(offering, indent=8)))
 

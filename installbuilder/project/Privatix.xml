@@ -576,7 +576,6 @@ ${program_stderr}</text>
     <osxApplicationBundleIcon>images/icons/macIcons.icns</osxApplicationBundleIcon>
     <osxUninstallerApplicationBundleIcon>images/icons/macIcons.icns</osxUninstallerApplicationBundleIcon>
     <outputDirectory>out</outputDirectory>
-    <requireInstallationByRootUser>0</requireInstallationByRootUser>
     <saveRelativePaths>1</saveRelativePaths>
     <singleInstanceCheck>1</singleInstanceCheck>
     <vendor>Privatix LTD</vendor>
@@ -590,6 +589,26 @@ ${program_stderr}</text>
             <file>en.lng</file>
         </language>
     </customLanguageFileList>
+    <finalPageActionList>
+        <runProgram>
+            <program>open</program>
+            <programArguments>/Applications/Privatix\ ${install_type}</programArguments>
+            <progressText>${msg(Installer.Run)} Privatix ${install_type}</progressText>
+            <ruleList>
+                <platformTest type="osx"/>
+            </ruleList>
+        </runProgram>
+        <runProgram>
+            <program>${installdir}/${install_type}/dappgui/dapp-gui.exe</program>
+            <programArguments></programArguments>
+            <progressText>${msg(Installer.Run)} Privatix ${install_type}</progressText>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </runProgram>
+    </finalPageActionList>
     <installationAbortedActionList>
         <showProgressDialog>
             <title>Please wait</title>
@@ -682,9 +701,25 @@ ${program_stderr}</text>
                 </option>
             </optionList>
         </choiceParameter>
-        <booleanParameter name="forceUpdate" default="0" ask="0"/>
-        <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0"/>
-        <stringParameter name="product_name" default="VPN" ask="0"/>
+        <booleanParameter name="forceUpdate" default="0" ask="0">
+            <description></description>
+            <explanation></explanation>
+            <value></value>
+        </booleanParameter>
+        <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0">
+            <description></description>
+            <explanation></explanation>
+            <value></value>
+            <allowEmptyValue>1</allowEmptyValue>
+            <width>30</width>
+        </stringParameter>
+        <stringParameter name="product_name" default="VPN" ask="0">
+            <description></description>
+            <explanation></explanation>
+            <value></value>
+            <allowEmptyValue>1</allowEmptyValue>
+            <width>30</width>
+        </stringParameter>
     </parameterList>
     <platformOptionsList>
         <platformOptions>

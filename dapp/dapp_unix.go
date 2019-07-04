@@ -26,19 +26,21 @@ func newService() *service {
 	}
 }
 
-func (d *Dapp) controllerHash() string {
+// ControllerHash unique name for installing path.
+func (d *Dapp) ControllerHash() string {
 	return fmt.Sprintf("ctrl_%s", util.Hash(d.Path))
 }
 
-// Configurate configurates installed dapp.
-func (d *Dapp) Configurate() error {
+// Configure configures installed dapp.
+func (d *Dapp) Configure() error {
 	if err := d.modifyDappConfig(); err != nil {
 		return err
 	}
 
 	ctrl := d.Controller
 
-	ctrl.Service.ID = d.controllerHash()
+	ctrl.Service.ID = d.ControllerHash()
+	ctrl.Service.AutoStart = d.Role == "agent"
 
 	ctrl.Service.Command = filepath.Join(d.Path, ctrl.EntryPoint)
 	ctrl.Service.Args = []string{

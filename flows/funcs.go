@@ -98,7 +98,7 @@ func removeDBEngine(d *dapp.Dapp) error {
 }
 
 func install(d *dapp.Dapp) error {
-	if err := d.Configurate(); err != nil {
+	if err := d.Configure(); err != nil {
 		return fmt.Errorf("failed to configure dapp: %v", err)
 	}
 
@@ -160,6 +160,7 @@ func startServices(d *dapp.Dapp) error {
 	if err := d.DBEngine.Start(d.Path); err != nil {
 		return fmt.Errorf("failed to start dbengine: %v", err)
 	}
+	d.Controller.Service.ID = d.ControllerHash()
 	if err := d.Controller.Service.Start(); err != nil {
 		return fmt.Errorf("failed to start controller: %v", err)
 	}
@@ -167,15 +168,9 @@ func startServices(d *dapp.Dapp) error {
 }
 
 func stopServices(d *dapp.Dapp) error {
-	done := make(chan bool)
-	go d.Stop(done)
-
-	select {
-	case <-done:
-		return nil
-	case <-time.After(util.TimeOutInSec(d.Timeout)):
-		return fmt.Errorf("failed to stop services: timeout expired")
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), util.TimeOutInSec(d.Timeout))
+	defer cancel()
+	return d.Stop(ctx)
 }
 
 func removeServices(d *dapp.Dapp) error {
@@ -317,7 +312,7 @@ func configureDapp(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to configure db conf: %v", err)
 	}
 
-	if err := d.Configurate(); err != nil {
+	if err := d.Configure(); err != nil {
 		return fmt.Errorf("failed to configure: %v", err)
 	}
 	return nil
@@ -392,4 +387,44 @@ func finalize(d *dapp.Dapp) error {
 
 func removeBackup(d *dapp.Dapp) error {
 	return os.RemoveAll(d.BackupPath)
+}
+
+func stopTorIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopTor)
+}
+
+func startTorIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, startTor)
+}
+
+func stopServicesIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopServices)
+}
+
+func startServicesIfClient(d *dapp.Dapp) error {
+	err := runIfClient(d, startServices)
+	return err
+}
+
+func stopProductsIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopProducts)
+}
+
+func startProductsIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, startProducts)
+}
+
+func stopContainerIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopContainer)
+}
+
+func startContainerIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, startContainer)
+}
+
+func runIfClient(d *dapp.Dapp, f func(*dapp.Dapp) error) error {
+	if d.Role == "agent" {
+		return nil
+	}
+	return f(d)
 }

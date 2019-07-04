@@ -19,6 +19,7 @@ type DBEngine struct {
 	ServiceName string
 	DB          *data.DB
 	Timeout     uint64 // in seconds
+	Autostart   bool
 }
 
 // NewConfig creates a default DBEngine configuration.
@@ -161,7 +162,7 @@ func (engine *DBEngine) Remove(installPath string) error {
 
 // Start starts the DB engine.
 func (engine *DBEngine) Start(installPath string) error {
-	if err := startService(installPath); err != nil {
+	if err := startService(installPath, engine.Autostart); err != nil {
 		return err
 	}
 	return engine.checkRunning()

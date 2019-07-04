@@ -1,6 +1,7 @@
 package tor
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
@@ -16,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/privatix/dapp-installer/statik"
 	"github.com/privatix/dapp-installer/util"
@@ -47,7 +49,7 @@ func NewTor() *Tor {
 	}
 }
 
-func (t *Tor) configurate() error {
+func (t *Tor) configure() error {
 	if err := t.generateKey(); err != nil {
 		return err
 	}
@@ -134,27 +136,52 @@ func (t *Tor) createSettings() error {
 }
 
 // Install installs tor process.
-func (t *Tor) Install(role string) error {
-	if err := t.configurate(); err != nil {
+func (t *Tor) Install(role string, autostart bool) error {
+	if err := t.configure(); err != nil {
 		return err
 	}
 
 	descr := fmt.Sprintf("Privatix %s Tor transport %s", role,
 		util.Hash(t.RootPath))
-	return installService(t.ServiceName(), t.RootPath, descr)
+	return installService(t.ServiceName(), t.RootPath, descr, autostart)
 }
 
 // Start starts tor process.
-func (t *Tor) Start() error {
-	return startService(t.ServiceName())
+func (t *Tor) Start(ctx context.Context) (err error) {
+	for {
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return ctx.Err()
+		default:
+			if !util.IsServiceStopped(t.ServiceName()) {
+				return nil
+			}
+			err = startService(t.ServiceName())
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
 }
 
 // Stop stops tor process.
-func (t *Tor) Stop() error {
-	if util.IsServiceStopped(t.ServiceName()) {
-		return nil
+func (t *Tor) Stop(ctx context.Context) (err error) {
+	for {
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return ctx.Err()
+		default:
+			if util.IsServiceStopped(t.ServiceName()) {
+				return nil
+			}
+			err = stopService(t.ServiceName())
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
-	return stopService(t.ServiceName())
 }
 
 // Remove removes tor process.

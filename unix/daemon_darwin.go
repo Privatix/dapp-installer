@@ -4,12 +4,14 @@ package unix
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 	"regexp"
 	"text/template"
+	"time"
 )
 
 func (d *Daemon) name() string {
@@ -49,6 +51,11 @@ func (d *Daemon) Install() error {
 // Start starts the daemon.
 func (d *Daemon) Start() error {
 	cmd := exec.Command("launchctl", "load", d.path())
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to load: %v", err)
+	}
+	time.Sleep(time.Millisecond)
+	cmd = exec.Command("launchctl", "start", d.name())
 	return cmd.Run()
 }
 
@@ -99,10 +106,8 @@ var daemonTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 		{{range .Args}}<string>{{.}}</string>
 		{{end}}
 	</array>
-	{{if .AutoStart}}<key>RunAtLoad</key>
-	<true/>{{end}}
 	<key>KeepAlive</key>
-	<true/>
+	{{if .AutoStart}}<true/>{{else}}<false/>{{end}}
 	<key>StandardErrorPath</key>
 	<string>{{.Command}}.err</string>
 	<key>StandardOutPath</key>

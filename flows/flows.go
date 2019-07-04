@@ -17,16 +17,20 @@ func Install() flow.Flow {
 			newStep("process flags", processedInstallFlags, nil),
 			newStep("validation", validateToInstall, nil),
 			newStep("init temp", initTemp, removeTemp),
-			newStep("extract", extractAndUpdateVersion, removeDapp),
+			newStep("extract and update version", extractAndUpdateVersion, removeDapp),
 			newStep("install tor", installTor, removeTor),
 			newStep("start tor", startTor, stopTor),
 			newStep("install dbengine", installDBEngine, removeDBEngine),
 			newStep("install", install, remove),
 			newStep("install products", installProducts, removeProducts),
+			newStep("install supervisor if client", installSupervisorIfClient, removeSupervisorIfClient),
 			newStep("write version", writeVersion, nil),
 			newStep("update sendremote setting", updateSendRemote, nil),
 			newStep("write env", writeEnvironmentVariable, nil),
 			newStep("remove temp", removeTemp, nil),
+			newStep("stop tor if client", stopTorIfClient, startTorIfClient),
+			newStep("stop products if client", stopProductsIfClient, startProductsIfClient),
+			newStep("stop dappctrl and db engine if client", stopServicesIfClient, startServicesIfClient),
 		},
 	}
 }
@@ -62,10 +66,12 @@ func Remove() flow.Flow {
 	return flow.Flow{
 		Name: "Remove",
 		Steps: []flow.Step{
-			newStep("process flags", processedRemoveFlags, nil),
-			newStep("validate", checkInstallation, nil),
+			newStep("process flags", processedRemoveFlags, stopServicesIfClient),
+			newStep("start services if client", startServicesIfClient, stopServicesIfClient),
+			newStep("check installation", checkInstallation, nil),
 			newStep("stop services", stopServices, nil),
 			newStep("stop tor", stopTor, nil),
+			newStep("remove supervisor", removeSupervisorIfClient, installSupervisorIfClient),
 			newStep("remove products", removeProducts, nil),
 			newStep("remove services", removeServices, nil),
 			newStep("remove tor", removeTor, nil),
@@ -96,6 +102,7 @@ func InstallProducts() flow.Flow {
 			newStep("process flags", processedInstallProductFlags, nil),
 			newStep("validate", checkInstallation, nil),
 			newStep("install products", installProducts, removeProducts),
+			newStep("stop if client", stopProductsIfClient, startProductsIfClient),
 		},
 	}
 }
@@ -145,9 +152,12 @@ func InstallLinux() flow.Flow {
 			newStep("configure dapp", configureDapp, nil),
 			newStep("install container", installContainer, removeContainer),
 			newStep("enable and start container", enableAndStartContainer, disableAndStopContainer),
+			newStep("disable container if client", disablContainerIfClient, nil),
 			newStep("create database", createDatabase, nil),
 			newStep("install products", installProducts, removeProducts),
-			newStep("finalize", finalize, nil),
+			newStep("install supervisor", installSupervisorIfClient, removeSupervisorIfClient),
+			newStep("check container running", finalize, nil),
+			newStep("stop container if client", stopContainerIfClient, startContainerIfClient),
 			newStep("remove temp", removeTemp, nil),
 		},
 	}
@@ -180,8 +190,10 @@ func RemoveLinux() flow.Flow {
 		Name: "removeLinux",
 		Steps: []flow.Step{
 			newStep("process flags", processedRemoveFlags, nil),
+			newStep("start container if client", startContainerIfClient, stopContainerIfClient),
 			newStep("validate", checkContainer, nil),
 			newStep("stop", stopContainer, nil),
+			newStep("remove supervisor", removeSupervisorIfClient, installSupervisorIfClient),
 			newStep("remove", removeContainer, nil),
 			newStep("remove dapp", removeDapp, nil),
 		},
@@ -197,6 +209,7 @@ func InstallLinuxProducts() flow.Flow {
 			newStep("validate", checkContainer, nil),
 			newStep("install products", installProducts, removeProducts),
 			newStep("finalize", finalize, nil),
+			newStep("stop if client", stopContainerIfClient, startContainerIfClient),
 		},
 	}
 }

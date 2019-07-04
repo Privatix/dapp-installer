@@ -57,7 +57,7 @@ func IsServiceStopped(id string) bool {
 	return unix.NewDaemon(id).IsStopped()
 }
 
-// ExecuteCommand does executing file.
+// ExecuteCommand executes a file.
 func ExecuteCommand(filename string, args ...string) (err error) {
 	cmd := exec.Command(filename, args...)
 	var outbuf, errbuf bytes.Buffer

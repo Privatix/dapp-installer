@@ -15,13 +15,17 @@ func Hash(installPath string) string {
 	return fmt.Sprintf("db_%s", util.Hash(installPath))
 }
 
-func startService(installPath string) error {
-	fileName := filepath.Join(installPath, "pgsql", "bin", "postgres")
-	dataPath := filepath.Join(installPath, "pgsql", "data")
+func startService(installPath string, autostart bool) error {
+	fileName, err := filepath.Abs(filepath.Join(installPath, "pgsql", "bin", "postgres"))
+	if err != nil {
+		return err
+	}
+	dataPath, err := filepath.Abs(filepath.Join(installPath, "pgsql", "data"))
 
 	d := unix.NewDaemon(Hash(installPath))
 	d.Command = fileName
 	d.Args = []string{"-D" + dataPath}
+	d.AutoStart = autostart
 
 	if err := d.Install(); err != nil {
 		return err

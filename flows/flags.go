@@ -84,6 +84,8 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 
 	d.OnlyCore = *core
 
+	d.DBEngine.Autostart = d.Role == "agent"
+
 	return nil
 }
 

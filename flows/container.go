@@ -72,6 +72,19 @@ func disableAndStopContainer(d *dapp.Dapp) error {
 	return nil
 }
 
+func disablContainerIfClient(d *dapp.Dapp) error {
+	if d.Role != "client" {
+		return nil
+	}
+	c := getContainer(d)
+
+	if err := c.Disable(); err != nil {
+		return fmt.Errorf("failed to disable container: %v", err)
+	}
+
+	return nil
+}
+
 func restartContainer(d *dapp.Dapp) error {
 	c := getContainer(d)
 
@@ -100,9 +113,9 @@ func checkContainer(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to check contianer: %v", err)
 	}
 
-	version, ok := data.ReadAppVersion(d.DBEngine.DB)
-	if !ok {
-		return fmt.Errorf("failed to read app version")
+	version, err := data.ReadAppVersion(d.DBEngine.DB)
+	if err != nil {
+		return fmt.Errorf("failed to read app version: %v", err)
 	}
 
 	d.Version = version

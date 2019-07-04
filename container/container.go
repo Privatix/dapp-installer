@@ -71,6 +71,12 @@ func (c *Container) DisableAndStop() error {
 	return util.ExecuteCommand("systemctl", "disable", "--now", c.daemonName())
 }
 
+// Disable container nspawn service.
+func (c *Container) Disable() error {
+	// --now stops a service
+	return util.ExecuteCommand("systemctl", "disable", c.daemonName())
+}
+
 // Start starts the container.
 func (c *Container) Start() error {
 	return util.ExecuteCommand("systemctl", "start", c.daemonName())

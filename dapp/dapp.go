@@ -132,7 +132,7 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 	}
 
 	// Configure dappctrl.
-	if err := d.Configurate(); err != nil {
+	if err := d.Configure(); err != nil {
 		d.DBEngine.Stop(d.Path)
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
@@ -254,13 +254,13 @@ func (d *Dapp) Exists() error {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
-	version, ok := data.ReadAppVersion(d.DBEngine.DB)
-	if !ok {
-		return fmt.Errorf("failed to read app version")
+	version, err := data.ReadAppVersion(d.DBEngine.DB)
+	if err != nil {
+		return fmt.Errorf("failed to read app version: %v", err)
 	}
 
 	d.Version = version
-	hash := d.controllerHash()
+	hash := d.ControllerHash()
 	d.Controller.Service.ID = hash
 	d.Controller.Service.GUID = filepath.Join(dappCtrl, hash)
 
@@ -313,21 +313,53 @@ func (d *Dapp) merge(s *Dapp) error {
 }
 
 // Stop stops dappctrl and debengine service.
-func (d *Dapp) Stop(ch chan bool) {
+func (d *Dapp) Stop(ctx context.Context) (err error) {
 	for {
-		if !util.IsServiceStopped(d.Controller.Service.ID) {
-			d.Controller.Service.Stop()
-			time.Sleep(200 * time.Millisecond)
-			continue
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return ctx.Err()
+		default:
+			if !util.IsServiceStopped(d.Controller.Service.ID) {
+				err = d.Controller.Service.Stop()
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			if !util.IsServiceStopped(dbengine.Hash(d.Path)) {
+				err = d.DBEngine.Stop(d.Path)
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			return nil
 		}
-		if !util.IsServiceStopped(dbengine.Hash(d.Path)) {
-			d.DBEngine.Stop(d.Path)
-			time.Sleep(200 * time.Millisecond)
-			continue
-		}
-		break
 	}
-	ch <- true
+}
+
+// Start starts dappctrl and debengine service.
+func (d *Dapp) Start(ctx context.Context) (err error) {
+	for {
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return ctx.Err()
+		default:
+			if util.IsServiceStopped(dbengine.Hash(d.Path)) {
+				err = d.DBEngine.Start(d.Path)
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			if util.IsServiceStopped(d.Controller.Service.ID) {
+				err = d.Controller.Service.Start()
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			return nil
+		}
+	}
 }
 
 func (d *Dapp) fromConfig() error {

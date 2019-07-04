@@ -12,13 +12,14 @@ func (t Tor) ServiceName() string {
 	return "tor_" + util.Hash(t.RootPath)
 }
 
-func installService(daemon, path, descr string) error {
+func installService(daemon, path, descr string, autostart bool) error {
 	t := filepath.Join(path, "tor", "tor")
 	c := filepath.Join(path, "tor", "settings", "torrc")
 
 	d := unix.NewDaemon(daemon)
 	d.Command = t
 	d.Args = []string{"-f", c}
+	d.AutoStart = autostart
 
 	return d.Install()
 }

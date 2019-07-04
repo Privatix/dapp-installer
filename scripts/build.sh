@@ -41,5 +41,10 @@ echo $GOPATH/bin/dapp-installer
 go build -o $GOPATH/bin/dapp-installer \
 -ldflags "-X main.Commit=$GIT_COMMIT -X main.Version=$GIT_RELEASE" -tags=notest || exit 1
 
+echo $GOPATH/bin/dapp-supervisor
+
+cd "${DAPPINST_DIR}/supervisor"
+go build -o $GOPATH/bin/dapp-supervisor || exit 1
+
 echo
 echo done

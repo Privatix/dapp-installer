@@ -11,11 +11,11 @@ func (t Tor) ServiceName() string {
 	return "Privatix Tor " + util.Hash(t.RootPath)
 }
 
-func installService(service, path, description string) error {
+func installService(service, path, description string, autostart bool) error {
 	torExe := filepath.Join(path, "tor", "tor")
 	torConf := filepath.Join(path, "tor", "settings", "torrc")
 
-	return util.CreateService(service, torExe, description,
+	return util.CreateService(service, torExe, description, autostart,
 		"-nt-service", "-f", torConf)
 }
 

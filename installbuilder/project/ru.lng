@@ -14,6 +14,7 @@ Installer.Parameter.installdir.explanation=Please specify the directory where ${
 Installer.TypeOfInstallation=Type of installation
 Installer.TypeOfInstallation.description=Please choose type of installation
 Installer.TypeOfInstallation.Agent=Agent
+Installer.TypeOfInstallation.Agent.Description=Agent must ensure that he is:\n\n1) reachable from internet. This usually requires to make port forwarding on your router.\n2) be online, while having unpaid deals
 Installer.TypeOfInstallation.Client=Client
 Installer.AlreadyInstalled=Application already installed
 Installer.Installing.Title=Installing

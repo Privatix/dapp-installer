@@ -29,6 +29,10 @@ offering["description"] = product["name"]
 offering["unitPrice"] = int(raw_prix(float(offering["unitPrice"])))
 offering["setupPrice"] = int(raw_prix(float(offering["setupPrice"])))
 
+# if maxUnit==0 it means the offering is unlimited
+if offering["maxUnit"] == 0:
+    del offering["maxUnit"]
+
 print("\nOffering: {}".format(json.dumps(offering, indent=8)))
 
 offering_id = create_offering(token, offering)

@@ -40,13 +40,14 @@ python update_balance.py
 python get_accounts.py
 ```
 
-### 4. Transfer all PRIX from PTS to PSC 
+### 4. Transfer all PRIX from the Account to the Marketplace 
 
 ```bash
-python transfer_all_to_psc.py
+python transfer_all_to_marketplace.py
 ```
 
-Ensure, that PRIX has been transferred to PSC (usually it takes 5-10 min):
+Ensure, that PRIX has been transferred to the Marketplace 
+(usually it takes 5-10 min):
 
 ```bash
 python get_transactions.py
@@ -65,13 +66,14 @@ Ensure, that the offering has been published (usually it takes 5-10 min):
 python get_offerings.py
 ```
 
-### 6. Transfer all earned PRIX from PSC to PTS  
+### 6. Transfer all earned PRIX from the Marketplace to the Account  
 
 ```bash
-python transfer_all_to_ptc.py
+python transfer_all_to_account.py
 ```
 
-Ensure, that PRIX has been transferred to PTC (usually it takes 5-10 min):
+Ensure, that PRIX has been transferred to the Account 
+(usually it takes 5-10 min):
 
 ```bash
 python get_transactions.py

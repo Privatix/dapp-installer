@@ -8,7 +8,7 @@ accounts = get_accounts(token)
 for account in accounts:
     print("-" * 80)
     print(
-        "\n{}:\n\tAddr: 0x{}\n\tETH: {}\n\tPTC: {} PRIX\n\tPSC: {} PRIX\n\n\tLast check: {}\n\tIn use: {}\n\tIs default: {}\n\tId: {}".format(
+        "\n{}:\n\tAddr: 0x{}\n\tETH: {}\n\tAccount: {} PRIX\n\tMarketplace: {} PRIX\n\n\tLast check: {}\n\tIn use: {}\n\tIs default: {}\n\tId: {}".format(
             account["name"],
             account["ethAddr"],
             eth(int(account["ethBalance"])),

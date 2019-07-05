@@ -12,7 +12,7 @@ for product in products:
 
     for offering in offerings:
         print("-" * 80)
-        print("\n{}:\n\tHash: 0x{}\n\tStatus: {}\n\n\tSupply: {}\n\tCurrent supply: {}\n\n\tId: {}".format(
+        print("\n{}:\n\tHash: 0x{}\n\tStatus: {}\n\tSupply: {}\n\tCurrent supply: {}\n\tId: {}".format(
             offering["serviceName"],
             offering["hash"],
             offering["status"],

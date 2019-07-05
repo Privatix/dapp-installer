@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from dappctrl_rpc import *
 
-minutes = sys.argv[1] if (len(sys.argv)) >= 2 else 30
+minutes = int(sys.argv[1]) if (len(sys.argv)) >= 2 else 30
 
 print("Show errors for the last {} minutes".format(minutes))
 

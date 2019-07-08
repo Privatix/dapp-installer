@@ -2,7 +2,7 @@
 # https://help.github.com/articles/about-codeowners/
 
 # all changes
-# *               @lart5
+# *             @lart5
 
 # notify go-team about changes in go files
 *.go            @furkhat
@@ -13,4 +13,4 @@
 *.md            @drew2a
 
 # notify devops team about changes in *.config.json
-*.config.json   @SHarrySeldon @drew2a
+*.config.json   @drew2a

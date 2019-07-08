@@ -16,6 +16,7 @@ require (
 	github.com/rdegges/go-ipify v0.0.0-20150526035502-2d94a6a86c40
 	github.com/sethvargo/go-password v0.1.2
 	github.com/syndtr/goleveldb v1.0.0 // indirect
+	github.com/takama/daemon v0.11.0
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c // indirect
 	gopkg.in/reform.v1 v1.3.3
 )

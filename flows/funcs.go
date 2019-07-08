@@ -268,6 +268,14 @@ func writeVersion(d *dapp.Dapp) error {
 	return nil
 }
 
+func updateSendRemote(d *dapp.Dapp) error {
+	if err := data.UpdateSetting(d.DBEngine.DB, "error.sendremote", fmt.Sprint(d.SendRemote)); err != nil {
+		return fmt.Errorf("failed to update error.sendremote setting: %v", err)
+	}
+
+	return nil
+}
+
 func writeEnvironmentVariable(d *dapp.Dapp) error {
 	v := env.NewConfig()
 
@@ -340,7 +348,11 @@ func createDatabase(d *dapp.Dapp) error {
 	}
 
 	if err := writeVersion(d); err != nil {
-		return fmt.Errorf("failed to write dapp version: %v", err)
+		return err
+	}
+
+	if err := updateSendRemote(d); err != nil {
+		return err
 	}
 
 	return nil

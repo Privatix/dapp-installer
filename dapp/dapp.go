@@ -26,6 +26,7 @@ type Dapp struct {
 	Role       string
 	Path       string
 	Source     string
+	SendRemote bool
 	Controller *InstallerEntity
 	Gui        *InstallerEntity
 	DBEngine   *dbengine.DBEngine

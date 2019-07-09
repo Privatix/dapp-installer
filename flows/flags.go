@@ -43,6 +43,7 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	src := flag.String("source", "", "Dapp install source")
 	core := flag.Bool("core", false, "Install only dapp core")
 	product := flag.String("product", "", "Specific product")
+	sendremote := flag.Bool("sendremote", false, "Send error reports")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -75,6 +76,10 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 
 	if len(*product) > 0 {
 		d.Product = *product
+	}
+
+	if sendremote != nil && *sendremote == true {
+		d.SendRemote = *sendremote
 	}
 
 	d.OnlyCore = *core

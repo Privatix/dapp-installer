@@ -49,12 +49,6 @@ func Ping(connStr string) error {
 
 // WriteAppVersion writes AppVersion.
 func WriteAppVersion(db *DB, version string) error {
-	conn, err := sql.Open("postgres", db.ConnectionString())
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
 	var sqlStatement string
 	if _, ok := ReadAppVersion(db); ok {
 		sqlStatement = `UPDATE settings SET value = $2 WHERE key = $1;`
@@ -64,7 +58,23 @@ func WriteAppVersion(db *DB, version string) error {
 		VALUES ($1, $2, 1, 'Version of application', 'app version');`
 	}
 
-	_, err = conn.Exec(sqlStatement, versionKey, version)
+	return execQuery(db, sqlStatement, versionKey, version)
+}
+
+// UpdateSetting updates a setting in db.
+func UpdateSetting(db *DB, key, value string) error {
+	sqlStatement := `UPDATE settings SET value = $2 WHERE key = $1;`
+	return execQuery(db, sqlStatement, key, value)
+}
+
+func execQuery(db *DB, query string, args ...interface{}) error {
+	conn, err := sql.Open("postgres", db.ConnectionString())
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Exec(query, args...)
 
 	return err
 }

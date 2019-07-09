@@ -58,13 +58,14 @@ Usage:
 	dapp-installer install [flags]
 
 Flags:
-	--config	Configuration file
-	--core		Install only dapp core
-	--role		Dapp user role
-	--workdir	Dapp install directory
-	--source	Dapp install source
-	--verbose	Display log to console log
-	--help		Display help information
+	--config		Configuration file
+	--core			Install only dapp core
+	--role			Dapp user role
+	--workdir		Dapp install directory
+	--source		Dapp install source
+	--verbose		Display log to console log
+	--help			Display help information
+	--sendremote 	Whether to allow sending error reports or not
 `
 
 	statusHelp = `

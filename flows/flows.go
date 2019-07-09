@@ -24,6 +24,7 @@ func Install() flow.Flow {
 			newStep("install", install, remove),
 			newStep("install products", installProducts, removeProducts),
 			newStep("write version", writeVersion, nil),
+			newStep("update sendremote setting", updateSendRemote, nil),
 			newStep("write env", writeEnvironmentVariable, nil),
 			newStep("remove temp", removeTemp, nil),
 		},

@@ -373,6 +373,17 @@ ${program_stderr}</text>
             </postInstallationActionList>
         </component>
     </componentList>
+    <preInstallationActionList>
+        <setInstallerVariable>
+            <name>install_type</name>
+            <value>client</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+    </preInstallationActionList>
     <readyToInstallActionList>
         <propertiesFileGet>
             <abortOnError>0</abortOnError>
@@ -787,6 +798,12 @@ ${program_stderr}</text>
                     <value>agent</value>
                 </option>
             </optionList>
+            <ruleList>
+                <platformTest>
+                    <negate>1</negate>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
         </choiceParameter>
         <booleanParameter>
             <name>bugsnag</name>

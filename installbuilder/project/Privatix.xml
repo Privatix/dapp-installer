@@ -119,6 +119,15 @@
                 </folder>
             </folderList>
             <postInstallationActionList>
+                <setInstallerVariable>
+                    <name>sendremote</name>
+                    <value>-sendremote true</value>
+                    <ruleList>
+                        <isTrue>
+                            <value>${bugsnag}</value>
+                        </isTrue>
+                    </ruleList>
+                </setInstallerVariable>
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
                     <key>version</key>
@@ -134,7 +143,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -149,7 +158,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -172,7 +181,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -187,7 +196,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -542,6 +551,38 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </createSymLink>
+        <setInstallerVariable>
+            <name>bugsnag</name>
+            <value>true</value>
+            <ruleList>
+                <isTrue>
+                    <value>${bugsnag}</value>
+                </isTrue>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>bugsnag</name>
+            <value>false</value>
+            <ruleList>
+                <isFalse>
+                    <value>${bugsnag}</value>
+                </isFalse>
+            </ruleList>
+        </setInstallerVariable>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+        </readFile>
+        <setInstallerVariableFromRegEx>
+            <name>dappgui_config</name>
+            <pattern>{"bugsnag":{"enable":(.*?),</pattern>
+            <substitution>{"bugsnag":{"enable":${bugsnag},</substitution>
+            <text>${dappgui_config}</text>
+        </setInstallerVariableFromRegEx>
+        <writeFile>
+            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+            <text>${dappgui_config}</text>
+        </writeFile>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>
@@ -701,6 +742,16 @@ ${program_stderr}</text>
                 </option>
             </optionList>
         </choiceParameter>
+        <booleanParameter>
+            <name>bugsnag</name>
+            <title>${msg(Installer.Bugsnag.title)}</title>
+            <description>${msg(Installer.Bugsnag.option)}</description>
+            <explanation>
+</explanation>
+            <value>true</value>
+            <default>true</default>
+            <displayStyle>checkbox-left</displayStyle>
+        </booleanParameter>
         <booleanParameter name="forceUpdate" default="0" ask="0">
             <description></description>
             <explanation></explanation>

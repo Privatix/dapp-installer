@@ -81,6 +81,9 @@
                         <distributionFile>
                             <origin>../linux-dapp-installer/dapp-installer.config.json</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>../linux-dapp-installer/dapp-supervisor</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -98,6 +101,9 @@
                         <distributionFile>
                             <origin>../win-dapp-installer/dapp-installer.exe</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>../win-dapp-installer/dapp-supervisor.exe</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -114,6 +120,9 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>../mac-dapp-installer/dapp-installer.config.json</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../mac-dapp-installer/dapp-supervisor</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>

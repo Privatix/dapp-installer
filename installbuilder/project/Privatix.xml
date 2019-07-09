@@ -572,6 +572,29 @@ ${program_stderr}</text>
         <readFile>
             <name>dappgui_config</name>
             <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
         </readFile>
         <setInstallerVariableFromRegEx>
             <name>dappgui_config</name>
@@ -582,6 +605,29 @@ ${program_stderr}</text>
         <writeFile>
             <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
             <text>${dappgui_config}</text>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </writeFile>
+        <writeFile>
+            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
+            <text>${dappgui_config}</text>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </writeFile>
+        <writeFile>
+            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
+            <text>${dappgui_config}</text>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
         </writeFile>
     </postInstallationActionList>
     <preUninstallationActionList>

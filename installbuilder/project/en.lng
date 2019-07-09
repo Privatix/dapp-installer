@@ -43,4 +43,4 @@ Installer.Button.Next=&Next >
 Installer.ForceUpdate=Upgrade is not supported, please remove current installation and run installer again. Do not forget to backup your accounts.
 Installer.Run=Run
 Installer.Bugsnag.title=Error reporting
-Installer.Bugsnag.option=Allow to send error reporing to Privatix developers team in order to gather feadback and improve product stability and quality.
+Installer.Bugsnag.option=Allow to send error reporing to Privatix developers team in order to gather feedback and improve product stability and quality.

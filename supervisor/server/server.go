@@ -27,12 +27,13 @@ func writeErr(w http.ResponseWriter, err error) {
 }
 
 // ListenAndServe start listening for supervisor requests.
-func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
+func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp, installUID string) error {
 	var mu sync.Mutex
 
 	http.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
+		logger.Info("UID: " + installUID)
 		logger.Info("stopping services...")
 		if runtime.GOOS == "linux" {
 			c := container.NewContainer()
@@ -42,6 +43,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 			if err := c.Stop(); err != nil {
 				logger.Error(err.Error())
 				writeErr(w, err)
+				return
 			}
 			logger.Info("done stopping services.")
 			return
@@ -50,7 +52,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 		ctx, cancel := newContextWithTimeout()
 		defer cancel()
 		logger.Info(fmt.Sprintf("stopping service %s...", d.Tor.ServiceName()))
-		err := d.Tor.Stop(ctx)
+		err := d.Tor.Stop(ctx, installUID)
 		if err != nil {
 			err = fmt.Errorf("could not stop tor `%s`: %v", d.Tor.ServiceName(), err)
 			logger.Error(err.Error())
@@ -63,7 +65,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 				ctx, cancel := newContextWithTimeout()
 				defer cancel()
 				logger.Info(fmt.Sprintf("recovering %s...", d.Tor.ServiceName()))
-				if err := d.Tor.Start(ctx); err != nil {
+				if err := d.Tor.Start(ctx, installUID); err != nil {
 					logger.Error(err.Error())
 				}
 			}
@@ -90,7 +92,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 		// Stop dappctrl and db.
 		ctx2, cancel2 := newContextWithTimeout()
 		defer cancel2()
-		err = d.Stop(ctx2)
+		err = d.Stop(ctx2, installUID)
 		if err != nil {
 			err = fmt.Errorf("could not stop dappctrl and db: timeout")
 			logger.Error(err.Error())
@@ -100,7 +102,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 			logger.Info("recovering dappctrl and db...")
 			ctx, cancel := newContextWithTimeout()
 			defer cancel()
-			if err := d.Start(ctx); err != nil {
+			if err := d.Start(ctx, installUID); err != nil {
 				logger.Error(err.Error())
 			}
 			return
@@ -111,6 +113,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 	http.HandleFunc("/start", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
+		logger.Info("UID: " + installUID)
 		logger.Info("starting services...")
 		if runtime.GOOS == "linux" {
 			c := container.NewContainer()
@@ -129,7 +132,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 		defer cancel()
 		logger.Info(fmt.Sprintf("starting %s...", d.Tor.ServiceName()))
 		logger.Info(d.Tor.RootPath)
-		err := d.Tor.Start(ctx)
+		err := d.Tor.Start(ctx, installUID)
 		if err != nil {
 			err = fmt.Errorf("could not start tor: %v", err)
 			logger.Error(err.Error())
@@ -142,7 +145,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 				logger.Info(fmt.Sprintf("recovering %s...", d.Tor.ServiceName()))
 				ctx, cancel := newContextWithTimeout()
 				defer cancel()
-				if err := d.Tor.Stop(ctx); err != nil {
+				if err := d.Tor.Stop(ctx, installUID); err != nil {
 					logger.Error(err.Error())
 				}
 			}
@@ -153,7 +156,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 		// Start dappctrl and db.
 		ctx2, cancel2 := newContextWithTimeout()
 		defer cancel2()
-		err = d.Start(ctx2)
+		err = d.Start(ctx2, installUID)
 		if err != nil {
 			err = fmt.Errorf("could not start dappctrl and db: %v", err)
 			logger.Error(err.Error())
@@ -162,7 +165,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 			// Start ensures everything is back to running.
 			ctx, cancel := newContextWithTimeout()
 			defer cancel()
-			if err := d.Stop(ctx); err != nil {
+			if err := d.Stop(ctx, installUID); err != nil {
 				logger.Error(err.Error())
 			}
 			return
@@ -173,7 +176,7 @@ func ListenAndServe(logger log.Logger, addr string, d *dapp.Dapp) error {
 				logger.Error("recovering dappctrl and db...")
 				ctx, cancel := newContextWithTimeout()
 				defer cancel()
-				if err := d.Stop(ctx); err != nil {
+				if err := d.Stop(ctx, installUID); err != nil {
 					logger.Error(err.Error())
 				}
 			}

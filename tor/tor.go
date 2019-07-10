@@ -147,7 +147,7 @@ func (t *Tor) Install(role string, autostart bool) error {
 }
 
 // Start starts tor process.
-func (t *Tor) Start(ctx context.Context) (err error) {
+func (t *Tor) Start(ctx context.Context, installUID string) (err error) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -156,17 +156,17 @@ func (t *Tor) Start(ctx context.Context) (err error) {
 			}
 			return ctx.Err()
 		default:
-			if !util.IsServiceStopped(t.ServiceName()) {
+			if !util.IsServiceStopped(t.ServiceName(), installUID) {
 				return nil
 			}
-			err = startService(t.ServiceName())
+			err = startService(t.ServiceName(), installUID)
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
 
 // Stop stops tor process.
-func (t *Tor) Stop(ctx context.Context) (err error) {
+func (t *Tor) Stop(ctx context.Context, installUID string) (err error) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -175,10 +175,10 @@ func (t *Tor) Stop(ctx context.Context) (err error) {
 			}
 			return ctx.Err()
 		default:
-			if util.IsServiceStopped(t.ServiceName()) {
+			if util.IsServiceStopped(t.ServiceName(), installUID) {
 				return nil
 			}
-			err = stopService(t.ServiceName())
+			err = stopService(t.ServiceName(), installUID)
 			time.Sleep(100 * time.Millisecond)
 		}
 	}

@@ -118,14 +118,14 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 	d.Path = oldDapp.Path
 
 	// Start dbengine.
-	if err := d.DBEngine.Start(d.Path); err != nil {
+	if err := d.DBEngine.Start(d.Path, ""); err != nil {
 		return err
 	}
 
 	// Update DB schema.
 	filePath := filepath.Join(d.Path, d.Controller.EntryPoint)
 	if err := d.DBEngine.UpdateDatabase(filePath); err != nil {
-		d.DBEngine.Stop(d.Path)
+		d.DBEngine.Stop(d.Path, "")
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
 		return err
@@ -133,7 +133,7 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 
 	// Configure dappctrl.
 	if err := d.Configure(); err != nil {
-		d.DBEngine.Stop(d.Path)
+		d.DBEngine.Stop(d.Path, "")
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
 		return err
@@ -313,7 +313,8 @@ func (d *Dapp) merge(s *Dapp) error {
 }
 
 // Stop stops dappctrl and debengine service.
-func (d *Dapp) Stop(ctx context.Context) (err error) {
+func (d *Dapp) Stop(ctx context.Context, installUID string) (err error) {
+	d.Controller.Service.SetUID(installUID)
 	for {
 		select {
 		case <-ctx.Done():
@@ -322,13 +323,13 @@ func (d *Dapp) Stop(ctx context.Context) (err error) {
 			}
 			return ctx.Err()
 		default:
-			if !util.IsServiceStopped(d.Controller.Service.ID) {
+			if !util.IsServiceStopped(d.Controller.Service.ID, installUID) {
 				err = d.Controller.Service.Stop()
 				time.Sleep(200 * time.Millisecond)
 				continue
 			}
-			if !util.IsServiceStopped(dbengine.Hash(d.Path)) {
-				err = d.DBEngine.Stop(d.Path)
+			if !util.IsServiceStopped(dbengine.Hash(d.Path), installUID) {
+				err = d.DBEngine.Stop(d.Path, installUID)
 				time.Sleep(200 * time.Millisecond)
 				continue
 			}
@@ -338,7 +339,8 @@ func (d *Dapp) Stop(ctx context.Context) (err error) {
 }
 
 // Start starts dappctrl and debengine service.
-func (d *Dapp) Start(ctx context.Context) (err error) {
+func (d *Dapp) Start(ctx context.Context, installUID string) (err error) {
+	d.Controller.Service.SetUID(installUID)
 	for {
 		select {
 		case <-ctx.Done():
@@ -347,12 +349,12 @@ func (d *Dapp) Start(ctx context.Context) (err error) {
 			}
 			return ctx.Err()
 		default:
-			if util.IsServiceStopped(dbengine.Hash(d.Path)) {
-				err = d.DBEngine.Start(d.Path)
+			if util.IsServiceStopped(dbengine.Hash(d.Path), installUID) {
+				err = d.DBEngine.Start(d.Path, installUID)
 				time.Sleep(200 * time.Millisecond)
 				continue
 			}
-			if util.IsServiceStopped(d.Controller.Service.ID) {
+			if util.IsServiceStopped(d.Controller.Service.ID, installUID) {
 				err = d.Controller.Service.Start()
 				time.Sleep(200 * time.Millisecond)
 				continue

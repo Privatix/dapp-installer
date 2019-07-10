@@ -30,7 +30,7 @@ func runService(service string) error {
 	return util.ExecuteCommand("net", "start", service)
 }
 
-func startService(installPath string, autostart bool) error {
+func startService(installPath, _ string, autostart bool) error {
 	fileName := filepath.Join(installPath, "pgsql", "bin", "pg_ctl")
 	serviceName := Hash(installPath)
 
@@ -60,7 +60,7 @@ func removeService(installPath string) error {
 	return util.ExecuteCommand(fileName, "unregister", "-N", serviceName)
 }
 
-func stopService(installPath string) error {
+func stopService(installPath, _ string) error {
 	serviceName := Hash(installPath)
 	return util.ExecuteCommand("sc", "stop", serviceName)
 }

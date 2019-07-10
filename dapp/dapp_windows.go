@@ -18,6 +18,9 @@ type service struct {
 	windows.Service
 }
 
+// SetUID needed only on darwin, does nothing.
+func (s *service) SetUID(_ string) {}
+
 func newService() *service {
 	return &service{
 		windows.Service{

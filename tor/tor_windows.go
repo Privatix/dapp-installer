@@ -19,11 +19,11 @@ func installService(service, path, description string, autostart bool) error {
 		"-nt-service", "-f", torConf)
 }
 
-func startService(service string) error {
+func startService(service, _ string) error {
 	return util.StartService(service)
 }
 
-func stopService(service string) error {
+func stopService(service, _ string) error {
 	return util.ExecuteCommand("sc", "stop", service)
 }
 

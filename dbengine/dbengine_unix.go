@@ -15,7 +15,7 @@ func Hash(installPath string) string {
 	return fmt.Sprintf("db_%s", util.Hash(installPath))
 }
 
-func startService(installPath string, autostart bool) error {
+func startService(installPath, installUID string, autostart bool) error {
 	fileName, err := filepath.Abs(filepath.Join(installPath, "pgsql", "bin", "postgres"))
 	if err != nil {
 		return err
@@ -26,6 +26,7 @@ func startService(installPath string, autostart bool) error {
 	d.Command = fileName
 	d.Args = []string{"-D" + dataPath}
 	d.AutoStart = autostart
+	d.UID = installUID
 
 	if err := d.Install(); err != nil {
 		return err
@@ -37,8 +38,10 @@ func removeService(installPath string) error {
 	return unix.NewDaemon(Hash(installPath)).Remove()
 }
 
-func stopService(installPath string) error {
-	return unix.NewDaemon(Hash(installPath)).Stop()
+func stopService(installPath, installUID string) error {
+	d := unix.NewDaemon(Hash(installPath))
+	d.UID = installUID
+	return d.Stop()
 }
 
 func prepareToInstall(installPath string) error {

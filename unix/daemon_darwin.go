@@ -19,9 +19,21 @@ func (d *Daemon) name() string {
 	return "io.privatix." + d.ID
 }
 
+// SetUID sets uid daemon is running on.
+func (d *Daemon) SetUID(uid string) {
+	d.UID = uid
+}
+
 func (d *Daemon) path() string {
-	usr, _ := user.Current()
-	dir := filepath.Join(usr.HomeDir, "Library/LaunchAgents")
+	var homedir string
+	if d.UID == "" {
+		usr, _ := user.Current()
+		homedir = usr.HomeDir
+	} else {
+		usr, _ := user.LookupId(d.UID)
+		homedir = usr.HomeDir
+	}
+	dir := filepath.Join(homedir, "Library/LaunchAgents")
 
 	return filepath.Join(dir, d.name()+".plist")
 }
@@ -50,19 +62,31 @@ func (d *Daemon) Install() error {
 
 // Start starts the daemon.
 func (d *Daemon) Start() error {
-	cmd := exec.Command("launchctl", "load", d.path())
+	cmd := d.buildLaunchctlCommand("load", d.path())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to load: %v", err)
+		out, _ := cmd.Output()
+		return fmt.Errorf("failed to load %s: %v, `%s`", d.path(), err, string(out))
 	}
 	time.Sleep(time.Millisecond)
-	cmd = exec.Command("launchctl", "start", d.name())
-	return cmd.Run()
+	cmd = d.buildLaunchctlCommand("start", d.name())
+	if err := cmd.Run(); err != nil {
+		out, _ := cmd.Output()
+		return fmt.Errorf("failed to start %s: %v, `%s`", d.path(), err, string(out))
+	}
+	return nil
 }
 
 // Stop stops the daemon.
 func (d *Daemon) Stop() error {
-	cmd := exec.Command("launchctl", "unload", d.path())
+	cmd := d.buildLaunchctlCommand("unload", d.path())
 	return cmd.Run()
+}
+
+func (d *Daemon) buildLaunchctlCommand(args ...string) *exec.Cmd {
+	if d.UID != "" {
+		args = append([]string{"asuser", d.UID, "launchctl"}, args...)
+	}
+	return exec.Command("launchctl", args...)
 }
 
 // Remove removes the daemon.
@@ -75,7 +99,7 @@ func (d *Daemon) Remove() error {
 
 // IsStopped returns the daemon stopped status.
 func (d *Daemon) IsStopped() bool {
-	cmd := exec.Command("launchctl", "list", d.name())
+	cmd := d.buildLaunchctlCommand("list", d.name())
 	output, err := cmd.Output()
 
 	if err != nil {
@@ -106,8 +130,25 @@ var daemonTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 		{{range .Args}}<string>{{.}}</string>
 		{{end}}
 	</array>
+	<key>RunAtLoad</key>
+	{{ if .AutoStart }}
+	<true/>
+	{{ else }}
+	<false/>
+	{{end}}
 	<key>KeepAlive</key>
-	{{if .AutoStart}}<true/>{{else}}<false/>{{end}}
+	<dict>
+		<key>AfterInitialDemand</key>
+		{{ if .AutoStart }}	
+		<false/>
+		{{ else }}
+		<true/>
+		{{ end }}
+		<key>SuccessfulExit</key>
+		<false/>
+		<key>Crashed</key>
+		<true/>
+	</dict>
 	<key>StandardErrorPath</key>
 	<string>{{.Command}}.err</string>
 	<key>StandardOutPath</key>

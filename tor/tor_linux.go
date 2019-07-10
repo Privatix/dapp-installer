@@ -32,11 +32,11 @@ func installService(daemon, path, descr string, autostart bool) error {
 	return util.ExecuteCommand("chown", "-R", u.Username, p)
 }
 
-func startService(daemon string) error {
+func startService(daemon, uid string) error {
 	return nil
 }
 
-func stopService(daemon string) error {
+func stopService(daemon, uid string) error {
 	return nil
 }
 

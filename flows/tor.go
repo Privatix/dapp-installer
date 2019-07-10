@@ -24,7 +24,7 @@ func removeTor(d *dapp.Dapp) error {
 }
 
 func stopTor(d *dapp.Dapp) error {
-	if err := d.Tor.Stop(context.Background()); err != nil {
+	if err := d.Tor.Stop(context.Background(), ""); err != nil {
 		return fmt.Errorf("failed to stop tor: %v", err)
 	}
 
@@ -32,7 +32,7 @@ func stopTor(d *dapp.Dapp) error {
 }
 
 func startTor(d *dapp.Dapp) error {
-	if err := d.Tor.Start(context.Background()); err != nil {
+	if err := d.Tor.Start(context.Background(), ""); err != nil {
 		return fmt.Errorf("failed to start tor: %v", err)
 	}
 

@@ -95,7 +95,7 @@ func GrantAccess(path string) error {
 }
 
 // IsServiceStopped returns service stopped status.
-func IsServiceStopped(service string) bool {
+func IsServiceStopped(service, _ string) bool {
 	out, err := ExecuteCommandOutput("sc", "queryex", service)
 	if err != nil {
 		return false

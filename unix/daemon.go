@@ -5,6 +5,7 @@ package unix
 // Daemon has a parameters for unix-daemon.
 type Daemon struct {
 	ID        string
+	UID       string
 	GUID      string
 	Name      string
 	Command   string

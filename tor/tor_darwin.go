@@ -24,12 +24,16 @@ func installService(daemon, path, descr string, autostart bool) error {
 	return d.Install()
 }
 
-func startService(daemon string) error {
-	return unix.NewDaemon(daemon).Start()
+func startService(daemon, installUID string) error {
+	d := unix.NewDaemon(daemon)
+	d.UID = installUID
+	return d.Start()
 }
 
-func stopService(daemon string) error {
-	return unix.NewDaemon(daemon).Stop()
+func stopService(daemon, installUID string) error {
+	d := unix.NewDaemon(daemon)
+	d.UID = installUID
+	return d.Stop()
 }
 
 func removeService(daemon string) error {

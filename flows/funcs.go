@@ -145,32 +145,40 @@ func update(d *dapp.Dapp) error {
 	return nil
 }
 
-func checkInstallation(d *dapp.Dapp) error {
-	if err := validatePathAndSetAsRootPathForTorIfValid(d); err != nil {
+func checkInstallation(d *dapp.Dapp) (err error) {
+	err = validatePathAndSetAsRootPathForTorIfValid(d)
+	if err != nil {
 		return err
 	}
 
-	if err := d.Exists(); err != nil {
+	err = startServicesIfClient(d)
+	defer func() {
+		if err != nil {
+			stopServicesIfClient(d)
+		}
+	}()
+	if err != nil {
+		return err
+	}
+
+	err = d.Exists()
+	if err != nil {
 		return fmt.Errorf("dapp is not found at %s: %v", d.Path, err)
 	}
 	return nil
 }
 
 func startServices(d *dapp.Dapp) error {
-	if err := d.DBEngine.Start(d.Path); err != nil {
-		return fmt.Errorf("failed to start dbengine: %v", err)
-	}
 	d.Controller.Service.ID = d.ControllerHash()
-	if err := d.Controller.Service.Start(); err != nil {
-		return fmt.Errorf("failed to start controller: %v", err)
-	}
-	return nil
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return d.Start(ctx, "")
 }
 
 func stopServices(d *dapp.Dapp) error {
 	ctx, cancel := context.WithTimeout(context.Background(), util.TimeOutInSec(d.Timeout))
 	defer cancel()
-	return d.Stop(ctx)
+	return d.Stop(ctx, "")
 }
 
 func removeServices(d *dapp.Dapp) error {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 
 	"github.com/privatix/dapp-installer/dapp"
@@ -62,7 +63,11 @@ func main() {
 		d.Path = os.Args[4]
 		d.Controller.Service.ID = d.ControllerHash()
 		d.Tor.RootPath = os.Args[5]
-		logger.Fatal(server.ListenAndServe(logger, "127.0.0.1:"+port, d).Error())
+		var installUID string // Passed only for darwin.
+		if runtime.GOOS == "darwin" {
+			installUID = os.Args[6]
+		}
+		logger.Fatal(server.ListenAndServe(logger, "127.0.0.1:"+port, d, installUID).Error())
 	case "install":
 		port := os.Args[2]
 		// Make sure port is valid integer before installing.

@@ -110,7 +110,7 @@ func (engine *DBEngine) Install(installPath string) error {
 	}
 
 	// start service
-	if err := engine.Start(installPath); err != nil {
+	if err := engine.Start(installPath, ""); err != nil {
 		return fmt.Errorf("failed to start db engine: %v", err)
 	}
 
@@ -161,16 +161,22 @@ func (engine *DBEngine) Remove(installPath string) error {
 }
 
 // Start starts the DB engine.
-func (engine *DBEngine) Start(installPath string) error {
-	if err := startService(installPath, engine.Autostart); err != nil {
+func (engine *DBEngine) Start(installPath, installUID string) error {
+	if err := startService(installPath, installUID, engine.Autostart); err != nil {
 		return err
 	}
-	return engine.checkRunning()
+	if err := engine.checkRunning(); err != nil {
+		return err
+	}
+	// Wait for db system finish starting up.
+	time.Sleep(time.Second)
+
+	return nil
 }
 
 // Stop stops the DB engine.
-func (engine *DBEngine) Stop(installPath string) error {
-	return stopService(installPath)
+func (engine *DBEngine) Stop(installPath, installUID string) error {
+	return stopService(installPath, installUID)
 }
 
 func (engine *DBEngine) checkRunning() error {

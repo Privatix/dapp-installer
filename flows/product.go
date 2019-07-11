@@ -36,6 +36,10 @@ func removeProducts(d *dapp.Dapp) error {
 }
 
 func startProducts(d *dapp.Dapp) error {
+	if d.OnlyCore {
+		return nil
+	}
+
 	if err := product.Start(d.Role, d.Path, d.Product); err != nil {
 		return fmt.Errorf("failed to start products: %v", err)
 	}
@@ -67,6 +71,10 @@ func updateProducts(d *dapp.Dapp) error {
 }
 
 func stopProducts(d *dapp.Dapp) error {
+	if d.OnlyCore {
+		return nil
+	}
+
 	if err := product.Stop(d.Role, d.Path, d.Product); err != nil {
 		return fmt.Errorf("failed to stop products: %v", err)
 	}

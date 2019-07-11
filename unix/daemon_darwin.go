@@ -101,7 +101,6 @@ func (d *Daemon) Remove() error {
 func (d *Daemon) IsStopped() bool {
 	cmd := d.buildLaunchctlCommand("list", d.name())
 	output, err := cmd.Output()
-
 	if err != nil {
 		return true
 	}

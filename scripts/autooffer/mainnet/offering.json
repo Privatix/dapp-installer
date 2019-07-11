@@ -5,7 +5,7 @@
     "unitType": "units",
     "billingType": "postpaid",
     "setupPrice": 0,
-    "unitPrice": 0.0004,
+    "unitPrice": 0.0002,
     "minUnits": 1000,
     "maxUnit": 0,
     "billingInterval": 70,

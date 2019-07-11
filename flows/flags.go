@@ -96,6 +96,7 @@ func processedStatusFlags(d *dapp.Dapp) error {
 func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
+	role := flag.String("role", "", "Dapp user role")
 	config := flag.String("config", "", "Configuration file")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
@@ -117,6 +118,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 		*p = filepath.Dir(os.Args[0])
 	}
 	d.Path = *p
+	d.Role = *role
 	d.Verbose = *v
 	return nil
 }

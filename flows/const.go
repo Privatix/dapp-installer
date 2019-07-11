@@ -51,6 +51,7 @@ Flags:
 	--help		Display help information
 	--workdir	Dapp install directory
 	--verbose	Display log to console log
+	--role			Dapp user role
 `
 
 	installHelp = `
@@ -76,6 +77,7 @@ Flags:
 	--help		Display help information
 	--workdir	Dapp install directory
 	--verbose	Display log to console log
+	--role			Dapp user role
 `
 
 	installProductHelp = `

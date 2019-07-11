@@ -660,7 +660,7 @@ ${program_stderr}</text>
             <actionList>
                 <runProgram>
                     <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                    <programArguments>remove -workdir ${install_type} -role ${install_type}</programArguments>
                     <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>

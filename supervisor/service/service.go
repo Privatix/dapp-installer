@@ -2,11 +2,8 @@ package service
 
 import (
 	"context"
-	"os"
-	"runtime"
 	"time"
 
-	"github.com/privatix/dapp-installer/unix"
 	"github.com/takama/daemon"
 )
 
@@ -21,15 +18,6 @@ func supervisorService() (daemon.Daemon, error) {
 // Install install supervisor daemon to system.
 func Install(args []string) error {
 	args = append([]string{"runserver"}, args...)
-
-	// github.com/takama/daemon install services with root privilege. For darwin need as current users.
-	if runtime.GOOS == "darwin" {
-		d := unix.NewDaemon(name)
-		d.Command = os.Args[0]
-		d.Args = args
-
-		return d.Install()
-	}
 
 	if service, err := supervisorService(); err != nil {
 		return err
@@ -54,15 +42,9 @@ func Start(port int) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if runtime.GOOS == "darwin" {
-				if err := unix.NewDaemon(name).Start(); err == nil {
-					return nil
-				}
-			} else {
-				_, err = service.Start()
-				if err == daemon.ErrAlreadyRunning || err == daemon.ErrNotInstalled {
-					return nil
-				}
+			_, err = service.Start()
+			if err == daemon.ErrAlreadyRunning || err == daemon.ErrNotInstalled {
+				return nil
 			}
 		}
 	}
@@ -83,11 +65,6 @@ func Stop() error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if runtime.GOOS == "darwin" {
-				if err = unix.NewDaemon(name).Stop(); err == nil {
-					return nil
-				}
-			}
 			_, err = service.Stop()
 			if err == daemon.ErrAlreadyStopped || err == daemon.ErrNotInstalled {
 				return nil
@@ -98,9 +75,6 @@ func Stop() error {
 
 // Remove removes superviser daemon from system.
 func Remove() error {
-	if runtime.GOOS == "darwin" {
-		return unix.NewDaemon(name).Remove()
-	}
 	service, err := supervisorService()
 	if err != nil {
 		return err

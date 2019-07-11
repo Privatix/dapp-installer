@@ -53,7 +53,7 @@ func startService(installPath, _ string, autostart bool) error {
 
 func removeService(installPath string) error {
 	serviceName := Hash(installPath)
-	stopService(installPath)
+	stopService(installPath, "")
 
 	fileName := filepath.Join(installPath, "pgsql", "bin", "pg_ctl")
 

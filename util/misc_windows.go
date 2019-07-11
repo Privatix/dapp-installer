@@ -194,9 +194,8 @@ func CreateService(name, exe, descr string, autostart bool, args ...string) erro
 	s, err := m.CreateService(name, exe,
 		mgr.Config{
 			DisplayName: name,
-			StartType:   mgr.StartAutomatic,
 			Description: descr,
-			StartType: startType,
+			StartType: uint32(startType),
 		}, args...)
 	if err != nil {
 		return err

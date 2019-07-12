@@ -625,7 +625,7 @@ ${program_stderr}</text>
         <setInstallerVariableFromRegEx>
             <name>dappgui_config</name>
             <pattern>"role":"(.*?)"</pattern>
-            <substitution>${install_type}</substitution>
+            <substitution>"role":"${install_type}"</substitution>
             <text>${dappgui_config}</text>
         </setInstallerVariableFromRegEx>
         <writeFile>

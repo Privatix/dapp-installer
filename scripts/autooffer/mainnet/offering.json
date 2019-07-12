@@ -13,6 +13,7 @@
     "maxSuspendTime": 1800,
     "maxInactiveTimeSec": 1800,
     "freeUnits": 0,
+    "ipType": "datacenter",
     "additionalParams": {
         "minDownloadMbits": 100,
         "minUploadMbits": 80

@@ -159,12 +159,11 @@ func run(role, path, cmd string) (bool, error) {
 		cmds = p.Stop
 	default:
 		return true, fmt.Errorf("unknown command %s", cmd)
-
 	}
 
 	for _, v := range cmds {
 		if err := v.execute(path); err != nil {
-			return p.CoreDapp, err
+			return p.CoreDapp, fmt.Errorf("failed to exec product command: %v", err)
 		}
 	}
 

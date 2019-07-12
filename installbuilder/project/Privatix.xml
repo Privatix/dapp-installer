@@ -229,7 +229,7 @@ ${program_stderr}</text>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
                                     <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -358,7 +358,7 @@ ${program_stderr}</text>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
                                     <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -741,7 +741,7 @@ ${program_stderr}</text>
                     <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
                     <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
                     <ruleList>

@@ -619,7 +619,7 @@ ${program_stderr}</text>
         <setInstallerVariableFromRegEx>
             <name>dappgui_config</name>
             <pattern>{"bugsnag":{"enable":(.*?),</pattern>
-            <substitution>{"bugsnag":{"enable":${bugsnag},</substitution>
+            <substitution>{"bugsnag":{"enable":${bugsnag}, "role": "${install_type}",</substitution>
             <text>${dappgui_config}</text>
         </setInstallerVariableFromRegEx>
         <writeFile>

@@ -228,6 +228,7 @@ class AutoOffer():
             "maxBillingUnitLag": 100,
             "maxSuspendTime": 1800,
             "maxInactiveTimeSec": 1800,
+            "ipType": "datacenter",
             "freeUnits": 0,
             "additionalParams": {"minDownloadMbits": 100,
                                  "minUploadMbits": 80},

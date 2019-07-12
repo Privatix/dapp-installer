@@ -9,7 +9,7 @@ import (
 
 var actionTimeout = 15 * time.Second
 
-const name = "Privatix Dapp-Superviser"
+const name = "Privatix_Dapp_Supervisor"
 
 func supervisorService() (daemon.Daemon, error) {
 	return daemon.New(name, "")
@@ -43,7 +43,7 @@ func Start(port int) error {
 			return ctx.Err()
 		default:
 			_, err = service.Start()
-			if err == daemon.ErrAlreadyRunning || err == daemon.ErrNotInstalled {
+			if err != nil || (err == daemon.ErrAlreadyRunning || err == daemon.ErrNotInstalled) {
 				return nil
 			}
 		}
@@ -66,14 +66,14 @@ func Stop() error {
 			return ctx.Err()
 		default:
 			_, err = service.Stop()
-			if err == daemon.ErrAlreadyStopped || err == daemon.ErrNotInstalled {
+			if err != nil || (err == daemon.ErrAlreadyStopped || err == daemon.ErrNotInstalled) {
 				return nil
 			}
 		}
 	}
 }
 
-// Remove removes superviser daemon from system.
+// Remove removes supervisor daemon from system.
 func Remove() error {
 	service, err := supervisorService()
 	if err != nil {
@@ -81,6 +81,7 @@ func Remove() error {
 	}
 	// Make sure daemon is removed.
 	for _, err := service.Remove(); err != nil && err != daemon.ErrNotInstalled; {
+		return err
 	}
 
 	return nil

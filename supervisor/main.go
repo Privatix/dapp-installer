@@ -69,16 +69,14 @@ func main() {
 		}
 		logger.Fatal(server.ListenAndServe(logger, "127.0.0.1:"+port, d, installUID).Error())
 	case "install":
-		port := os.Args[2]
 		// Make sure port is valid integer before installing.
-		portInt, err := strconv.Atoi(port)
-		if err != nil {
+		if _, err := strconv.Atoi(os.Args[2]); err != nil {
 			logger.Fatal(fmt.Sprintf("could not parse port number: %v", err))
 		}
 		if err := service.Install(os.Args[2:]); err != nil {
 			logger.Fatal(err.Error())
 		}
-		if err := service.Start(portInt); err != nil {
+		if err := service.Start(); err != nil {
 			// Could not start, cleaning up.
 			if err := service.Remove(); err != nil {
 				logger.Error(err.Error())

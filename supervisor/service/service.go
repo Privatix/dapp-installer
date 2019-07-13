@@ -28,7 +28,7 @@ func Install(args []string) error {
 }
 
 // Start start supervisor daemon.
-func Start(port int) error {
+func Start() error {
 	service, err := supervisorService()
 	if err != nil {
 		return err

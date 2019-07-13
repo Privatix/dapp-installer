@@ -341,6 +341,7 @@ func (d *Dapp) Stop(ctx context.Context, installUID string) (err error) {
 // Start starts dappctrl and debengine service.
 func (d *Dapp) Start(ctx context.Context, installUID string) (err error) {
 	d.Controller.Service.SetUID(installUID)
+	d.Controller.Service.GUID = filepath.Join(d.Path, "dappctrl", d.Controller.Service.ID)
 	for {
 		select {
 		case <-ctx.Done():

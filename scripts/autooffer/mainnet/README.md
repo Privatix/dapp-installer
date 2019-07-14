@@ -366,10 +366,10 @@ error.sendremote: true
 
 #### Usage
 
-Update settings:
+Set `offering.autopopup` setting to `true`:
 
 ```bash
-python update_settings.py '{"offering.autopopup": "false"}'
+python update_settings.py '{"offering.autopopup": "true"}'
 ```
 
 #### Output

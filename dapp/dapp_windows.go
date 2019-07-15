@@ -19,7 +19,15 @@ type service struct {
 }
 
 // SetUID needed only on darwin, does nothing.
-func (s *service) SetUID(_ string) {}
+func (*service) SetUID(_ string) {}
+
+func (s *service) Start() error {
+	return util.StartService(s.Name)
+}
+
+func (s *service) Stop() error {
+	return util.ExecuteCommand("sc", "stop", s.Name)
+}
 
 func newService() *service {
 	return &service{

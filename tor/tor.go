@@ -43,7 +43,7 @@ func NewTor() *Tor {
 		HiddenServiceDir: "tor/hidden_service",
 		SocksPort:        9999,
 		VirtPort:         80,
-		TargetPort:       5555,
+		TargetPort:       3452,
 		Config:           "torrc",
 		IsLinux:          runtime.GOOS == "linux",
 	}

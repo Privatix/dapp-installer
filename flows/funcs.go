@@ -150,6 +150,8 @@ func checkInstallation(d *dapp.Dapp) (err error) {
 	if err != nil {
 		return err
 	}
+	d.Controller.Service.ID = d.ControllerHash()
+	d.Controller.Service.GUID = filepath.Join(d.Path, "dappctrl", d.Controller.Service.ID)
 
 	err = startServicesIfClient(d)
 	defer func() {

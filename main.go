@@ -12,6 +12,7 @@ import (
 	"github.com/privatix/dapp-installer/dapp"
 	"github.com/privatix/dapp-installer/flow"
 	"github.com/privatix/dapp-installer/flows"
+	"github.com/privatix/dapp-installer/v2/update"
 	"github.com/privatix/dappctrl/util/log"
 	"github.com/privatix/dappctrl/version"
 )
@@ -68,14 +69,21 @@ func main() {
 		return
 	}
 
+	if arg == "update" {
+		if err := update.Run(logger); err != nil {
+			logger.Fatal(err.Error())
+		}
+		return
+	}
+
 	ok, err := flow.Execute(logger, arg, map[string]flow.Flow{
 		"install":          flows.Install(),
 		"install-products": flows.InstallProducts(),
-		"update":           flows.Update(),
-		"update-products":  flows.UpdateProducts(),
-		"remove":           flows.Remove(),
-		"remove-products":  flows.RemoveProducts(),
-		"status":           flows.Status(),
+		// "update":           flows.Update(),
+		"update-products": flows.UpdateProducts(),
+		"remove":          flows.Remove(),
+		"remove-products": flows.RemoveProducts(),
+		"status":          flows.Status(),
 	}, d)
 
 	if err != nil {

@@ -6,6 +6,7 @@
     <leftImage>images/left.png</leftImage>
     <logoImage>images/top.png</logoImage>
     <wmImage>images/icons/48x48_win.png</wmImage>
+    <installationType>normal</installationType>
     <componentList>
         <component>
             <name>core</name>
@@ -626,31 +627,52 @@ ${program_stderr}</text>
             <substitution>"role":"${install_type}"</substitution>
             <text>${dappgui_config}</text>
         </setInstallerVariableFromRegEx>
+
         <writeFile>
             <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
             <text>${dappgui_config}</text>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
                 <platformTest>
                     <type>osx</type>
                 </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
             </ruleList>
         </writeFile>
+
         <writeFile>
             <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
             <text>${dappgui_config}</text>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
                 <platformTest>
                     <type>linux</type>
                 </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
             </ruleList>
         </writeFile>
+
         <writeFile>
             <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
             <text>${dappgui_config}</text>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
                 </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
             </ruleList>
         </writeFile>
     </postInstallationActionList>
@@ -673,9 +695,31 @@ ${program_stderr}</text>
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>
+            <abortOnError>0</abortOnError>
             <matchHiddenFiles>1</matchHiddenFiles>
             <path>${installdir}</path>
+            <showMessageOnError>0</showMessageOnError>
         </deleteFile>
+        <showInfo>
+            <text>To complete the uninstallation, restart your computer</text>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </showInfo>
+
+        <!-- If using osascript failed, try using reboot -->
+
+        <runProgram>
+            <program>reboot</program>
+            <programArguments></programArguments>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </runProgram>
     </postUninstallationActionList>
     <allowComponentSelection>1</allowComponentSelection>
     <allowedLanguages>en ru</allowedLanguages>
@@ -784,7 +828,19 @@ ${program_stderr}</text>
             <mustBeWritable>1</mustBeWritable>
             <mustExist>0</mustExist>
             <width>30</width>
+            <!-- If we found an existing installation in the selected
+           directory we set installationType=upgrade -->
+            <postShowPageActionList>
+                <setInstallerVariable>
+                    <name>project.installationType</name>
+                    <value>upgrade</value>
+                    <ruleList>
+                        <fileTest condition="exists" path="${installdir}"/>
+                    </ruleList>
+                </setInstallerVariable>
+            </postShowPageActionList>
         </directoryParameter>
+
         <choiceParameter>
             <name>install_type</name>
             <title>${msg(Installer.TypeOfInstallation)}</title>
@@ -795,7 +851,6 @@ ${program_stderr}</text>
             <allowEmptyValue>0</allowEmptyValue>
             <displayType>radiobuttons</displayType>
             <ordering>default</ordering>
-            <ruleEvaluationLogic>or</ruleEvaluationLogic>
             <width>30</width>
             <optionList>
                 <option>
@@ -811,13 +866,20 @@ ${program_stderr}</text>
                     <value>agent</value>
                 </option>
             </optionList>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
                 <platformTest>
                     <negate>1</negate>
                     <type>windows</type>
                 </platformTest>
             </ruleList>
         </choiceParameter>
+
         <choiceParameter>
             <name>install_type_windows</name>
             <title>${msg(Installer.TypeOfInstallation)}</title>
@@ -828,7 +890,6 @@ ${program_stderr}</text>
             <allowEmptyValue>0</allowEmptyValue>
             <displayType>radiobuttons</displayType>
             <ordering>default</ordering>
-            <ruleEvaluationLogic>or</ruleEvaluationLogic>
             <width>30</width>
             <optionList>
                 <option>
@@ -844,12 +905,19 @@ ${program_stderr}</text>
                     <value>agent</value>
                 </option>
             </optionList>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
                 <platformTest>
                     <type>windows</type>
                 </platformTest>
             </ruleList>
         </choiceParameter>
+
         <booleanParameter>
             <name>bugsnag</name>
             <title>${msg(Installer.Bugsnag.title)}</title>
@@ -859,7 +927,15 @@ ${program_stderr}</text>
             <value>true</value>
             <default>true</default>
             <displayStyle>checkbox-left</displayStyle>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
+            </ruleList>
         </booleanParameter>
+
         <booleanParameter name="forceUpdate" default="0" ask="0">
             <description></description>
             <explanation></explanation>

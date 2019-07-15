@@ -15,6 +15,7 @@ require (
 	github.com/rakyll/statik v0.1.6
 	github.com/rdegges/go-ipify v0.0.0-20150526035502-2d94a6a86c40
 	github.com/sethvargo/go-password v0.1.2
+	github.com/stretchr/testify v1.4.0 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/takama/daemon v0.11.0
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c // indirect

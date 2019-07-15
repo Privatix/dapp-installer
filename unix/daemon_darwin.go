@@ -64,14 +64,14 @@ func (d *Daemon) Install() error {
 func (d *Daemon) Start() error {
 	cmd := d.buildLaunchctlCommand("load", d.path())
 	if err := cmd.Run(); err != nil {
-		out, _ := cmd.Output()
-		return fmt.Errorf("failed to load %s: %v, `%s`", d.path(), err, string(out))
+		out, errout := cmd.Output()
+		return fmt.Errorf("failed to load %s: %v, Out: `%s`, Error: %v,", d.path(), err, string(out), errout)
 	}
-	time.Sleep(time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	cmd = d.buildLaunchctlCommand("start", d.name())
 	if err := cmd.Run(); err != nil {
-		out, _ := cmd.Output()
-		return fmt.Errorf("failed to start %s: %v, `%s`", d.path(), err, string(out))
+		out, errout := cmd.Output()
+		return fmt.Errorf("failed to start %s: %v, Out: `%s`, Error: %v", d.path(), err, string(out), errout)
 	}
 	return nil
 }

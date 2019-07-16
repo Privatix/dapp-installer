@@ -30,7 +30,11 @@ func (s *service) Start() error {
 }
 
 func (s *service) Stop() error {
-	return util.ExecuteCommand("sc", "stop", s.Name)
+	err := util.ExecuteCommand("sc", "stop", s.Name)
+	if err != nil {
+		err = s.Service.Stop()
+	}
+	return err
 }
 
 func newService() *service {

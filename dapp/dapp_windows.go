@@ -22,7 +22,11 @@ type service struct {
 func (*service) SetUID(_ string) {}
 
 func (s *service) Start() error {
-	return util.StartService(s.Name)
+	err := util.StartService(s.Name)
+	if err != nil {
+		err = s.Service.Start()
+	}
+	return err
 }
 
 func (s *service) Stop() error {

@@ -673,8 +673,10 @@ ${program_stderr}</text>
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>
+            <abortOnError>0</abortOnError>
             <matchHiddenFiles>1</matchHiddenFiles>
             <path>${installdir}</path>
+            <showMessageOnError>0</showMessageOnError>
         </deleteFile>
     </postUninstallationActionList>
     <allowComponentSelection>1</allowComponentSelection>

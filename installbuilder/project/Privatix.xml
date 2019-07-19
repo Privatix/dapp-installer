@@ -382,18 +382,16 @@ ${program_stderr}</text>
             </postInstallationActionList>
         </component>
     </componentList>
-    <preInstallationActionList>
+    <readyToInstallActionList>
         <setInstallerVariable>
             <name>install_type</name>
-            <value>client</value>
+            <value>${install_type_windows}</value>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
                 </platformTest>
             </ruleList>
         </setInstallerVariable>
-    </preInstallationActionList>
-    <readyToInstallActionList>
         <propertiesFileGet>
             <abortOnError>0</abortOnError>
             <file>${installdir}/version</file>
@@ -816,6 +814,38 @@ ${program_stderr}</text>
             <ruleList>
                 <platformTest>
                     <negate>1</negate>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </choiceParameter>
+        <choiceParameter>
+            <name>install_type_windows</name>
+            <title>${msg(Installer.TypeOfInstallation)}</title>
+            <description></description>
+            <explanation>${msg(Installer.TypeOfInstallation.description)}</explanation>
+            <value>client</value>
+            <default>client</default>
+            <allowEmptyValue>0</allowEmptyValue>
+            <displayType>radiobuttons</displayType>
+            <ordering>default</ordering>
+            <ruleEvaluationLogic>or</ruleEvaluationLogic>
+            <width>30</width>
+            <optionList>
+                <option>
+                    <description></description>
+                    <image></image>
+                    <text>${msg(Installer.TypeOfInstallation.Client)}</text>
+                    <value>client</value>
+                </option>
+                <option>
+                    <description>${msg(Installer.TypeOfInstallation.Agent_windows.Description)}</description>
+                    <image></image>
+                    <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
+                    <value>agent</value>
+                </option>
+            </optionList>
+            <ruleList>
+                <platformTest>
                     <type>windows</type>
                 </platformTest>
             </ruleList>

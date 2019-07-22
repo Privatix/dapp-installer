@@ -56,7 +56,12 @@ func (c *Container) Install() error {
 		return err
 	}
 
-	return util.ExecuteCommand("systemctl", "daemon-reload")
+	if err := util.ExecuteCommand("systemctl", "daemon-reload"); err != nil {
+		return err
+	}
+
+	// Ubuntu 16 fix. Enable 'machines.target'.
+	return util.ExecuteCommand("systemctl", "enable", "machines.target")
 }
 
 // EnableAndStart container nspawn service.

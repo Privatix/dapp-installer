@@ -678,6 +678,26 @@ ${program_stderr}</text>
             <path>${installdir}</path>
             <showMessageOnError>0</showMessageOnError>
         </deleteFile>
+        <showInfo>
+            <text>To complete the uninstallation, restart your computer</text>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </showInfo>
+
+        <!-- If using osascript failed, try using reboot -->
+
+        <runProgram>
+            <program>reboot</program>
+            <programArguments></programArguments>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </runProgram>
     </postUninstallationActionList>
     <allowComponentSelection>1</allowComponentSelection>
     <allowedLanguages>en ru</allowedLanguages>

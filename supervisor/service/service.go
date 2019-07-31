@@ -2,9 +2,16 @@ package service
 
 import (
 	"context"
+	"os"
+	"os/exec"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/takama/daemon"
+
+	"github.com/privatix/dappctrl/util/log"
 )
 
 var actionTimeout = 15 * time.Second
@@ -17,8 +24,6 @@ func supervisorService() (daemon.Daemon, error) {
 
 // Install install supervisor daemon to system.
 func Install(args []string) error {
-	args = append([]string{"runserver"}, args...)
-
 	if service, err := supervisorService(); err != nil {
 		return err
 	} else if _, err := service.Install(args...); err != nil && err != daemon.ErrAlreadyInstalled { // Fault tolerance. Ignore if service is already installed.
@@ -85,4 +90,87 @@ func Remove() error {
 	}
 
 	return nil
+}
+
+type executable struct {
+	logger  log.Logger
+	exec    string
+	args    []string
+	process *os.Process
+	mu      sync.Mutex
+}
+
+// Run blocking server run.
+func (e *executable) Run() {
+	// Set up channel on which to send signal notifications.
+	// We must use a buffered channel or risk missing the signal
+	// if we're not ready to receive when the signal is sent.
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, os.Kill, syscall.SIGTERM)
+	defer close(interrupt)
+
+	e.Start()
+
+	for {
+		select {
+		case <-interrupt:
+			e.Stop()
+		}
+	}
+}
+
+// Start non-blocking run.
+func (e *executable) Start() {
+	go func() {
+		if err := e.run(); err != nil {
+			e.logger.Error(err.Error())
+			os.Exit(2)
+		}
+		os.Exit(0)
+	}()
+}
+
+// Stop non-blocking stop.
+func (e *executable) Stop() {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.process != nil {
+		if err := e.process.Kill(); err != nil {
+			e.logger.Error(err.Error())
+			e.process = nil
+		}
+	} else {
+		e.logger.Warn("couldn't stop: nothing to stop")
+	}
+}
+
+func (e *executable) run() error {
+	e.mu.Lock()
+	e.mu.Unlock()
+	cmd := exec.Command(e.exec, e.args...)
+
+	if err := cmd.Start(); err != nil {
+		e.logger.Error(err.Error())
+		return err
+	}
+
+	e.process = cmd.Process
+
+	return cmd.Wait()
+}
+
+// RunServer starts a server.
+func RunServer(logger log.Logger, exec string, args []string) error {
+	service, err := supervisorService()
+	if err != nil {
+		return err
+	}
+
+	_, err = service.Run(&executable{
+		logger: logger,
+		exec:   exec,
+		args:   args,
+	})
+
+	return err
 }

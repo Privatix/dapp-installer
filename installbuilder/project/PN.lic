@@ -1,3 +1,17 @@
+Privatix Network Core Beta is an Open Source software in very 
+early stages of development. There is no guarantee or any SLA provided. 
+Blockchain is a relatively new and dynamic technology. There may also be 
+unanticipated risks arising from the PRIX Tokens volatility or 
+Ethereum GAS costs. Use it at your own risk. The team is not responsible
+for any damages caused by the usage of current software. 
+The software contains the code of another popular project according 
+to each of the licenses mentioned below. Privatix Network Core software
+distributed via GPL-3 Licence.                  
+
+======================================================================
+
+                                        
+                    
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -2023,3 +2037,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+

@@ -53,8 +53,18 @@ func main() {
 	logger, closer := createLogger(dir)
 	defer closer.Close()
 
+	logger.Info(fmt.Sprint("exec with args: ", os.Args[1:]))
+
 	arg := os.Args[1]
 	switch arg {
+	case "run-service":
+		// Non blocking service start. Some systems (windows) expect a service
+		// to answer to start control in a timely fashion, otherwise it is
+		// considered irresponsive and killed.
+		args := append([]string{"runserver"}, os.Args[2:]...)
+		if err := service.RunServer(logger, os.Args[0], args); err != nil {
+			logger.Fatal(err.Error())
+		}
 	case "runserver":
 		// Expected os.Args = dapp-supervisor runserver <role> <path> <tor.rootpath>
 		d := dapp.NewDapp()
@@ -62,18 +72,22 @@ func main() {
 		d.Role = os.Args[3]
 		d.Path = os.Args[4]
 		d.Controller.Service.ID = d.ControllerHash()
+		d.Controller.Service.Name = d.Controller.Service.ID
 		d.Tor.RootPath = os.Args[5]
+		d.Controller.Service.GUID = filepath.Join(d.Path, "dappctrl", d.Controller.Service.ID)
 		var installUID string // Passed only for darwin.
 		if runtime.GOOS == "darwin" {
 			installUID = os.Args[6]
 		}
+		d.Controller.Service.SetUID(installUID)
 		logger.Fatal(server.ListenAndServe(logger, "127.0.0.1:"+port, d, installUID).Error())
 	case "install":
 		// Make sure port is valid integer before installing.
 		if _, err := strconv.Atoi(os.Args[2]); err != nil {
 			logger.Fatal(fmt.Sprintf("could not parse port number: %v", err))
 		}
-		if err := service.Install(os.Args[2:]); err != nil {
+		args := append([]string{"run-service"}, os.Args[2:]...)
+		if err := service.Install(args); err != nil {
 			logger.Fatal(err.Error())
 		}
 		if err := service.Start(); err != nil {

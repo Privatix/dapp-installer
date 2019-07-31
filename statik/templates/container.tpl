@@ -10,7 +10,7 @@ Description=Container %i
 Documentation=man:systemd-nspawn(1)
 PartOf=machines.target
 Before=machines.target
-After=network.target
+After=network.target network-online.target
 StartLimitIntervalSec=0
 
 [Service]

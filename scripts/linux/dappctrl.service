@@ -9,6 +9,7 @@ After=postgresql.service
 Type=simple
 ExecStart=/dappctrl/dappctrl -config=/dappctrl/dappctrl.config.json
 Restart=always
+RestartSec=3
 User=root
 Group=root
 StandardOutput=syslog

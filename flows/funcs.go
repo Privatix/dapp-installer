@@ -98,7 +98,7 @@ func removeDBEngine(d *dapp.Dapp) error {
 }
 
 func install(d *dapp.Dapp) error {
-	if err := d.Configurate(); err != nil {
+	if err := d.Configure(); err != nil {
 		return fmt.Errorf("failed to configure dapp: %v", err)
 	}
 
@@ -145,37 +145,42 @@ func update(d *dapp.Dapp) error {
 	return nil
 }
 
-func checkInstallation(d *dapp.Dapp) error {
-	if err := validatePathAndSetAsRootPathForTorIfValid(d); err != nil {
+func checkInstallation(d *dapp.Dapp) (err error) {
+	err = validatePathAndSetAsRootPathForTorIfValid(d)
+	if err != nil {
+		return err
+	}
+	d.Controller.Service.ID = d.ControllerHash()
+	d.Controller.Service.GUID = filepath.Join(d.Path, "dappctrl", d.Controller.Service.ID)
+
+	err = startServicesIfClient(d)
+	defer func() {
+		if err != nil {
+			stopServicesIfClient(d)
+		}
+	}()
+	if err != nil {
 		return err
 	}
 
-	if err := d.Exists(); err != nil {
+	err = d.Exists()
+	if err != nil {
 		return fmt.Errorf("dapp is not found at %s: %v", d.Path, err)
 	}
 	return nil
 }
 
 func startServices(d *dapp.Dapp) error {
-	if err := d.DBEngine.Start(d.Path); err != nil {
-		return fmt.Errorf("failed to start dbengine: %v", err)
-	}
-	if err := d.Controller.Service.Start(); err != nil {
-		return fmt.Errorf("failed to start controller: %v", err)
-	}
-	return nil
+	d.Controller.Service.ID = d.ControllerHash()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return d.Start(ctx, "")
 }
 
 func stopServices(d *dapp.Dapp) error {
-	done := make(chan bool)
-	go d.Stop(done)
-
-	select {
-	case <-done:
-		return nil
-	case <-time.After(util.TimeOutInSec(d.Timeout)):
-		return fmt.Errorf("failed to stop services: timeout expired")
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), util.TimeOutInSec(d.Timeout))
+	defer cancel()
+	return d.Stop(ctx, "")
 }
 
 func removeServices(d *dapp.Dapp) error {
@@ -268,6 +273,14 @@ func writeVersion(d *dapp.Dapp) error {
 	return nil
 }
 
+func updateSendRemote(d *dapp.Dapp) error {
+	if err := data.UpdateSetting(d.DBEngine.DB, "error.sendremote", fmt.Sprint(d.SendRemote)); err != nil {
+		return fmt.Errorf("failed to update error.sendremote setting: %v", err)
+	}
+
+	return nil
+}
+
 func writeEnvironmentVariable(d *dapp.Dapp) error {
 	v := env.NewConfig()
 
@@ -309,7 +322,7 @@ func configureDapp(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to configure db conf: %v", err)
 	}
 
-	if err := d.Configurate(); err != nil {
+	if err := d.Configure(); err != nil {
 		return fmt.Errorf("failed to configure: %v", err)
 	}
 	return nil
@@ -340,7 +353,11 @@ func createDatabase(d *dapp.Dapp) error {
 	}
 
 	if err := writeVersion(d); err != nil {
-		return fmt.Errorf("failed to write dapp version: %v", err)
+		return err
+	}
+
+	if err := updateSendRemote(d); err != nil {
+		return err
 	}
 
 	return nil
@@ -380,4 +397,44 @@ func finalize(d *dapp.Dapp) error {
 
 func removeBackup(d *dapp.Dapp) error {
 	return os.RemoveAll(d.BackupPath)
+}
+
+func stopTorIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopTor)
+}
+
+func startTorIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, startTor)
+}
+
+func stopServicesIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopServices)
+}
+
+func startServicesIfClient(d *dapp.Dapp) error {
+	err := runIfClient(d, startServices)
+	return err
+}
+
+func stopProductsIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopProducts)
+}
+
+func startProductsIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, startProducts)
+}
+
+func stopContainerIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, stopContainer)
+}
+
+func startContainerIfClient(d *dapp.Dapp) error {
+	return runIfClient(d, startContainer)
+}
+
+func runIfClient(d *dapp.Dapp, f func(*dapp.Dapp) error) error {
+	if d.Role == "agent" {
+		return nil
+	}
+	return f(d)
 }

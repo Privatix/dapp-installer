@@ -95,7 +95,7 @@ func GrantAccess(path string) error {
 }
 
 // IsServiceStopped returns service stopped status.
-func IsServiceStopped(service string) bool {
+func IsServiceStopped(service, _ string) bool {
 	out, err := ExecuteCommandOutput("sc", "queryex", service)
 	if err != nil {
 		return false
@@ -150,7 +150,7 @@ func extractFile(fpath string, rc io.ReadCloser, f *zip.File) error {
 	return err
 }
 
-// ExecuteCommand does executing file.
+// ExecuteCommand executes a file.
 func ExecuteCommand(filename string, args ...string) (err error) {
 	cmd := exec.Command(filename, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
@@ -179,18 +179,23 @@ func ExecuteCommandOutput(filename string, args ...string) (string, error) {
 }
 
 // CreateService creates the windows service.
-func CreateService(name, exe, descr string, args ...string) error {
+func CreateService(name, exe, descr string, autostart bool, args ...string) error {
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
 	}
 	defer m.Disconnect()
 
+	startType := mgr.StartAutomatic
+	if autostart == false {
+		startType = mgr.StartManual
+	}
+
 	s, err := m.CreateService(name, exe,
 		mgr.Config{
 			DisplayName: name,
-			StartType:   mgr.StartAutomatic,
 			Description: descr,
+			StartType: uint32(startType),
 		}, args...)
 	if err != nil {
 		return err

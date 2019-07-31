@@ -18,6 +18,25 @@ type service struct {
 	windows.Service
 }
 
+// SetUID needed only on darwin, does nothing.
+func (*service) SetUID(_ string) {}
+
+func (s *service) Start() error {
+	err := util.StartService(s.Name)
+	if err != nil {
+		err = s.Service.Start()
+	}
+	return err
+}
+
+func (s *service) Stop() error {
+	err := util.ExecuteCommand("sc", "stop", s.Name)
+	if err != nil {
+		err = s.Service.Stop()
+	}
+	return err
+}
+
 func newService() *service {
 	return &service{
 		windows.Service{
@@ -28,17 +47,19 @@ func newService() *service {
 	}
 }
 
-func (d *Dapp) controllerHash() string {
+// ControllerHash unique name for installing path.
+func (d *Dapp) ControllerHash() string {
 	return fmt.Sprintf("Privatix Controller %s", util.Hash(d.Path))
 }
 
-// Configurate configurates installed dapp.
-func (d *Dapp) Configurate() error {
+// Configure configurates installed dapp.
+func (d *Dapp) Configure() error {
 	ctrl := d.Controller
 	ctrlPath := filepath.Join(d.Path, filepath.Dir(ctrl.EntryPoint))
 
-	hash := d.controllerHash()
+	hash := d.ControllerHash()
 	ctrl.Service.ID = hash
+	ctrl.Service.AutoStart = d.Role == "agent"
 	ctrl.Service.Name = hash
 	ctrl.Service.Description = fmt.Sprintf("dapp controller %s", hash)
 	ctrl.Service.GUID = filepath.Join(ctrlPath, ctrl.Service.ID)
@@ -98,7 +119,7 @@ func configurateService(d *Dapp) error {
 }
 
 func copyServiceWrapper(d, s *Dapp) {
-	hash := s.controllerHash()
+	hash := s.ControllerHash()
 	scvExe := "dappctrl/" + hash + ".exe"
 	scvConfig := "dappctrl/" + hash + ".config.json"
 

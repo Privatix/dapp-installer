@@ -26,6 +26,7 @@ type Dapp struct {
 	Role       string
 	Path       string
 	Source     string
+	SendRemote bool
 	Controller *InstallerEntity
 	Gui        *InstallerEntity
 	DBEngine   *dbengine.DBEngine
@@ -117,22 +118,22 @@ func (d *Dapp) Update(oldDapp *Dapp) error {
 	d.Path = oldDapp.Path
 
 	// Start dbengine.
-	if err := d.DBEngine.Start(d.Path); err != nil {
+	if err := d.DBEngine.Start(d.Path, ""); err != nil {
 		return err
 	}
 
 	// Update DB schema.
 	filePath := filepath.Join(d.Path, d.Controller.EntryPoint)
 	if err := d.DBEngine.UpdateDatabase(filePath); err != nil {
-		d.DBEngine.Stop(d.Path)
+		d.DBEngine.Stop(d.Path, "")
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
 		return err
 	}
 
 	// Configure dappctrl.
-	if err := d.Configurate(); err != nil {
-		d.DBEngine.Stop(d.Path)
+	if err := d.Configure(); err != nil {
+		d.DBEngine.Stop(d.Path, "")
 		os.RemoveAll(d.Path)
 		os.Rename(oldDapp.BackupPath, oldDapp.Path)
 		return err
@@ -253,13 +254,13 @@ func (d *Dapp) Exists() error {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
-	version, ok := data.ReadAppVersion(d.DBEngine.DB)
-	if !ok {
-		return fmt.Errorf("failed to read app version")
+	version, err := data.ReadAppVersion(d.DBEngine.DB)
+	if err != nil {
+		return fmt.Errorf("failed to read app version: %v", err)
 	}
 
 	d.Version = version
-	hash := d.controllerHash()
+	hash := d.ControllerHash()
 	d.Controller.Service.ID = hash
 	d.Controller.Service.GUID = filepath.Join(dappCtrl, hash)
 
@@ -312,21 +313,53 @@ func (d *Dapp) merge(s *Dapp) error {
 }
 
 // Stop stops dappctrl and debengine service.
-func (d *Dapp) Stop(ch chan bool) {
+func (d *Dapp) Stop(ctx context.Context, installUID string) (err error) {
 	for {
-		if !util.IsServiceStopped(d.Controller.Service.ID) {
-			d.Controller.Service.Stop()
-			time.Sleep(200 * time.Millisecond)
-			continue
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return ctx.Err()
+		default:
+			if !util.IsServiceStopped(d.Controller.Service.ID, installUID) {
+				err = d.Controller.Service.Stop()
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			if !util.IsServiceStopped(dbengine.Hash(d.Path), installUID) {
+				err = d.DBEngine.Stop(d.Path, installUID)
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			return nil
 		}
-		if !util.IsServiceStopped(dbengine.Hash(d.Path)) {
-			d.DBEngine.Stop(d.Path)
-			time.Sleep(200 * time.Millisecond)
-			continue
-		}
-		break
 	}
-	ch <- true
+}
+
+// Start starts dappctrl and debengine service.
+func (d *Dapp) Start(ctx context.Context, installUID string) (err error) {
+	for {
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return ctx.Err()
+		default:
+			if util.IsServiceStopped(dbengine.Hash(d.Path), installUID) {
+				err = d.DBEngine.Start(d.Path, installUID)
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			if util.IsServiceStopped(d.Controller.Service.ID, installUID) {
+				err = d.Controller.Service.Start()
+				time.Sleep(200 * time.Millisecond)
+				continue
+			}
+			return nil
+		}
+	}
 }
 
 func (d *Dapp) fromConfig() error {

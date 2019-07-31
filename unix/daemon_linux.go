@@ -2,6 +2,11 @@
 
 package unix
 
+// SetUID sets uid.
+func (d *Daemon) SetUID(uid string) {
+	d.UID = uid
+}
+
 // Install installs the daemon.
 func (d *Daemon) Install() error {
 	return nil

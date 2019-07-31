@@ -81,6 +81,9 @@
                         <distributionFile>
                             <origin>../linux-dapp-installer/dapp-installer.config.json</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>../linux-dapp-installer/dapp-supervisor</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
                 <folder>
@@ -97,6 +100,9 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>../win-dapp-installer/dapp-installer.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>../win-dapp-installer/dapp-supervisor.exe</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -115,10 +121,22 @@
                         <distributionFile>
                             <origin>../mac-dapp-installer/dapp-installer.config.json</origin>
                         </distributionFile>
+                        <distributionFile>
+                            <origin>../mac-dapp-installer/dapp-supervisor</origin>
+                        </distributionFile>
                     </distributionFileList>
                 </folder>
             </folderList>
             <postInstallationActionList>
+                <setInstallerVariable>
+                    <name>sendremote</name>
+                    <value>-sendremote true</value>
+                    <ruleList>
+                        <isTrue>
+                            <value>${bugsnag}</value>
+                        </isTrue>
+                    </ruleList>
+                </setInstallerVariable>
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
                     <key>version</key>
@@ -134,7 +152,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -149,7 +167,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -172,7 +190,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -187,7 +205,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -211,7 +229,7 @@ ${program_stderr}</text>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
                                     <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -340,7 +358,7 @@ ${program_stderr}</text>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
                                     <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -365,6 +383,15 @@ ${program_stderr}</text>
         </component>
     </componentList>
     <readyToInstallActionList>
+        <setInstallerVariable>
+            <name>install_type</name>
+            <value>${install_type_windows}</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
         <propertiesFileGet>
             <abortOnError>0</abortOnError>
             <file>${installdir}/version</file>
@@ -542,6 +569,90 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </createSymLink>
+        <setInstallerVariable>
+            <name>bugsnag</name>
+            <value>true</value>
+            <ruleList>
+                <isTrue>
+                    <value>${bugsnag}</value>
+                </isTrue>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>bugsnag</name>
+            <value>false</value>
+            <ruleList>
+                <isFalse>
+                    <value>${bugsnag}</value>
+                </isFalse>
+            </ruleList>
+        </setInstallerVariable>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <setInstallerVariableFromRegEx>
+            <name>dappgui_config</name>
+            <pattern>{"bugsnag":{"enable":(.*?),</pattern>
+            <substitution>{"bugsnag":{"enable":${bugsnag},</substitution>
+            <text>${dappgui_config}</text>
+        </setInstallerVariableFromRegEx>
+        <setInstallerVariableFromRegEx>
+            <name>dappgui_config</name>
+            <pattern>"role":"(.*?)"</pattern>
+            <substitution>"role":"${install_type}"</substitution>
+            <text>${dappgui_config}</text>
+        </setInstallerVariableFromRegEx>
+        <writeFile>
+            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+            <text>${dappgui_config}</text>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </writeFile>
+        <writeFile>
+            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
+            <text>${dappgui_config}</text>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </writeFile>
+        <writeFile>
+            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
+            <text>${dappgui_config}</text>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </writeFile>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>
@@ -553,7 +664,7 @@ ${program_stderr}</text>
             <actionList>
                 <runProgram>
                     <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                    <programArguments>remove -workdir ${install_type} -role ${install_type}</programArguments>
                     <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>
@@ -562,9 +673,31 @@ ${program_stderr}</text>
     </preUninstallationActionList>
     <postUninstallationActionList>
         <deleteFile>
+            <abortOnError>0</abortOnError>
             <matchHiddenFiles>1</matchHiddenFiles>
             <path>${installdir}</path>
+            <showMessageOnError>0</showMessageOnError>
         </deleteFile>
+        <showInfo>
+            <text>To complete the uninstallation, restart your computer</text>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </showInfo>
+
+        <!-- If using osascript failed, try using reboot -->
+
+        <runProgram>
+            <program>reboot</program>
+            <programArguments></programArguments>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </runProgram>
     </postUninstallationActionList>
     <allowComponentSelection>1</allowComponentSelection>
     <allowedLanguages>en ru</allowedLanguages>
@@ -576,7 +709,6 @@ ${program_stderr}</text>
     <osxApplicationBundleIcon>images/icons/macIcons.icns</osxApplicationBundleIcon>
     <osxUninstallerApplicationBundleIcon>images/icons/macIcons.icns</osxUninstallerApplicationBundleIcon>
     <outputDirectory>out</outputDirectory>
-    <requireInstallationByRootUser>0</requireInstallationByRootUser>
     <saveRelativePaths>1</saveRelativePaths>
     <singleInstanceCheck>1</singleInstanceCheck>
     <vendor>Privatix LTD</vendor>
@@ -590,6 +722,26 @@ ${program_stderr}</text>
             <file>en.lng</file>
         </language>
     </customLanguageFileList>
+    <finalPageActionList>
+        <runProgram>
+            <program>open</program>
+            <programArguments>/Applications/Privatix\ ${install_type}</programArguments>
+            <progressText>${msg(Installer.Run)} Privatix ${install_type}</progressText>
+            <ruleList>
+                <platformTest type="osx"/>
+            </ruleList>
+        </runProgram>
+        <runProgram>
+            <program>${installdir}/${install_type}/dappgui/dapp-gui.exe</program>
+            <programArguments></programArguments>
+            <progressText>${msg(Installer.Run)} Privatix ${install_type}</progressText>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </runProgram>
+    </finalPageActionList>
     <installationAbortedActionList>
         <showProgressDialog>
             <title>Please wait</title>
@@ -615,7 +767,7 @@ ${program_stderr}</text>
                     <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
                     <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type}</programArguments>
+                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
                     <ruleList>
@@ -681,10 +833,74 @@ ${program_stderr}</text>
                     <value>agent</value>
                 </option>
             </optionList>
+            <ruleList>
+                <platformTest>
+                    <negate>1</negate>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
         </choiceParameter>
-        <booleanParameter name="forceUpdate" default="0" ask="0"/>
-        <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0"/>
-        <stringParameter name="product_name" default="VPN" ask="0"/>
+        <choiceParameter>
+            <name>install_type_windows</name>
+            <title>${msg(Installer.TypeOfInstallation)}</title>
+            <description></description>
+            <explanation>${msg(Installer.TypeOfInstallation.description)}</explanation>
+            <value>client</value>
+            <default>client</default>
+            <allowEmptyValue>0</allowEmptyValue>
+            <displayType>radiobuttons</displayType>
+            <ordering>default</ordering>
+            <ruleEvaluationLogic>or</ruleEvaluationLogic>
+            <width>30</width>
+            <optionList>
+                <option>
+                    <description></description>
+                    <image></image>
+                    <text>${msg(Installer.TypeOfInstallation.Client)}</text>
+                    <value>client</value>
+                </option>
+                <option>
+                    <description>${msg(Installer.TypeOfInstallation.Agent_windows.Description)}</description>
+                    <image></image>
+                    <text>${msg(Installer.TypeOfInstallation.Agent)}</text>
+                    <value>agent</value>
+                </option>
+            </optionList>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </choiceParameter>
+        <booleanParameter>
+            <name>bugsnag</name>
+            <title>${msg(Installer.Bugsnag.title)}</title>
+            <description>${msg(Installer.Bugsnag.option)}</description>
+            <explanation>
+</explanation>
+            <value>true</value>
+            <default>true</default>
+            <displayStyle>checkbox-left</displayStyle>
+        </booleanParameter>
+        <booleanParameter name="forceUpdate" default="0" ask="0">
+            <description></description>
+            <explanation></explanation>
+            <value></value>
+        </booleanParameter>
+        <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0">
+            <description></description>
+            <explanation></explanation>
+            <value></value>
+            <allowEmptyValue>1</allowEmptyValue>
+            <width>30</width>
+        </stringParameter>
+        <stringParameter name="product_name" default="VPN" ask="0">
+            <description></description>
+            <explanation></explanation>
+            <value></value>
+            <allowEmptyValue>1</allowEmptyValue>
+            <width>30</width>
+        </stringParameter>
     </parameterList>
     <platformOptionsList>
         <platformOptions>

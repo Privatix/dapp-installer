@@ -54,26 +54,48 @@ func WriteAppVersion(db *DB, version string) error {
 		return err
 	}
 	defer conn.Close()
-
-	var sqlStatement string
-	if _, ok := ReadAppVersion(db); ok {
-		sqlStatement = `UPDATE settings SET value = $2 WHERE key = $1;`
-	} else {
-		sqlStatement = `INSERT INTO
+	tx, err := conn.Begin()
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DELETE FROM settings WHERE key=$1", versionKey); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete version setting: %v", err)
+	}
+	sqlStatement := `INSERT INTO
 		settings (key, value, permissions, description, name)
 		VALUES ($1, $2, 1, 'Version of application', 'app version');`
+	if _, err := tx.Exec(sqlStatement, versionKey, version); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to insert version setting: %v", err)
 	}
 
-	_, err = conn.Exec(sqlStatement, versionKey, version)
+	return tx.Commit()
+}
+
+// UpdateSetting updates a setting in db.
+func UpdateSetting(db *DB, key, value string) error {
+	sqlStatement := `UPDATE settings SET value = $2 WHERE key = $1;`
+	return execQuery(db, sqlStatement, key, value)
+}
+
+func execQuery(db *DB, query string, args ...interface{}) error {
+	conn, err := sql.Open("postgres", db.ConnectionString())
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Exec(query, args...)
 
 	return err
 }
 
 // ReadAppVersion returns AppVersion.
-func ReadAppVersion(db *DB) (string, bool) {
+func ReadAppVersion(db *DB) (string, error) {
 	conn, err := sql.Open("postgres", db.ConnectionString())
 	if err != nil {
-		return "", false
+		return "", err
 	}
 	defer conn.Close()
 
@@ -81,9 +103,9 @@ func ReadAppVersion(db *DB) (string, bool) {
 	row := conn.QueryRow(`SELECT value FROM settings WHERE key = $1;`,
 		versionKey)
 	if err := row.Scan(&value); err != nil {
-		return "", false
+		return "", err
 	}
-	return value, true
+	return value, nil
 }
 
 func getConnectionString(host, db, user, pwd, port string) string {

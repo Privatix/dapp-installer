@@ -15,7 +15,7 @@ func (t Tor) ServiceName() string {
 	return "tor_" + util.Hash(t.RootPath)
 }
 
-func installService(daemon, path, descr string) error {
+func installService(daemon, path, descr string, autostart bool) error {
 	path = filepath.Join(path, "var", "lib", "tor")
 
 	s, err := os.Stat(path)
@@ -32,11 +32,11 @@ func installService(daemon, path, descr string) error {
 	return util.ExecuteCommand("chown", "-R", u.Username, p)
 }
 
-func startService(daemon string) error {
+func startService(daemon, uid string) error {
 	return nil
 }
 
-func stopService(daemon string) error {
+func stopService(daemon, uid string) error {
 	return nil
 }
 

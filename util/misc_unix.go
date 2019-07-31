@@ -53,11 +53,13 @@ func GrantAccess(path string) error {
 }
 
 // IsServiceStopped returns service stopped status.
-func IsServiceStopped(id string) bool {
-	return unix.NewDaemon(id).IsStopped()
+func IsServiceStopped(id, uid string) bool {
+	d := unix.NewDaemon(id)
+	d.UID = uid
+	return d.IsStopped()
 }
 
-// ExecuteCommand does executing file.
+// ExecuteCommand executes a file.
 func ExecuteCommand(filename string, args ...string) (err error) {
 	cmd := exec.Command(filename, args...)
 	var outbuf, errbuf bytes.Buffer

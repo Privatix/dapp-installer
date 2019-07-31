@@ -43,6 +43,7 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	src := flag.String("source", "", "Dapp install source")
 	core := flag.Bool("core", false, "Install only dapp core")
 	product := flag.String("product", "", "Specific product")
+	sendremote := flag.Bool("sendremote", false, "Send error reports")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -77,7 +78,13 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 		d.Product = *product
 	}
 
+	if sendremote != nil && *sendremote == true {
+		d.SendRemote = *sendremote
+	}
+
 	d.OnlyCore = *core
+
+	d.DBEngine.Autostart = d.Role == "agent"
 
 	return nil
 }
@@ -89,6 +96,7 @@ func processedStatusFlags(d *dapp.Dapp) error {
 func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
+	role := flag.String("role", "", "Dapp user role")
 	config := flag.String("config", "", "Configuration file")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
@@ -110,6 +118,7 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 		*p = filepath.Dir(os.Args[0])
 	}
 	d.Path = *p
+	d.Role = *role
 	d.Verbose = *v
 	return nil
 }

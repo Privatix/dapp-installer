@@ -45,3 +45,11 @@ Installer.ForceUpdate=Upgrade is not supported, please remove current installati
 Installer.Run=Run
 Installer.Bugsnag.title=Error reporting
 Installer.Bugsnag.option=Allow to send error reporing to Privatix developers team in order to gather feedback and improve product stability and quality.
+
+Installer.Infura.Endpoint.Title=Set Infura endpoint
+Installer.Infura.Endpoint.Description=Infura endpoint
+Installer.Infura.Endpoint.Explanation=Please, use your own Infura endpoint (how to get it was described on the previous step).\n\nOtherwise, the application may not work due to a request limit.\n\nIf you leave the field empty, we'll use Privatix's Infura endpoint.
+
+Installer.Infura.GetEndpoint.Title=Get Infura endpoint
+Installer.Infura.GetEndpoint.Description=How to get Infura endpoint (Geth URL)
+Installer.Infura.GetEndpoint.Explanation=We recommend you to use Infura as a Blockchain Access Provider.\n\n"How to do it" explanation you can see on the link below.\n\nPlease, create your own Infura account and copy an endpoint to the clipboard.\nIt'll be needed on the next step.

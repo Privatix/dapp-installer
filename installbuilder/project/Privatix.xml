@@ -127,6 +127,7 @@
                     </distributionFileList>
                 </folder>
             </folderList>
+
             <postInstallationActionList>
                 <setInstallerVariable>
                     <name>sendremote</name>
@@ -137,6 +138,25 @@
                         </isTrue>
                     </ruleList>
                 </setInstallerVariable>
+
+                <setInstallerVariable>
+                    <name>shouldAddHttps</name>
+                    <value>1</value>
+                    <ruleEvaluationLogic>and</ruleEvaluationLogic>
+                    <ruleList>
+                        <compareText>
+                            <logic>contains</logic>
+                            <text>${infura_endpoint}</text>
+                            <value>infura.io</value>
+                        </compareText>
+                        <compareText>
+                            <logic>does_not_contain</logic>
+                            <text>${infura_endpoint}</text>
+                            <value>http</value>
+                        </compareText>
+                    </ruleList>
+                </setInstallerVariable>
+
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
                     <key>version</key>
@@ -561,10 +581,25 @@ ${program_stderr}</text>
             </ruleList>
         </setInstallerVariableFromRegEx>
 
+        <setInstallerVariable>
+            <name>infura_endpoint</name>
+            <value>https://${infura_endpoint}</value>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
+            <ruleList>
+                <stringTest>
+                    <text>${infura_endpoint}</text>
+                    <type>not_empty</type>
+                </stringTest>
+                <isTrue>
+                    <value>${shouldAddHttps}</value>
+                </isTrue>
+            </ruleList>
+        </setInstallerVariable>
+
         <setInstallerVariableFromRegEx>
             <name>dappctrl_config</name>
             <pattern>GethURL"[^"]+"https://[^"]+</pattern>
-            <substitution>GethURL": "https://${infura_endpoint}</substitution>
+            <substitution>GethURL": "${infura_endpoint}</substitution>
             <text>${dappctrl_config}</text>
             <ruleList>
                 <stringTest>

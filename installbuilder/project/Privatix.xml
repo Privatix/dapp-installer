@@ -146,12 +146,12 @@
                     <ruleList>
                         <compareText>
                             <logic>contains</logic>
-                            <text>${infura_endpoint}</text>
+                            <text>${geth_endpoint}</text>
                             <value>infura.io</value>
                         </compareText>
                         <compareText>
                             <logic>does_not_contain</logic>
-                            <text>${infura_endpoint}</text>
+                            <text>${geth_endpoint}</text>
                             <value>http</value>
                         </compareText>
                     </ruleList>
@@ -582,12 +582,12 @@ ${program_stderr}</text>
         </setInstallerVariableFromRegEx>
 
         <setInstallerVariable>
-            <name>infura_endpoint</name>
-            <value>https://${infura_endpoint}</value>
+            <name>geth_endpoint</name>
+            <value>https://${geth_endpoint}</value>
             <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
                 <stringTest>
-                    <text>${infura_endpoint}</text>
+                    <text>${geth_endpoint}</text>
                     <type>not_empty</type>
                 </stringTest>
                 <isTrue>
@@ -599,11 +599,11 @@ ${program_stderr}</text>
         <setInstallerVariableFromRegEx>
             <name>dappctrl_config</name>
             <pattern>GethURL"[^"]+"https://[^"]+</pattern>
-            <substitution>GethURL": "${infura_endpoint}</substitution>
+            <substitution>GethURL": "${geth_endpoint}</substitution>
             <text>${dappctrl_config}</text>
             <ruleList>
                 <stringTest>
-                    <text>${infura_endpoint}</text>
+                    <text>${geth_endpoint}</text>
                     <type>not_empty</type>
                 </stringTest>
             </ruleList>
@@ -935,7 +935,7 @@ ${program_stderr}</text>
         </linkParameter>
 
         <stringParameter>
-            <name>infura_endpoint</name>
+            <name>geth_endpoint</name>
             <title>${msg(Installer.Infura.Endpoint.Title)}</title>
             <description>${msg(Installer.Infura.Endpoint.Description)}</description>
             <explanation>${msg(Installer.Infura.Endpoint.Explanation)}</explanation>
@@ -952,7 +952,7 @@ ${program_stderr}</text>
             <value>true</value>
             <default>true</default>
             <displayStyle>checkbox-left</displayStyle>
-            <insertAfter>infura_endpoint</insertAfter>
+            <insertAfter>geth_endpoint</insertAfter>
         </booleanParameter>
 
         <booleanParameter name="forceUpdate" default="0" ask="0"/>

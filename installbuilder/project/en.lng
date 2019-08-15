@@ -46,8 +46,8 @@ Installer.Run=Run
 Installer.Bugsnag.title=Error reporting
 Installer.Bugsnag.option=Allow to send error reporing to Privatix developers team in order to gather feedback and improve product stability and quality.
 
-Installer.Infura.Endpoint.Title=Set Infura endpoint
-Installer.Infura.Endpoint.Description=Infura endpoint
+Installer.Infura.Endpoint.Title=Set Geth endpoint
+Installer.Infura.Endpoint.Description=Geth endpoint
 Installer.Infura.Endpoint.Explanation=Please, use your own Infura endpoint (how to get it was described on the previous step).\n\nOtherwise, the application may not work due to a request limit.\n\nIf you leave the field empty, we'll use Privatix's Infura endpoint.
 
 Installer.Infura.GetEndpoint.Title=Get Infura endpoint

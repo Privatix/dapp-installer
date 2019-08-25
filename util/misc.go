@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -160,20 +161,23 @@ func CopyFile(src, dst string) error {
 	var dstfd *os.File
 	var srcinfo os.FileInfo
 	if srcfd, err = os.Open(src); err != nil {
-		return err
+		return fmt.Errorf("could not open source file: %v", err)
 	}
 	defer srcfd.Close()
 	if dstfd, err = os.Create(dst); err != nil {
-		return err
+		return fmt.Errorf("could not create destination file: %v", err)
 	}
 	defer dstfd.Close()
 	if _, err = io.Copy(dstfd, srcfd); err != nil {
-		return err
+		return fmt.Errorf("could not copy file: %v", err)
 	}
 	if srcinfo, err = os.Stat(src); err != nil {
-		return err
+		return fmt.Errorf("could not read file stats: %v", err)
 	}
-	return os.Chmod(dst, srcinfo.Mode())
+	if err = os.Chmod(dst, srcinfo.Mode()); err != nil {
+		return fmt.Errorf("could not change mode of a file: %v", err)
+	}
+	return nil
 }
 
 // ParseVersion returns version number in int64 format.
@@ -203,13 +207,13 @@ func CopyDir(src string, dst string) error {
 	var fds []os.FileInfo
 	var srcinfo os.FileInfo
 	if srcinfo, err = os.Stat(src); err != nil {
-		return err
+		return fmt.Errorf("could not read dir status: %v", err)
 	}
 	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
-		return err
+		return fmt.Errorf("could not make dir: %v", err)
 	}
 	if fds, err = ioutil.ReadDir(src); err != nil {
-		return err
+		return fmt.Errorf("could not read dir: %v", err)
 	}
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
@@ -355,4 +359,92 @@ func RetryTillSucceed(ctx context.Context, f func() error) (err error) {
 			return
 		}
 	}
+}
+
+// ReadJSON reads json file.
+func ReadJSON(location string, v interface{}) error {
+	data, err := ioutil.ReadFile(location)
+	if err != nil {
+		return fmt.Errorf("could not read `%s`: %v", location, err)
+	}
+	if err := json.Unmarshal(data, v); err != nil {
+		return fmt.Errorf("could not unmarshall file content: %v", err)
+	}
+	return err
+}
+
+// WriteJSON reads json file.
+func WriteJSON(location string, v interface{}) error {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Errorf("could not encode to json: %v", err)
+	}
+	var mode os.FileMode = 0644
+	fi, err := os.Stat(location)
+	if err == nil {
+		mode = fi.Mode()
+	}
+	if !os.IsNotExist(err) && err != nil {
+		return fmt.Errorf("could not get `%s` mode: %v", location, err)
+	}
+	err = ioutil.WriteFile(location, data, mode)
+	if err != nil {
+		return fmt.Errorf("could not write `%s`: %v", location, err)
+	}
+	return nil
+}
+
+// UpdateConfig updates json config file from given source.
+func UpdateConfig(copyItems [][]string, src, dst string) error {
+	srcConfigMap := make(map[string]interface{})
+	if err := ReadJSON(src, &srcConfigMap); err != nil {
+		return fmt.Errorf("could not read installed dappctrl config at `%s`, got: %v", src, err)
+	}
+
+	dstConfigMap := make(map[string]interface{})
+	if err := ReadJSON(dst, &dstConfigMap); err != nil {
+		return fmt.Errorf("could not read new dappctrl config at `%s`, got: %v", dst, err)
+	}
+	for _, copyItem := range copyItems {
+		var val, to interface{}
+		var key string
+		val = srcConfigMap
+		to = dstConfigMap
+		for _, subitem := range copyItem {
+			if key != "" {
+				tmp, ok := to.(map[string]interface{})[key]
+				if !ok {
+					return fmt.Errorf("could not get map by key `%s`", key)
+				}
+				to = tmp
+			}
+			key = subitem
+			tmp, ok := val.(map[string]interface{})[subitem]
+			if !ok {
+				return fmt.Errorf("could not get map by key `%s`", key)
+			}
+			val = tmp
+		}
+
+		tmp, ok := to.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("could not get map by key `%s`", key)
+		}
+		tmp[key] = val
+	}
+
+	if err := WriteJSON(dst, &dstConfigMap); err != nil {
+		return fmt.Errorf("could not write updated config: %v", err)
+	}
+	return nil
+}
+
+// ExecuteCommandOnDarwinAsAdmin runs a command under sudo on darwin.
+func ExecuteCommandOnDarwinAsAdmin(command string) error {
+	txt := `with prompt "Privatix wants to make changes"`
+	evelate := "with administrator privileges"
+	script := fmt.Sprintf(`do shell script "sudo %s" %s %s`,
+		command, txt, evelate)
+
+	return ExecuteCommand("osascript", "-e", script)
 }

@@ -795,7 +795,13 @@ ${program_stderr}</text>
                     <showMessageOnError>0</showMessageOnError>
                 </deleteFile>
             </actionList>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
                 <compareText>
                     <logic>does_not_contain</logic>
                     <text>${installed_version}</text>

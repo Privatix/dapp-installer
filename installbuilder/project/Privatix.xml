@@ -827,6 +827,26 @@ ${program_stderr}</text>
                     </ruleList>
                 </setInstallerVariable>
             </postShowPageActionList>
+
+<!--        get install type (during update)-->
+            <postShowPageActionList>
+                <setInstallerVariable>
+                    <name>install_type</name>
+                    <value>client</value>
+                    <ruleList>
+                        <fileTest condition="exists" path="${installdir}/client"/>
+                    </ruleList>
+                </setInstallerVariable>
+            </postShowPageActionList>
+            <postShowPageActionList>
+                <setInstallerVariable>
+                    <name>install_type</name>
+                    <value>agent</value>
+                    <ruleList>
+                        <fileTest condition="exists" path="${installdir}/agent"/>
+                    </ruleList>
+                </setInstallerVariable>
+            </postShowPageActionList>
         </directoryParameter>
 
         <choiceParameter>

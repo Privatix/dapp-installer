@@ -2,6 +2,7 @@ package update
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"os"
@@ -562,6 +563,22 @@ func updateDB(logger log.Logger, v *updateContext) error {
 	if err := util.ReadJSON(filepath.Join(v.Path, v.path.DappCtrl.Config), &dbconf); err != nil {
 		return fmt.Errorf("could not read db config: %v", err)
 	}
+
+	// Ping DB.
+	ctx, cancel := context.WithTimeout(context.Background(), stepTimeout)
+	defer cancel()
+	err := util.RetryTillSucceed(ctx, func() error {
+		conn, err := sql.Open("postgres", dbconf.DB.ConnStr())
+		if err == nil {
+			defer conn.Close()
+			err = conn.Ping()
+		}
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("could not ping database: %v", err)
+	}
+
 	if err := runCommand(logger, dappctrl, "db-migrate", "-conn", dbconf.DB.ConnStr()); err != nil {
 		return fmt.Errorf("could not run migrations: %v", err)
 	}

@@ -478,6 +478,26 @@ ${program_stderr}</text>
                 </isTrue>
             </ruleList>
         </exit>
+
+<!--    stop supervisor-->
+        <runProgram>
+            <program>powershell.exe</program>
+            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Stop-Service"</programArguments>
+            <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>
+            <workingDirectory>${installdir}</workingDirectory>
+            <conditionRuleEvaluationLogic>and</conditionRuleEvaluationLogic>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>upgrade</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
+
     </readyToInstallActionList>
     <postInstallationActionList>
         <propertiesFileSet>
@@ -663,6 +683,25 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </writeFile>
+
+<!--    start supervisor-->
+        <runProgram>
+            <program>powershell.exe</program>
+            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Start-Service"</programArguments>
+            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
+            <workingDirectory>${installdir}</workingDirectory>
+            <conditionRuleEvaluationLogic>and</conditionRuleEvaluationLogic>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>upgrade</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>

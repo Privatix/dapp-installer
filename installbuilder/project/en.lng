@@ -45,3 +45,5 @@ Installer.ForceUpdate=Upgrade is not supported, please remove current installati
 Installer.Run=Run
 Installer.Bugsnag.title=Error reporting
 Installer.Bugsnag.option=Allow to send error reporing to Privatix developers team in order to gather feedback and improve product stability and quality.
+Installer.Supervisor.Stopping=Stopping dap-supervisor service
+Installer.Supervisor.Starting=Starting dap-supervisor service

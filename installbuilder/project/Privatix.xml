@@ -435,18 +435,12 @@ ${program_stderr}</text>
             </ruleList>
         </showWarning>
         <exit>
-            <ruleEvaluationLogic>or</ruleEvaluationLogic>
             <ruleList>
                 <compareVersions>
                     <logic>greater_or_equal</logic>
                     <version1>${installed_version}</version1>
                     <version2>${project.version}</version2>
                 </compareVersions>
-                <compareText>
-                    <logic>does_not_equal</logic>
-                    <text>${install_type}</text>
-                    <value>${old_install_type}</value>
-                </compareText>
             </ruleList>
         </exit>
         <showWarning>

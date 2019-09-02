@@ -22,7 +22,7 @@ import (
 	"github.com/privatix/dappctrl/util/log"
 )
 
-var stepTimeout = 30 * time.Second
+var stepTimeout = 300 * time.Second
 
 type updateContext struct {
 	Role          string

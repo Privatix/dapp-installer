@@ -425,7 +425,6 @@ ${program_stderr}</text>
             </onErrorActionList>
         </propertiesFileGet>
         <showWarning>
-            <ruleEvaluationLogic>or</ruleEvaluationLogic>
             <text>${msg(Installer.AlreadyInstalled)}</text>
             <ruleList>
                 <compareVersions>
@@ -433,11 +432,6 @@ ${program_stderr}</text>
                     <version1>${installed_version}</version1>
                     <version2>${project.version}</version2>
                 </compareVersions>
-                <compareText>
-                    <logic>does_not_equal</logic>
-                    <text>${install_type}</text>
-                    <value>${old_install_type}</value>
-                </compareText>
             </ruleList>
         </showWarning>
         <exit>

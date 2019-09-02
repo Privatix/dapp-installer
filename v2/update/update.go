@@ -200,10 +200,10 @@ func Run(logger log.Logger) error {
 				name: "copy some gui values",
 				do:   copyValuesForGUISettings,
 			},
-			&step{
-				name: "copy database data to new app files",
-				do:   copyDatabaseDataToNewAppFiles,
-			},
+			// &step{
+			// 	name: "copy database data to new app files",
+			// 	do:   copyDatabaseDataToNewAppFiles,
+			// },
 			&step{
 				name: "copy TOR configs to new app files",
 				do:   copyTORConfigs,
@@ -213,10 +213,10 @@ func Run(logger log.Logger) error {
 				do:   startLinuxContainer,
 				undo: stopLinuxContainer,
 			},
-			&step{
-				name: "run database migrations within new app files",
-				do:   updateDB,
-			},
+			// &step{
+			// 	name: "run database migrations within new app files",
+			// 	do:   updateDB,
+			// },
 			&step{
 				name: "stop container",
 				do:   stopLinuxContainerIfClient,

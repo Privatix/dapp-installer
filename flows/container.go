@@ -8,7 +8,6 @@ import (
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
-	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/util"
 )
@@ -112,13 +111,6 @@ func checkContainer(d *dapp.Dapp) error {
 	if err := d.DBEngine.Ping(); err != nil {
 		return fmt.Errorf("failed to check contianer: %v", err)
 	}
-
-	version, err := data.ReadAppVersion(d.DBEngine.DB)
-	if err != nil {
-		return fmt.Errorf("failed to read app version: %v", err)
-	}
-
-	d.Version = version
 
 	return nil
 }

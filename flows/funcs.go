@@ -265,14 +265,6 @@ func printStatus(d *dapp.Dapp) error {
 	return nil
 }
 
-func writeVersion(d *dapp.Dapp) error {
-	if err := data.WriteAppVersion(d.DBEngine.DB, d.Version); err != nil {
-		return fmt.Errorf("failed to write app version: %v", err)
-	}
-
-	return nil
-}
-
 func updateSendRemote(d *dapp.Dapp) error {
 	if err := data.UpdateSetting(d.DBEngine.DB, "error.sendremote", fmt.Sprint(d.SendRemote)); err != nil {
 		return fmt.Errorf("failed to update error.sendremote setting: %v", err)

@@ -480,12 +480,27 @@ ${program_stderr}</text>
         </exit>
 
 <!--    stop supervisor-->
-        <runProgram>
-            <program>powershell.exe</program>
-            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Stop-Service"</programArguments>
-            <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>
-            <workingDirectory>${installdir}</workingDirectory>
-            <conditionRuleEvaluationLogic>and</conditionRuleEvaluationLogic>
+<!--        <runProgram>-->
+<!--            <program>powershell.exe</program>-->
+<!--            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Stop-Service"</programArguments>-->
+<!--            <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>-->
+<!--            <workingDirectory>${installdir}</workingDirectory>-->
+<!--            <conditionRuleEvaluationLogic>and</conditionRuleEvaluationLogic>-->
+<!--            <ruleList>-->
+<!--                <platformTest>-->
+<!--                    <type>windows</type>-->
+<!--                </platformTest>-->
+<!--                <compareValues>-->
+<!--                    <logic>equals</logic>-->
+<!--                    <value1>${project.installationType}</value1>-->
+<!--                    <value2>upgrade</value2>-->
+<!--                </compareValues>-->
+<!--            </ruleList>-->
+<!--        </runProgram>-->
+        <stopWindowsService>
+            <serviceName>Privatix_Dapp_Supervisor</serviceName>
+            <displayName>Privatix Dapp Supervisor</displayName>
+            <delay>15000</delay>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
@@ -496,7 +511,7 @@ ${program_stderr}</text>
                     <value2>upgrade</value2>
                 </compareValues>
             </ruleList>
-        </runProgram>
+        </stopWindowsService>
 
     </readyToInstallActionList>
     <postInstallationActionList>
@@ -685,23 +700,22 @@ ${program_stderr}</text>
         </writeFile>
 
 <!--    start supervisor-->
-        <runProgram>
-            <program>powershell.exe</program>
-            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Start-Service"</programArguments>
-            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
-            <workingDirectory>${installdir}</workingDirectory>
-            <conditionRuleEvaluationLogic>and</conditionRuleEvaluationLogic>
-            <ruleList>
-                <platformTest>
-                    <type>windows</type>
-                </platformTest>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${project.installationType}</value1>
-                    <value2>upgrade</value2>
-                </compareValues>
-            </ruleList>
-        </runProgram>
+<!--        <runProgram>-->
+<!--            <program>powershell.exe</program>-->
+<!--            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Start-Service"</programArguments>-->
+<!--            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>-->
+<!--            <workingDirectory>${installdir}</workingDirectory>-->
+<!--            <ruleList>-->
+<!--                <platformTest>-->
+<!--                    <type>windows</type>-->
+<!--                </platformTest>-->
+<!--                <compareValues>-->
+<!--                    <logic>equals</logic>-->
+<!--                    <value1>${project.installationType}</value1>-->
+<!--                    <value2>upgrade</value2>-->
+<!--                </compareValues>-->
+<!--            </ruleList>-->
+<!--        </runProgram>-->
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>

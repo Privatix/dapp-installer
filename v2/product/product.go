@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -86,11 +87,15 @@ func runForAllProducts(ctx context.Context, logger log.Logger, oldInstallRoot, i
 }
 
 func executeCommand(oldProdDir, prodDir, role string, v command) error {
+	var commandStr string
 	var file string
 	var arguments []string
+	if err := json.Unmarshal([]byte("\""+v.Command+"\""), &commandStr); err != nil {
+		return fmt.Errorf("could not parse command: %v", err)
+	}
 	// HACK(furkhat): mid stage migration to use <ROLE>, <OLD_PRODDIR> and <PRODDIR>.
 	if strings.Contains(v.Command, "<OLD_PRODDIR>") || strings.Contains(v.Command, "<PRODDIR>") {
-		s := strings.ReplaceAll(v.Command, "<OLD_PRODDIR>", oldProdDir)
+		s := strings.ReplaceAll(commandStr, "<OLD_PRODDIR>", oldProdDir)
 		s = strings.ReplaceAll(s, "<PRODDIR>", prodDir)
 		s = strings.ReplaceAll(s, "<ROLE>", role)
 		s = strings.ReplaceAll(s, "'", "\"")

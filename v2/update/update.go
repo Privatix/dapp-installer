@@ -352,6 +352,11 @@ func readConfigFileAndArgs(_ log.Logger, v *updateContext) error {
 		v.Path = *workdir
 	}
 
+	v.Path, err = filepath.Abs(v.Path)
+	if err != nil {
+		return fmt.Errorf("could not get absolute path for installation: %v", err)
+	}
+
 	return nil
 }
 
@@ -481,7 +486,7 @@ func stopAllProducts(logger log.Logger, v *updateContext) error {
 func startAllProducts(logger log.Logger, v *updateContext) error {
 	ctx, cancel := context.WithTimeout(context.Background(), stepTimeout)
 	defer cancel()
-	if err := product.StopAll(ctx, logger, v.Path, v.Role); err != nil {
+	if err := product.StartAll(ctx, logger, v.Path, v.Role); err != nil {
 		return fmt.Errorf("could not start all products: %v", err)
 	}
 	return nil

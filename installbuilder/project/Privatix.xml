@@ -7,7 +7,10 @@
     <logoImage>images/top.png</logoImage>
     <wmImage>images/icons/48x48_win.png</wmImage>
     <installationType>normal</installationType>
-    <enableDebugger>1</enableDebugger>
+    <!-- Configures the final destination of the installation log -->
+    <installationLogFile>${installdir}/${project.shortName}-installLog.log</installationLogFile>
+    <!-- Configures the final destination of the uninstallation log -->
+    <uninstallationLogFile>${system_temp_directory}/${project.shortName}-uninstallation.log</uninstallationLogFile>
     <componentList>
         <component>
             <name>core</name>
@@ -482,6 +485,7 @@ ${program_stderr}</text>
 
 <!--    stop supervisor-->
         <runProgram>
+            <runAs>Administrator</runAs>
             <program>powershell.exe</program>
             <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Stop-Service"</programArguments>
             <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>
@@ -497,21 +501,21 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </runProgram>
-        <stopWindowsService>
-            <serviceName>Privatix_Dapp_Supervisor</serviceName>
-            <displayName>Privatix Dapp Supervisor</displayName>
-            <delay>15000</delay>
-            <ruleList>
-                <platformTest>
-                    <type>windows</type>
-                </platformTest>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${project.installationType}</value1>
-                    <value2>upgrade</value2>
-                </compareValues>
-            </ruleList>
-        </stopWindowsService>
+<!--        <stopWindowsService>-->
+<!--            <serviceName>Privatix_Dapp_Supervisor</serviceName>-->
+<!--            <displayName>Privatix Dapp Supervisor</displayName>-->
+<!--            <delay>15000</delay>-->
+<!--            <ruleList>-->
+<!--                <platformTest>-->
+<!--                    <type>windows</type>-->
+<!--                </platformTest>-->
+<!--                <compareValues>-->
+<!--                    <logic>equals</logic>-->
+<!--                    <value1>${project.installationType}</value1>-->
+<!--                    <value2>upgrade</value2>-->
+<!--                </compareValues>-->
+<!--            </ruleList>-->
+<!--        </stopWindowsService>-->
 
     </readyToInstallActionList>
     <postInstallationActionList>

@@ -537,6 +537,7 @@ func mergeConfigs(_ log.Logger, v *updateContext) error {
 		[]string{"SOMCServer", "Addr"},
 		[]string{"Sess", "Addr"},
 		[]string{"UI", "Addr"},
+		[]string{"Role"},
 	}
 	src := filepath.Join(currentInstallationBackupPath(v), v.path.DappCtrl.Config)
 	dst := filepath.Join(v.Path, v.path.DappCtrl.Config)

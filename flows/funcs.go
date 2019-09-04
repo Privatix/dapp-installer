@@ -344,10 +344,6 @@ func createDatabase(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to finalize: %v", err)
 	}
 
-	if err := writeVersion(d); err != nil {
-		return err
-	}
-
 	if err := updateSendRemote(d); err != nil {
 		return err
 	}
@@ -363,10 +359,6 @@ func updateDatabase(d *dapp.Dapp) error {
 	file := filepath.Join(d.Path, d.Controller.EntryPoint)
 	if err := d.DBEngine.UpdateDatabase(file); err != nil {
 		return fmt.Errorf("failed to update db: %v", err)
-	}
-
-	if err := writeVersion(d); err != nil {
-		return fmt.Errorf("failed to write dapp version: %v", err)
 	}
 
 	return nil

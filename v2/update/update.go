@@ -219,13 +219,17 @@ func Run(logger log.Logger) error {
 				do:   updateDB,
 			},
 			&step{
+				name: "update products within new app files",
+				do:   updateProducts,
+			},
+			&step{
 				name: "stop container",
-				do:   stopLinuxContainerIfClient,
+				do:   stopLinuxContainer,
 				undo: startLinuxContainer,
 			},
 			&step{
-				name: "update products within new app files",
-				do:   updateProducts,
+				name: "start container if agent",
+				do:   startLinuxContainerIfAgent,
 			},
 		}
 	} else {
@@ -614,29 +618,37 @@ func runCommand(logger log.Logger, file string, args ...string) error {
 
 func stopDatabaseIfClient(logger log.Logger, v *updateContext) error {
 	if v.Role == data.RoleClient {
+		logger.Info("client, stop database")
 		return stopDatabase(logger, v)
 	}
+	logger.Info("agent, won't stop database")
 	return nil
 }
 
 func startTorIfAgent(logger log.Logger, v *updateContext) error {
 	if v.Role == data.RoleAgent {
+		logger.Info("agent, start tor")
 		return startTor(logger, v)
 	}
+	logger.Info("client, won't start tor")
 	return nil
 }
 
 func startDappCtrlIfAgent(logger log.Logger, v *updateContext) error {
 	if v.Role == data.RoleAgent {
+		logger.Info("agent, start dappctrl")
 		return startDappCtrl(logger, v)
 	}
+	logger.Info("client, won't start dappctrl")
 	return nil
 }
 
 func startAllProductsIfAgent(logger log.Logger, v *updateContext) error {
 	if v.Role == data.RoleAgent {
+		logger.Info("agent, start all products")
 		return startAllProducts(logger, v)
 	}
+	logger.Info("client won't start any product")
 	return nil
 }
 
@@ -701,11 +713,13 @@ func startLinuxContainer(logger log.Logger, v *updateContext) error {
 	return nil
 }
 
-func stopLinuxContainerIfClient(logger log.Logger, v *updateContext) error {
-	if v.Role == data.RoleClient {
-		return stopLinuxContainer(logger, v)
+func startLinuxContainerIfAgent(logger log.Logger, v *updateContext) error {
+	if v.Role == data.RoleAgent {
+		logger.Info("agent, starting container")
+		return startLinuxContainer(logger, v)
 	}
 
+	logger.Info("client, won't start container")
 	return nil
 }
 

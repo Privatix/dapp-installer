@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -76,6 +77,7 @@ func runForAllProducts(ctx context.Context, logger log.Logger, oldInstallRoot, i
 			commands = conf.Update
 		}
 		for _, v := range commands {
+			logger.Info("executing: " + v.Command)
 			if err := executeCommand(oldProductDir, productDir, role, v); err != nil {
 				return err
 			}
@@ -87,10 +89,17 @@ func runForAllProducts(ctx context.Context, logger log.Logger, oldInstallRoot, i
 func executeCommand(oldProdDir, prodDir, role string, v command) error {
 	commandStr := v.Command
 	// HACK(furkhat): mid stage migration to use <ROLE>, <OLD_PRODDIR> and <PRODDIR>.
-	if strings.Contains(v.Command, "<OLD_PRODDIR>") || strings.Contains(v.Command, "<PRODDIR>") {
+	if strings.Contains(commandStr, "<OLD_PRODDIR>") || strings.Contains(commandStr, "<PRODDIR>") || strings.Contains(commandStr, "<ROLE>") {
 		commandStr = strings.ReplaceAll(commandStr, "<OLD_PRODDIR>", oldProdDir)
 		commandStr = strings.ReplaceAll(commandStr, "<PRODDIR>", prodDir)
 		commandStr = strings.ReplaceAll(commandStr, "<ROLE>", role)
+	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		arguments := strings.Split(commandStr, " ")
+		file := filepath.Join(prodDir, arguments[0])
+		if _, err := os.Stat(file); err != nil {
+			file = arguments[0]
+		}
+		commandStr = fmt.Sprintf("%s %s", file, strings.Join(arguments[1:], " "))
 	}
 
 	var err error

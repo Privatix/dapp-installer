@@ -7,10 +7,6 @@
     <logoImage>images/top.png</logoImage>
     <wmImage>images/icons/48x48_win.png</wmImage>
     <installationType>normal</installationType>
-    <!-- Configures the final destination of the installation log -->
-    <installationLogFile>${installdir}/${project.shortName}-installLog.log</installationLogFile>
-    <!-- Configures the final destination of the uninstallation log -->
-    <uninstallationLogFile>${system_temp_directory}/${project.shortName}-uninstallation.log</uninstallationLogFile>
     <componentList>
         <component>
             <name>core</name>
@@ -485,11 +481,9 @@ ${program_stderr}</text>
 
 <!--    stop supervisor-->
         <runProgram>
-            <runAs>Administrator</runAs>
-            <program>powershell.exe</program>
-            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Stop-Service"</programArguments>
+            <program>net</program>
+            <programArguments>stop Privatix_Dapp_Supervisor</programArguments>
             <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>
-            <workingDirectory>${installdir}</workingDirectory>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
@@ -501,21 +495,6 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </runProgram>
-<!--        <stopWindowsService>-->
-<!--            <serviceName>Privatix_Dapp_Supervisor</serviceName>-->
-<!--            <displayName>Privatix Dapp Supervisor</displayName>-->
-<!--            <delay>15000</delay>-->
-<!--            <ruleList>-->
-<!--                <platformTest>-->
-<!--                    <type>windows</type>-->
-<!--                </platformTest>-->
-<!--                <compareValues>-->
-<!--                    <logic>equals</logic>-->
-<!--                    <value1>${project.installationType}</value1>-->
-<!--                    <value2>upgrade</value2>-->
-<!--                </compareValues>-->
-<!--            </ruleList>-->
-<!--        </stopWindowsService>-->
 
     </readyToInstallActionList>
     <postInstallationActionList>
@@ -704,22 +683,21 @@ ${program_stderr}</text>
         </writeFile>
 
 <!--    start supervisor-->
-<!--        <runProgram>-->
-<!--            <program>powershell.exe</program>-->
-<!--            <programArguments>-ExecutionPolicy Bypass -Command "Get-Service -Name Privatix_Dapp_Supervisor | Start-Service"</programArguments>-->
-<!--            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>-->
-<!--            <workingDirectory>${installdir}</workingDirectory>-->
-<!--            <ruleList>-->
-<!--                <platformTest>-->
-<!--                    <type>windows</type>-->
-<!--                </platformTest>-->
-<!--                <compareValues>-->
-<!--                    <logic>equals</logic>-->
-<!--                    <value1>${project.installationType}</value1>-->
-<!--                    <value2>upgrade</value2>-->
-<!--                </compareValues>-->
-<!--            </ruleList>-->
-<!--        </runProgram>-->
+        <runProgram>
+            <program>net</program>
+            <programArguments>start Privatix_Dapp_Supervisor</programArguments>
+            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>upgrade</value2>
+                </compareValues>
+            </ruleList>
+        </runProgram>
     </postInstallationActionList>
     <preUninstallationActionList>
         <readFile>

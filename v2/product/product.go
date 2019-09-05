@@ -2,10 +2,8 @@ package product
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -87,43 +85,27 @@ func runForAllProducts(ctx context.Context, logger log.Logger, oldInstallRoot, i
 }
 
 func executeCommand(oldProdDir, prodDir, role string, v command) error {
-	var commandStr string
-	var file string
-	var arguments []string
-	if err := json.Unmarshal([]byte("\""+v.Command+"\""), &commandStr); err != nil {
-		return fmt.Errorf("could not parse command: %v", err)
-	}
+	commandStr := v.Command
 	// HACK(furkhat): mid stage migration to use <ROLE>, <OLD_PRODDIR> and <PRODDIR>.
 	if strings.Contains(v.Command, "<OLD_PRODDIR>") || strings.Contains(v.Command, "<PRODDIR>") {
-		s := strings.ReplaceAll(commandStr, "<OLD_PRODDIR>", oldProdDir)
-		s = strings.ReplaceAll(s, "<PRODDIR>", prodDir)
-		s = strings.ReplaceAll(s, "<ROLE>", role)
-		s = strings.ReplaceAll(s, "'", "\"")
-		arguments = strings.Split(s, " ")
-		file = arguments[0]
-	} else {
-		arguments = strings.Split(v.Command, " ")
-		for i, s := range arguments {
-			arguments[i] = strings.Replace(s, "..", prodDir, -1)
-		}
-		file = filepath.Join(prodDir, arguments[0])
-		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-			if _, err := os.Stat(file); err != nil {
-				file = arguments[0]
-			}
-		}
+		commandStr = strings.ReplaceAll(commandStr, "<OLD_PRODDIR>", oldProdDir)
+		commandStr = strings.ReplaceAll(commandStr, "<PRODDIR>", prodDir)
+		commandStr = strings.ReplaceAll(commandStr, "<ROLE>", role)
 	}
 
 	var err error
-	if v.Admin && runtime.GOOS == "darwin" {
-		command := fmt.Sprintf("%s %s", file, strings.Join(arguments[1:], " "))
-		err = util.ExecuteCommandOnDarwinAsAdmin(command)
+	if runtime.GOOS == "windows" {
+		err = util.ExecuteCommand("powershell", "-ExecutionPolicy", "Bypass",
+			"-Command", commandStr)
 	} else {
-		err = util.ExecuteCommand(file, arguments[1:]...)
+		if v.Admin && runtime.GOOS == "darwin" {
+			err = util.ExecuteCommandOnDarwinAsAdmin(commandStr)
+		} else {
+			err = util.ExecuteCommand("sh", "-c", commandStr)
+		}
 	}
-
 	if err != nil {
-		return fmt.Errorf("failed to execute %s: %v", strings.Join(arguments, " "), err)
+		return fmt.Errorf("failed to execute %s: %v", commandStr, err)
 	}
 	return nil
 }

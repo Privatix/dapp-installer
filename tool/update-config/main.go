@@ -10,7 +10,7 @@ import (
 func main() {
 	src := flag.String("source", "source.json", "source config path to update from")
 	dst := flag.String("dest", "dest.json", "destination config to update")
-	copyItemsJSON := flag.String("copyItems", "[['foo', 'subfoo'], ['bar', 'subbar']]", "copy items paths")
+	copyItemsJSON := flag.String("copyItems", "[[\"foo\", \"subfoo\"], [\"bar\", \"subbar\"]]", "copy items paths")
 	flag.Parse()
 
 	copyItems := make([][]string, 0)

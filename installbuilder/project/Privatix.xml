@@ -391,6 +391,11 @@ ${program_stderr}</text>
                 <platformTest>
                     <type>windows</type>
                 </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
             </ruleList>
         </setInstallerVariable>
         <propertiesFileGet>
@@ -494,7 +499,7 @@ ${program_stderr}</text>
                     <value1>${project.installationType}</value1>
                     <value2>upgrade</value2>
                 </compareValues>
-                <compareText text="${install_type}" value="client" logic="equals" />
+                <compareValues value1="${install_type}" value2="client" logic="equals"/>
             </ruleList>
         </runProgram>
 

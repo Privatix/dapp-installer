@@ -490,6 +490,7 @@ ${program_stderr}</text>
             <programArguments>stop Privatix_Dapp_Supervisor</programArguments>
             <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>
             <abortOnError>0</abortOnError>
+            <showMessageOnError>0</showMessageOnError>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
@@ -695,6 +696,7 @@ ${program_stderr}</text>
             <programArguments>start Privatix_Dapp_Supervisor</programArguments>
             <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
             <abortOnError>0</abortOnError>
+            <showMessageOnError>0</showMessageOnError>
             <ruleList>
                 <platformTest>
                     <type>windows</type>

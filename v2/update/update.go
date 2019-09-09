@@ -338,8 +338,6 @@ func readConfigFileAndArgs(_ log.Logger, v *updateContext) error {
 	conffile := flag.String("config", "dapp-installer.config.json", "dapp-installer configuration file")
 	role := flag.String("role", "", "client | agent")
 	workdir := flag.String("workdir", "", "app directory")
-	// HACK: unused cli arg.
-	flag.String("sendremote", "", "")
 
 	flag.CommandLine.Parse(os.Args[2:])
 

@@ -494,11 +494,7 @@ ${program_stderr}</text>
                     <value1>${project.installationType}</value1>
                     <value2>upgrade</value2>
                 </compareValues>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${install_type}</value1>
-                    <value2>client</value2>
-                </compareValues>
+                <compareText text="${install_type}" value="client" logic="equals" />
             </ruleList>
         </runProgram>
 
@@ -703,11 +699,7 @@ ${program_stderr}</text>
                     <value1>${project.installationType}</value1>
                     <value2>upgrade</value2>
                 </compareValues>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${install_type}</value1>
-                    <value2>client</value2>
-                </compareValues>
+                <compareText text="${install_type}" value="client" logic="equals" />
             </ruleList>
         </runProgram>
     </postInstallationActionList>

@@ -484,6 +484,7 @@ ${program_stderr}</text>
             <program>net</program>
             <programArguments>stop Privatix_Dapp_Supervisor</programArguments>
             <progressText>${msg(Installer.Supervisor.Stopping)}</progressText>
+            <abortOnError>0</abortOnError>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
@@ -692,6 +693,7 @@ ${program_stderr}</text>
             <program>net</program>
             <programArguments>start Privatix_Dapp_Supervisor</programArguments>
             <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
+            <abortOnError>0</abortOnError>
             <ruleList>
                 <platformTest>
                     <type>windows</type>
@@ -877,10 +879,8 @@ ${program_stderr}</text>
                         <fileTest condition="exists" path="${installdir}"/>
                     </ruleList>
                 </setInstallerVariable>
-            </postShowPageActionList>
 
 <!--        get install type (during update)-->
-            <postShowPageActionList>
                 <setInstallerVariable>
                     <name>install_type</name>
                     <value>client</value>
@@ -888,8 +888,6 @@ ${program_stderr}</text>
                         <fileTest condition="exists" path="${installdir}/client"/>
                     </ruleList>
                 </setInstallerVariable>
-            </postShowPageActionList>
-            <postShowPageActionList>
                 <setInstallerVariable>
                     <name>install_type</name>
                     <value>agent</value>

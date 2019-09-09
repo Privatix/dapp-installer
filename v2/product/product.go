@@ -93,7 +93,7 @@ func executeCommand(oldProdDir, prodDir, role string, v command) error {
 		commandStr = strings.ReplaceAll(commandStr, "<OLD_PRODDIR>", oldProdDir)
 		commandStr = strings.ReplaceAll(commandStr, "<PRODDIR>", prodDir)
 		commandStr = strings.ReplaceAll(commandStr, "<ROLE>", role)
-	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+	} else {
 		arguments := strings.Split(commandStr, " ")
 		file := filepath.Join(prodDir, arguments[0])
 		if _, err := os.Stat(file); err != nil {

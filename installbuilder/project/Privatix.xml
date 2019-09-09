@@ -168,7 +168,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -206,7 +206,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
+                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>

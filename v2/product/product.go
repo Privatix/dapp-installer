@@ -97,7 +97,11 @@ func executeCommand(oldProdDir, prodDir, role string, v command) error {
 		arguments := strings.Split(commandStr, " ")
 		file := filepath.Join(prodDir, arguments[0])
 		if runtime.GOOS == "windows" {
-			commandStr = fmt.Sprintf("& '%s.exe' %s", file, strings.Join(arguments[1:], " "))
+			ext := ".exe"
+			if strings.HasSuffix(file, ".exe") {
+				ext = ""
+			}
+			commandStr = fmt.Sprintf("& '%s%s' %s", file, ext, strings.Join(arguments[1:], " "))
 		} else {
 			if _, err := os.Stat(file); err != nil {
 				file = arguments[0]

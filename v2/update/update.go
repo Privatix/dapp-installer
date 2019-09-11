@@ -302,7 +302,7 @@ func Run(logger log.Logger) error {
 				do:   updateDB,
 			},
 			&step{
-				name: "stop database",
+				name: "stop database if client",
 				do:   stopDatabaseIfClient,
 			},
 			&step{

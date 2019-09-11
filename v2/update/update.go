@@ -289,6 +289,10 @@ func Run(logger log.Logger) error {
 				do:   copyDatabaseDataToNewAppFiles,
 			},
 			&step{
+				name: "copy win dappctrl service files",
+				do:   copyWinDappctrlServiceFiles,
+			},
+			&step{
 				name: "run database to apply migrations",
 				do:   startDatabase,
 				undo: stopDatabase,
@@ -559,6 +563,30 @@ func copyValuesForGUISettings(_ log.Logger, v *updateContext) error {
 
 func copyDatabaseDataToNewAppFiles(_ log.Logger, v *updateContext) error {
 	return copyDir(v, v.path.DB.DataDir)
+}
+
+func copyWinDappctrlServiceFiles(logger log.Logger, v *updateContext) error {
+	if runtime.GOOS != "windows" {
+		logger.Info("not windows, skipping")
+		return nil
+	}
+	if err := copyFileFromDappctrlDir(v.installed.Dapp.Service+".config.json", v); err != nil {
+		return err
+	}
+
+	if err := copyFileFromDappctrlDir(v.installed.Dapp.Service+".exe", v); err != nil {
+		return err
+	}
+	return nil
+}
+
+func copyFileFromDappctrlDir(f string, v *updateContext) error {
+	src := filepath.Join(currentInstallationBackupPath(v), "dappctrl", f)
+	dst := filepath.Join(v.Path, "dappctrl", f)
+	if err := util.CopyFile(src, dst); err != nil {
+		return fmt.Errorf("could not copy `%s`: %v", f, err)
+	}
+	return nil
 }
 
 func updateDB(logger log.Logger, v *updateContext) error {

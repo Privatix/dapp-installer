@@ -427,57 +427,45 @@ func startService(logger log.Logger, svc string) error {
 }
 
 func currentInstallationBackupPath(v *updateContext) string {
-	return v.Path + "." + "old"
+	return filepath.Clean(v.Path) + "." + "old"
 }
 
-func backupCurrentInstallation(_ log.Logger, v *updateContext) error {
+func backupCurrentInstallation(logger log.Logger, v *updateContext) error {
 	backupPath := currentInstallationBackupPath(v)
-	// HACK: some files under sudo on darwin but execution is not.
-	if runtime.GOOS == "darwin" {
+	switch runtime.GOOS {
+	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
 		return util.ExecuteCommandOnDarwinAsAdmin(command)
-	}
-	// HACK: util.CopyDir doesn't work with some container files. Use command for now.
-	if runtime.GOOS == "linux" {
+	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
+	case "windows":
+		if err := util.ExecuteCommand("powershell", "-ExecutionPolicy", "Bypass",
+			"-Command", fmt.Sprintf("rm %s -Recurse", backupPath)); err != nil {
+			logger.Info("no previous backup folder to remove")
+		}
+		return util.ExecuteCommand("powershell", "-ExecutionPolicy", "Bypass",
+			"-Command", fmt.Sprintf("mv '%s' '%s'", filepath.Clean(v.Path), backupPath))
+	default:
+		return fmt.Errorf("unknown platform: %v", runtime.GOOS)
 	}
-	// Windows.
-	if err := os.RemoveAll(currentInstallationBackupPath(v)); err != nil {
-		return fmt.Errorf("could not prepare backup folder: %v", err)
-	}
-	if err := util.CopyDir(v.Path, currentInstallationBackupPath(v)); err != nil {
-		return fmt.Errorf("could not backup current installation: %v", err)
-	}
-	if err := os.RemoveAll(v.Path); err != nil {
-		return fmt.Errorf("could not clean up: %v", err)
-	}
-	return nil
 }
 
 func restoreInstallationBackup(_ log.Logger, v *updateContext) error {
 	backupPath := currentInstallationBackupPath(v)
-	// HACK: some files under sudo on darwin but execution is not.
-	if runtime.GOOS == "darwin" {
+	switch runtime.GOOS {
+	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", v.Path, backupPath, v.Path)
 		return util.ExecuteCommandOnDarwinAsAdmin(command)
-	}
-	// HACK: util.CopyDir doesn't work with some container files. Use command for now.
-	if runtime.GOOS == "linux" {
+	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", v.Path, backupPath, v.Path)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
+	case "windows":
+		return util.ExecuteCommand("powershell", "-ExecutionPolicy", "Bypass",
+			"-Command", fmt.Sprintf("mv '%s' '%s'", backupPath, v.Path))
+	default:
+		return fmt.Errorf("unknown platform: %v", runtime.GOOS)
 	}
-	// Windows.
-	if err := os.RemoveAll(v.Path); err != nil {
-		return fmt.Errorf("could not prepare restore folder: %v", err)
-	}
-	if err := util.CopyDir(currentInstallationBackupPath(v), v.Path); err != nil {
-		return fmt.Errorf("could not backup current installation: %v", err)
-	}
-	if err := os.RemoveAll(currentInstallationBackupPath(v)); err != nil {
-		return fmt.Errorf("could not clean up: %v", err)
-	}
-	return nil
 }
 
 func stopAllProducts(logger log.Logger, v *updateContext) error {

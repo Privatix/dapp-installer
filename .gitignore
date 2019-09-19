@@ -17,6 +17,7 @@ statik.go
 *.out
 .idea/*
 .vscode/*
+*swp
 
 \.DS_Store
 

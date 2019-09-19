@@ -14,7 +14,6 @@ import (
 
 	"github.com/denisbrodbeck/machineid"
 
-	"github.com/privatix/dapp-installer/data"
 	"github.com/privatix/dapp-installer/dbengine"
 	"github.com/privatix/dapp-installer/product"
 	"github.com/privatix/dapp-installer/tor"
@@ -254,12 +253,6 @@ func (d *Dapp) Exists() error {
 		return fmt.Errorf("failed to read config: %v", err)
 	}
 
-	version, err := data.ReadAppVersion(d.DBEngine.DB)
-	if err != nil {
-		return fmt.Errorf("failed to read app version: %v", err)
-	}
-
-	d.Version = version
 	hash := d.ControllerHash()
 	d.Controller.Service.ID = hash
 	d.Controller.Service.GUID = filepath.Join(dappCtrl, hash)

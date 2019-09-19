@@ -57,6 +57,8 @@ func (d *Daemon) Install() error {
 	}
 
 	d.Name = d.name()
+	// TODO: change file permissions based on uid.
+	// os.Chown
 	return templ.Execute(file, &d)
 }
 

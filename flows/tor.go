@@ -9,14 +9,14 @@ import (
 
 func installTor(d *dapp.Dapp) error {
 	autostart := d.Role == "agent"
-	if err := d.Tor.Install(d.Role, autostart); err != nil {
+	if err := d.Tor.Install(d.Role, autostart, d.UID); err != nil {
 		return fmt.Errorf("failed to install tor: %v", err)
 	}
 	return nil
 }
 
 func removeTor(d *dapp.Dapp) error {
-	if err := d.Tor.Remove(); err != nil {
+	if err := d.Tor.Remove(d.UID); err != nil {
 		return fmt.Errorf("failed to remove tor: %v", err)
 	}
 
@@ -24,7 +24,7 @@ func removeTor(d *dapp.Dapp) error {
 }
 
 func stopTor(d *dapp.Dapp) error {
-	if err := d.Tor.Stop(context.Background(), ""); err != nil {
+	if err := d.Tor.Stop(context.Background(), d.UID); err != nil {
 		return fmt.Errorf("failed to stop tor: %v", err)
 	}
 
@@ -32,7 +32,7 @@ func stopTor(d *dapp.Dapp) error {
 }
 
 func startTor(d *dapp.Dapp) error {
-	if err := d.Tor.Start(context.Background(), ""); err != nil {
+	if err := d.Tor.Start(context.Background(), d.UID); err != nil {
 		return fmt.Errorf("failed to start tor: %v", err)
 	}
 

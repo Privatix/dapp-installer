@@ -136,14 +136,14 @@ func (t *Tor) createSettings() error {
 }
 
 // Install installs tor process.
-func (t *Tor) Install(role string, autostart bool) error {
+func (t *Tor) Install(role string, autostart bool, installUID string) error {
 	if err := t.configure(); err != nil {
 		return err
 	}
 
 	descr := fmt.Sprintf("Privatix %s Tor transport %s", role,
 		util.Hash(t.RootPath))
-	return installService(t.ServiceName(), t.RootPath, descr, autostart)
+	return installService(t.ServiceName(), t.RootPath, descr, installUID, autostart)
 }
 
 // Start starts tor process.
@@ -185,6 +185,6 @@ func (t *Tor) Stop(ctx context.Context, installUID string) (err error) {
 }
 
 // Remove removes tor process.
-func (t *Tor) Remove() error {
-	return removeService(t.ServiceName())
+func (t *Tor) Remove(installUID string) error {
+	return removeService(t.ServiceName(), installUID)
 }

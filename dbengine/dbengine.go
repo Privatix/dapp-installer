@@ -156,8 +156,8 @@ func SetPort(pgconf, oldPort, newPort string) error {
 }
 
 // Remove removes the DB engine.
-func (engine *DBEngine) Remove(installPath string) error {
-	return removeService(installPath)
+func (engine *DBEngine) Remove(installPath, installUID string) error {
+	return removeService(installPath, installUID)
 }
 
 // Start starts the DB engine.

@@ -438,13 +438,3 @@ func UpdateConfig(copyItems [][]string, src, dst string) error {
 	}
 	return nil
 }
-
-// ExecuteCommandOnDarwinAsAdmin runs a command under sudo on darwin.
-func ExecuteCommandOnDarwinAsAdmin(command string) error {
-	txt := `with prompt "Privatix wants to make changes"`
-	evelate := "with administrator privileges"
-	script := fmt.Sprintf(`do shell script "sudo %s" %s %s`,
-		command, txt, evelate)
-
-	return ExecuteCommand("osascript", "-e", script)
-}

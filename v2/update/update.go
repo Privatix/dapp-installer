@@ -31,6 +31,7 @@ type updateContext struct {
 	Source        string
 	installed     *metadata.Installation
 	updateVersion string
+	uid           string
 	path          appPath
 }
 
@@ -346,6 +347,16 @@ func readArgs(_ log.Logger, v *updateContext) error {
 
 	flag.CommandLine.Parse(os.Args[2:])
 
+	if runtime.GOOS == "darwin" {
+		flag.StringVar(&v.uid, "uid", "", "installation user's UID")
+	}
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if runtime.GOOS == "darwin" && v.uid == "" {
+		return errors.New("uid argument is required")
+	}
+
 	if *role != "" {
 		v.Role = *role
 	} else {
@@ -380,52 +391,62 @@ func readInstallationDetails(logger log.Logger, v *updateContext) error {
 }
 
 func stopTor(logger log.Logger, v *updateContext) error {
-	return stopService(logger, v.installed.Tor.Service)
+	return stopService(logger, v.installed.Tor.Service, v.uid)
 }
 
 func startTor(logger log.Logger, v *updateContext) error {
-	return startService(logger, v.installed.Tor.Service)
+	return startService(logger, v.installed.Tor.Service, v.uid)
 }
 
 func stopDappCtrl(logger log.Logger, v *updateContext) error {
-	return stopService(logger, v.installed.Dapp.Service)
+	// TODO: pass uid darwin.
+	return stopService(logger, v.installed.Dapp.Service, v.uid)
 }
 
 func startDappCtrl(logger log.Logger, v *updateContext) error {
-	return startService(logger, v.installed.Dapp.Service)
+	// TODO: pass uid darwin.
+	return startService(logger, v.installed.Dapp.Service, v.uid)
 }
 
 func stopDatabase(logger log.Logger, v *updateContext) error {
-	return stopService(logger, v.installed.DB.Service)
+	// TODO: pass uid darwin.
+	return stopService(logger, v.installed.DB.Service, v.uid)
 }
 
 func startDatabase(logger log.Logger, v *updateContext) error {
-	return startService(logger, v.installed.DB.Service)
+	// TODO: pass uid darwin.
+	return startService(logger, v.installed.DB.Service, v.uid)
 }
 
-func stopService(logger log.Logger, svc string) error {
-	currentUser, err := user.Current()
-	if err != nil {
-		return err
+func stopService(logger log.Logger, svc, installUID string) error {
+	if installUID == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return err
+		}
+		installUID = currentUser.Uid
 	}
-	logger = logger.Add("Uid", currentUser.Uid)
+	logger = logger.Add("Uid", installUID)
 	ctx, cancel := context.WithTimeout(context.Background(), stepTimeout)
 	defer cancel()
-	if err := service.Stop(ctx, logger, svc, currentUser.Uid); err != nil {
+	if err := service.Stop(ctx, logger, svc, installUID); err != nil {
 		return fmt.Errorf("could not stop a service: %v", err)
 	}
 	return nil
 }
 
-func startService(logger log.Logger, svc string) error {
-	currentUser, err := user.Current()
-	if err != nil {
-		return err
+func startService(logger log.Logger, svc, installUID string) error {
+	if installUID == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return err
+		}
+		installUID = currentUser.Uid
 	}
-	logger = logger.Add("Uid", currentUser.Uid)
+	logger = logger.Add("Uid", installUID)
 	ctx, cancel := context.WithTimeout(context.Background(), stepTimeout)
 	defer cancel()
-	if err := service.Start(ctx, logger, svc, currentUser.Uid); err != nil {
+	if err := service.Start(ctx, logger, svc, installUID); err != nil {
 		return fmt.Errorf("could not start a service: %v", err)
 	}
 	return nil
@@ -440,7 +461,7 @@ func backupCurrentInstallation(logger log.Logger, v *updateContext) error {
 	switch runtime.GOOS {
 	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
-		return util.ExecuteCommandOnDarwinAsAdmin(command)
+		return util.ExecuteCommand(command)
 	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
@@ -461,7 +482,7 @@ func restoreInstallationBackup(_ log.Logger, v *updateContext) error {
 	switch runtime.GOOS {
 	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", v.Path, backupPath, v.Path)
-		return util.ExecuteCommandOnDarwinAsAdmin(command)
+		return util.ExecuteCommand(command)
 	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", v.Path, backupPath, v.Path)
 		return util.ExecuteCommand("/bin/bash", "-c", command)

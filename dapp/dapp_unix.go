@@ -45,6 +45,7 @@ func (d *Dapp) Configure() error {
 	ctrl.Service.Command = filepath.Join(d.Path, ctrl.EntryPoint)
 	ctrl.Service.Args = []string{
 		"-config", filepath.Join(d.Path, ctrl.Configuration)}
+	ctrl.Service.UID = d.UID
 
 	if err := ctrl.Service.Install(); err != nil {
 		return fmt.Errorf("failed to install daemon: %v", err)

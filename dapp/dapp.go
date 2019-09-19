@@ -34,6 +34,7 @@ type Dapp struct {
 	Version    string
 	Tor        *tor.Tor
 	UserID     string
+	UID        string
 	Timeout    uint64 // in seconds
 	OnlyCore   bool
 	Product    string

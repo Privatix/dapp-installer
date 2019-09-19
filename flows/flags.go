@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 
 	"github.com/privatix/dapp-installer/dapp"
@@ -82,10 +83,17 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	sendremote := flag.Bool("sendremote", false, "Send error reports")
 	torHSD := flag.String("torhsd", "", "Tor hidden service directory")
 	torSocks := flag.String("torsocks", "", "Tor socks port number")
+	if runtime.GOOS == "darwin" {
+		flag.StringVar(&d.UID, "uid", "", "installation user's UID")
+	}
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
+
+	if d.UID == "" {
+		return errors.New("UID argument is required")
+	}
 
 	if *h {
 		fmt.Println(help)

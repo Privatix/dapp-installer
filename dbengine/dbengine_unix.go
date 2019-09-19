@@ -34,8 +34,10 @@ func startService(installPath, installUID string, autostart bool) error {
 	return d.Start()
 }
 
-func removeService(installPath string) error {
-	return unix.NewDaemon(Hash(installPath)).Remove()
+func removeService(installPath, installUID string) error {
+	d := unix.NewDaemon(Hash(installPath))
+	d.UID = installUID
+	return d.Remove()
 }
 
 func stopService(installPath, installUID string) error {

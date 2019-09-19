@@ -742,18 +742,6 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </showInfo>
-
-        <!-- If using osascript failed, try using reboot -->
-
-        <runProgram>
-            <program>reboot</program>
-            <programArguments></programArguments>
-            <ruleList>
-                <platformTest>
-                    <type>linux</type>
-                </platformTest>
-            </ruleList>
-        </runProgram>
     </postUninstallationActionList>
     <allowComponentSelection>1</allowComponentSelection>
     <allowedLanguages>en ru</allowedLanguages>
@@ -855,6 +843,25 @@ ${program_stderr}</text>
                 </compareText>
             </ruleList>
         </showProgressDialog>
+<!--        start supervisor-->
+        <runProgram>
+            <program>net</program>
+            <programArguments>start Privatix_Dapp_Supervisor</programArguments>
+            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
+            <abortOnError>0</abortOnError>
+            <showMessageOnError>0</showMessageOnError>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>upgrade</value2>
+                </compareValues>
+                <compareText text="${install_type}" value="client" logic="equals" />
+            </ruleList>
+        </runProgram>
     </installationAbortedActionList>
     <parameterList>
         <directoryParameter>

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -83,16 +84,14 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 	sendremote := flag.Bool("sendremote", false, "Send error reports")
 	torHSD := flag.String("torhsd", "", "Tor hidden service directory")
 	torSocks := flag.String("torsocks", "", "Tor socks port number")
-	if runtime.GOOS == "darwin" {
-		flag.StringVar(&d.UID, "uid", "", "installation user's UID")
-	}
+	uid := flag.String("uid", "", "installation user's UID")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
-	if d.UID == "" {
-		return errors.New("UID argument is required")
+	if err := validateUIDFlag(d, *uid); err != nil {
+		return err
 	}
 
 	if *h {
@@ -156,10 +155,15 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 	role := flag.String("role", "", "Dapp user role")
+	uid := flag.String("uid", "", "installation user's UID")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
 	flag.CommandLine.Parse(os.Args[2:])
+
+	if err := validateUIDFlag(d, *uid); err != nil {
+		return err
+	}
 
 	if *h {
 		fmt.Println(help)
@@ -172,5 +176,20 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	d.Path = *p
 	d.Role = *role
 	d.Verbose = *v
+	return nil
+}
+
+func validateUIDFlag(d *dapp.Dapp, uid string) error {
+	if runtime.GOOS == "darwin" {
+		if uid == "" {
+			return errors.New("UID argument is required")
+		}
+		u, err := user.LookupId(uid)
+		if err != nil {
+			return fmt.Errorf("could not find user with uid: %v: %v", uid, err)
+		}
+		d.Username = u.Username
+		d.UID = uid
+	}
 	return nil
 }

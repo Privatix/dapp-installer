@@ -347,14 +347,12 @@ func readArgs(_ log.Logger, v *updateContext) error {
 
 	flag.CommandLine.Parse(os.Args[2:])
 
+	uid := flag.String("uid", "", "installation user's UID")
 	if runtime.GOOS == "darwin" {
-		flag.StringVar(&v.uid, "uid", "", "installation user's UID")
-	}
-
-	flag.CommandLine.Parse(os.Args[2:])
-
-	if runtime.GOOS == "darwin" && v.uid == "" {
-		return errors.New("uid argument is required")
+		if *uid == "" {
+			return errors.New("uid argument is required")
+		}
+		v.uid = *uid
 	}
 
 	if *role != "" {
@@ -399,22 +397,18 @@ func startTor(logger log.Logger, v *updateContext) error {
 }
 
 func stopDappCtrl(logger log.Logger, v *updateContext) error {
-	// TODO: pass uid darwin.
 	return stopService(logger, v.installed.Dapp.Service, v.uid)
 }
 
 func startDappCtrl(logger log.Logger, v *updateContext) error {
-	// TODO: pass uid darwin.
 	return startService(logger, v.installed.Dapp.Service, v.uid)
 }
 
 func stopDatabase(logger log.Logger, v *updateContext) error {
-	// TODO: pass uid darwin.
 	return stopService(logger, v.installed.DB.Service, v.uid)
 }
 
 func startDatabase(logger log.Logger, v *updateContext) error {
-	// TODO: pass uid darwin.
 	return startService(logger, v.installed.DB.Service, v.uid)
 }
 
@@ -517,7 +511,7 @@ func extractAppFilesForUpdate(_ log.Logger, v *updateContext) error {
 		os.MkdirAll(v.Path, util.FullPermission)
 	}
 
-	if err := util.Unzip(v.Source, v.Path); err != nil {
+	if err := util.Unzip(v.Source, v.Path, v.uid); err != nil {
 		return fmt.Errorf("could not to unzip source `%s`: %v", v.Source, err)
 	}
 	return nil

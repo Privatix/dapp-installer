@@ -15,7 +15,7 @@ func Hash(path string) string {
 	return fmt.Sprintf("Privatix DB %s", util.Hash(path))
 }
 
-func runService(service string) error {
+func runService(service, _ string) error {
 	out, err := util.ExecuteCommandOutput("sc", "queryex", service)
 	if err != nil {
 		return err
@@ -48,10 +48,10 @@ func startService(installPath, _ string, autostart bool) error {
 		return err
 	}
 
-	return runService(serviceName)
+	return runService(serviceName, "")
 }
 
-func removeService(installPath string) error {
+func removeService(installPath, _ string) error {
 	serviceName := Hash(installPath)
 	stopService(installPath, "")
 

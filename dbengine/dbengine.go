@@ -82,7 +82,7 @@ func (engine DBEngine) loadproddata(fileName string) error {
 }
 
 // Install installs a DB engine.
-func (engine *DBEngine) Install(installPath string) error {
+func (engine *DBEngine) Install(installPath, username, installUID string) error {
 	if err := prepareToInstall(installPath); err != nil {
 		return fmt.Errorf("failed to prepare install db: %v", err)
 	}
@@ -90,13 +90,29 @@ func (engine *DBEngine) Install(installPath string) error {
 	// init db
 	dataPath := filepath.Join(installPath, "pgsql", "data")
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
-		os.MkdirAll(dataPath, util.FullPermission)
+		if err := os.MkdirAll(dataPath, util.FullPermission); err != nil {
+			return fmt.Errorf("could not create data direcotry: %v", err)
+		}
+		if username != "" {
+			err := util.ExecuteCommand("chown", "-R", username, dataPath)
+			if err != nil {
+				return fmt.Errorf("could not change data dir owner: %v", err)
+			}
+		}
 	}
 
-	util.GrantAccess(installPath)
+	if username == "" {
+		util.GrantAccess(installPath)
+	}
 
 	fileName := filepath.Join(installPath, "pgsql", "bin", "initdb")
-	err := util.ExecuteCommand(fileName, "-D", dataPath)
+	var err error
+	if username != "" {
+		command := fmt.Sprint(fileName, " -D ", dataPath)
+		err = util.ExecuteCommand("osascript", "-e", fmt.Sprintf(`do shell script "sudo -u %s %s"`, username, command))
+	} else {
+		err = util.ExecuteCommand(fileName, "-D", dataPath)
+	}
 
 	if err != nil {
 		return fmt.Errorf("failed to init db: %v", err)
@@ -110,21 +126,27 @@ func (engine *DBEngine) Install(installPath string) error {
 	}
 
 	// start service
-	if err := engine.Start(installPath, ""); err != nil {
+	if err := engine.Start(installPath, installUID); err != nil {
 		return fmt.Errorf("failed to start db engine: %v", err)
 	}
 
 	fileName = filepath.Join(installPath, "pgsql", "bin", "createuser")
-	return engine.createUser(fileName)
+	return engine.createUser(fileName, username)
 }
 
-func (engine *DBEngine) createUser(fileName string) error {
+func (engine *DBEngine) createUser(fileName, username string) error {
 	args := []string{"-p", engine.DB.Port, "-s", engine.DB.User}
 
 	done := make(chan bool)
 	go func() {
 		for {
-			err := util.ExecuteCommand(fileName, args...)
+			var err error
+			if username == "" {
+				err = util.ExecuteCommand(fileName, args...)
+			} else {
+				command := fmt.Sprintf("%s %s", fileName, strings.Join(args, " "))
+				err = util.ExecuteCommand("osascript", "-e", fmt.Sprintf(`do shell script "sudo -u %s %s"`, username, command))
+			}
 			if err == nil {
 				break
 			}

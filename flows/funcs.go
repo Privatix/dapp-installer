@@ -66,7 +66,7 @@ func extractAndUpdateVersion(d *dapp.Dapp) error {
 	}
 
 	if len(path) > 0 {
-		if err := util.Unzip(path, d.Path); err != nil {
+		if err := util.Unzip(path, d.Path, d.UID); err != nil {
 			return fmt.Errorf("failed to extract dapp: %v", err)
 		}
 	}
@@ -77,7 +77,7 @@ func extractAndUpdateVersion(d *dapp.Dapp) error {
 }
 
 func installDBEngine(d *dapp.Dapp) error {
-	if err := d.DBEngine.Install(d.Path); err != nil {
+	if err := d.DBEngine.Install(d.Path, d.Username, d.UID); err != nil {
 		return fmt.Errorf("failed to install dbengine: %v", err)
 	}
 
@@ -120,7 +120,7 @@ func checkInstallation(d *dapp.Dapp) (err error) {
 	}
 	d.Controller.Service.ID = d.ControllerHash()
 	d.Controller.Service.GUID = filepath.Join(d.Path, "dappctrl", d.Controller.Service.ID)
-	d.Controller.Service.UID = d.UID
+	d.Controller.Service.SetUID(d.UID)
 
 	err = startServicesIfClient(d)
 	defer func() {
@@ -180,7 +180,7 @@ func removeDapp(d *dapp.Dapp) error {
 	}
 
 	// Removes unremoved services.
-	d.Controller.Service.UID = d.UID
+	d.Controller.Service.SetUID(d.UID)
 	d.Controller.Service.Remove()
 	d.DBEngine.Remove(d.Path, d.UID)
 	d.Tor.Remove(d.UID)

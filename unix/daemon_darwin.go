@@ -10,6 +10,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"text/template"
 	"time"
 )
@@ -57,9 +58,31 @@ func (d *Daemon) Install() error {
 	}
 
 	d.Name = d.name()
-	// TODO: change file permissions based on uid.
-	// os.Chown
-	return templ.Execute(file, &d)
+	if err := templ.Execute(file, &d); err != nil {
+		return err
+	}
+
+	if d.UID == "" {
+		return nil
+	}
+
+	u, err := user.LookupId(d.UID)
+	if err != nil {
+		return fmt.Errorf("could not get user by uid `%v`: %v", d.UID, err)
+	}
+
+	uid, _ := strconv.ParseInt(u.Uid, 10, 64)
+	gid, _ := strconv.ParseInt(u.Gid, 10, 64)
+
+	if err := os.Chown(d.path(), int(uid), int(gid)); err != nil {
+		return fmt.Errorf("could not change service file owner: %v", err)
+	}
+
+	if err := os.Chmod(d.path(), os.FileMode(0660)); err != nil {
+		return fmt.Errorf("could not change service file permission: %v", err)
+	}
+
+	return nil
 }
 
 // Start starts the daemon.

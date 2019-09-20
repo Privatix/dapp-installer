@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -437,4 +438,21 @@ func UpdateConfig(copyItems [][]string, src, dst string) error {
 		return fmt.Errorf("could not write updated config: %v", err)
 	}
 	return nil
+}
+
+// ChownToUID changes owner of a path to user with given uid.
+func ChownToUID(path string, installUID string) error {
+	u, err := user.LookupId(installUID)
+	if err != nil {
+		return err
+	}
+	uid, err := strconv.ParseInt(u.Uid, 10, 64)
+	if err != nil {
+		return err
+	}
+	gid, err := strconv.ParseInt(u.Gid, 10, 64)
+	if err != nil {
+		return err
+	}
+	return os.Chown(path, int(uid), int(gid))
 }

@@ -132,7 +132,7 @@
 
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -141,7 +141,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -150,7 +150,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd var/lib/tor/hidden_service -torsocks 9099 ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid ${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -188,7 +188,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
+                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid ${user_id}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -226,7 +226,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
+                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid ${user_id}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -250,7 +250,7 @@ ${program_stderr}</text>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
                                     <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                                    <programArguments>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -379,7 +379,7 @@ ${program_stderr}</text>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
                                     <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                                    <programArguments>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -524,6 +524,21 @@ ${program_stderr}</text>
             </ruleList>
         </runProgram>
 
+        <setInstallerVariable>
+            <name>user_id</name>
+        </setInstallerVariable>
+        <setInstallerVariableFromScriptOutput>
+            <exec>id</exec>
+            <execArgs>-u</execArgs>
+            <name>user_id</name>
+            <abortOnError>1</abortOnError>
+            <showMessageOnError>1</showMessageOnError>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariableFromScriptOutput>
     </readyToInstallActionList>
     <postInstallationActionList>
         <propertiesFileSet>
@@ -740,7 +755,7 @@ ${program_stderr}</text>
             <actionList>
                 <runProgram>
                     <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ${install_type} -role ${install_type}</programArguments>
+                    <programArguments>remove -workdir ${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                     <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>
@@ -831,7 +846,7 @@ ${program_stderr}</text>
                     <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
                     <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                    <programArguments>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
                     <ruleList>

@@ -204,6 +204,7 @@
                                             <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -219,6 +220,7 @@
                                             <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                         <registryDelete>
                                             <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
@@ -242,6 +244,7 @@
                                             <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -257,6 +260,7 @@
                                             <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                         <registryDelete>
                                             <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
@@ -281,6 +285,7 @@ ${program_stderr}</text>
                                     <programArguments>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
+                                    <runAs>root</runAs>
                                     <ruleList>
                                         <fileExists>
                                             <path>${installdir}/${install_type}</path>
@@ -318,7 +323,7 @@ ${program_stderr}</text>
                 <startMenuShortcut>
                     <comment>Uninstall ${product_fullname}</comment>
                     <name>Uninstall ${product_fullname}</name>
-                    <runAsAdmin>0</runAsAdmin>
+                    <runAsAdmin>1</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
@@ -328,7 +333,7 @@ ${program_stderr}</text>
                 <startMenuShortcut>
                     <comment></comment>
                     <name>Privatix</name>
-                    <runAsAdmin>0</runAsAdmin>
+                    <runAsAdmin>1</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
@@ -357,6 +362,7 @@ ${program_stderr}</text>
                                             <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -383,6 +389,7 @@ ${program_stderr}</text>
                                             <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextProduct)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -410,6 +417,7 @@ ${program_stderr}</text>
                                     <programArguments>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
+                                    <runAs>root</runAs>
                                     <ruleList>
                                         <fileExists>
                                             <path>${installdir}/${install_type}</path>
@@ -786,6 +794,7 @@ ${program_stderr}</text>
                     <programArguments>remove -workdir ${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                     <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
+                    <runAs>root</runAs>
                 </runProgram>
             </actionList>
         </showProgressDialog>
@@ -877,6 +886,7 @@ ${program_stderr}</text>
                     <programArguments>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</programArguments>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
+                    <runAs>root</runAs>
                     <ruleList>
                         <fileExists>
                             <path>${installdir}/dapp-installer</path>

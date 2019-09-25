@@ -1,12 +1,12 @@
 package flows
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-
-	dapputil "github.com/privatix/dappctrl/util"
+	"strconv"
 
 	"github.com/privatix/dapp-installer/dapp"
 )
@@ -37,13 +37,14 @@ func processedRemoveFlags(d *dapp.Dapp) error {
 
 func processedCommonFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
-	config := flag.String("config", "", "Configuration file")
 	role := flag.String("role", "", "Dapp user role")
 	path := flag.String("workdir", "", "Dapp install directory")
 	src := flag.String("source", "", "Dapp install source")
 	core := flag.Bool("core", false, "Install only dapp core")
 	product := flag.String("product", "", "Specific product")
 	sendremote := flag.Bool("sendremote", false, "Send error reports")
+	torHSD := flag.String("torhsd", "", "Tor hidden service directory")
+	torSocks := flag.String("torsocks", "", "Tor socks port number")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -56,22 +57,35 @@ func processedCommonFlags(d *dapp.Dapp, help string) error {
 
 	d.Verbose = *v
 
-	if len(*config) > 0 {
-		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
-			return err
-		}
+	if *torHSD == "" {
+		return errors.New("torhsd is required")
 	}
+	d.Tor.HiddenServiceDir = *torHSD
+	if *torSocks == "" {
+		return errors.New("torsocks is required")
+	}
+	socksN, err := strconv.ParseInt(*torSocks, 10, 64)
+	if err != nil {
+		return fmt.Errorf("could not parse socks port number: %v", err)
+	}
+	d.Tor.SocksPort = int(socksN)
 
 	if len(*role) > 0 {
 		d.Role = *role
+	} else {
+		return errors.New("role is required")
 	}
 
 	if len(*path) > 0 {
 		d.Path = *path
+	} else {
+		return errors.New("workdir is required")
 	}
 
 	if len(*src) > 0 {
 		d.Source = *src
+	} else {
+		return errors.New("source is required")
 	}
 
 	if len(*product) > 0 {
@@ -97,7 +111,6 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	h := flag.Bool("help", false, "Display dapp-installer help")
 	p := flag.String("workdir", "", "Dapp install directory")
 	role := flag.String("role", "", "Dapp user role")
-	config := flag.String("config", "", "Configuration file")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -106,12 +119,6 @@ func processedWorkFlags(d *dapp.Dapp, help string) error {
 	if *h {
 		fmt.Println(help)
 		os.Exit(0)
-	}
-
-	if len(*config) > 0 {
-		if err := dapputil.ReadJSONFile(*config, &d); err != nil {
-			return err
-		}
 	}
 
 	if len(*p) == 0 {

@@ -3,6 +3,7 @@ package update
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -172,7 +173,7 @@ func Run(logger log.Logger) error {
 		updateFlow.Steps = []flow.Step{
 			&step{
 				name: "read config file",
-				do:   readConfigFileAndArgs,
+				do:   readArgs,
 			},
 			&step{
 				name: "stop container",
@@ -236,7 +237,7 @@ func Run(logger log.Logger) error {
 		updateFlow.Steps = []flow.Step{
 			&step{
 				name: "read config file",
-				do:   readConfigFileAndArgs,
+				do:   readArgs,
 			},
 			&step{
 				name: "read installed details",
@@ -338,27 +339,31 @@ func Run(logger log.Logger) error {
 	return updateFlow.Run(logger, v)
 }
 
-func readConfigFileAndArgs(_ log.Logger, v *updateContext) error {
-	conffile := flag.String("config", "dapp-installer.config.json", "dapp-installer configuration file")
+func readArgs(_ log.Logger, v *updateContext) error {
 	role := flag.String("role", "", "client | agent")
 	workdir := flag.String("workdir", "", "app directory")
+	source := flag.String("source", "", "new application source")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
-	err := util.ReadJSON(*conffile, v)
-	if err != nil {
-		return fmt.Errorf("could not read configuration file: %v", err)
-	}
-
 	if *role != "" {
 		v.Role = *role
+	} else {
+		return errors.New("role is required")
 	}
 
 	if *workdir != "" {
 		v.Path = *workdir
+	} else {
+		return errors.New("workdir is required")
 	}
 
-	v.Path, err = filepath.Abs(v.Path)
+	if *source == "" {
+		return errors.New("source is required")
+	}
+
+	var err error
+	v.Path, err = filepath.Abs(*source)
 	if err != nil {
 		return fmt.Errorf("could not get absolute path for installation: %v", err)
 	}

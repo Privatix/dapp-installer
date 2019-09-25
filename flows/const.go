@@ -67,6 +67,8 @@ Flags:
 	--verbose		Display log to console log
 	--help			Display help information
 	--sendremote 	Whether to allow sending error reports or not
+	--torhsd        Tor hidden_service directory
+	--torsocks      Tor socks port number
 `
 
 	statusHelp = `

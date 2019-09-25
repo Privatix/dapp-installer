@@ -58,11 +58,11 @@ Flags:
 ### Examples
 By default, installs dapp core and products:
 ```
-dapp-installer install -config dapp-installer.config.json
+dapp-installer install -workdir ./client -role client -source ./app.zip
 ```
 Use `-core` flag to install only dapp core without products:
 ```
-dapp-installer install -config dapp-installer.config.json -core
+dapp-installer install -workdir ./client -role client -source ./app.zip -core
 ```
 Installs all products, which contains in `product` folder:
 ```

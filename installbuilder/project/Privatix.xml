@@ -129,6 +129,35 @@
                         </isTrue>
                     </ruleList>
                 </setInstallerVariable>
+
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 ${sendremote}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 ${sendremote}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd var/lib/tor/hidden_service -torsocks 9099 ${sendremote}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
                     <key>version</key>
@@ -144,7 +173,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip ${sendremote}</programArguments>
+                                            <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -182,7 +211,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip ${sendremote}</programArguments>
+                                            <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -297,7 +326,7 @@ ${program_stderr}</text>
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -323,7 +352,7 @@ ${program_stderr}</text>
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
+                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id} -source ./app.zip</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextProduct)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>

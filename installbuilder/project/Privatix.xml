@@ -150,7 +150,35 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd var/lib/tor/hidden_service -torsocks 9099 ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 ${sendremote}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -188,7 +216,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
+                                            <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -226,7 +254,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
+                                            <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>

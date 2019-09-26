@@ -80,9 +80,6 @@
                             <origin>../linux-dapp-installer/dapp-installer</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../linux-dapp-installer/dapp-installer.config.json</origin>
-                        </distributionFile>
-                        <distributionFile>
                             <origin>../linux-dapp-installer/dapp-supervisor</origin>
                         </distributionFile>
                     </distributionFileList>
@@ -95,9 +92,6 @@
                     <distributionFileList>
                         <distributionFile>
                             <origin>../win-dapp-installer/app.zip</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../win-dapp-installer/dapp-installer.config.json</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../win-dapp-installer/dapp-installer.exe</origin>
@@ -118,9 +112,6 @@
                         </distributionFile>
                         <distributionFile>
                             <origin>../mac-dapp-installer/dapp-installer</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../mac-dapp-installer/dapp-installer.config.json</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../mac-dapp-installer/dapp-supervisor</origin>
@@ -153,7 +144,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
+                                            <programArguments>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -168,7 +159,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -191,7 +182,7 @@
                                     <actionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
+                                            <programArguments>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip ${sendremote}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -206,7 +197,7 @@
                                     <elseActionList>
                                         <runProgram>
                                             <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <programArguments>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>

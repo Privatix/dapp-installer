@@ -211,6 +211,7 @@ func (d *Dapp) modifyDappConfig() error {
 	addr := jsonMap["UI"].(map[string]interface{})["Addr"].(string)
 	d.Gui.Settings["wsEndpoint"] = fmt.Sprintf("ws://%s/ws", addr)
 	d.Gui.Settings["bugsnag.userid"] = d.UserID
+	d.Gui.Settings["role"] = d.Role
 	if err := d.setUIConfig(); err != nil {
 		return err
 	}

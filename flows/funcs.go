@@ -113,38 +113,6 @@ func remove(d *dapp.Dapp) error {
 	return removeServices(d)
 }
 
-func update(d *dapp.Dapp) error {
-	oldDapp := *d
-
-	// Extract.
-	b, dir := filepath.Split(oldDapp.Path)
-	newPath := filepath.Join(b, dir+"_new")
-	d.Path = newPath
-	if err := extractAndUpdateVersion(d); err != nil {
-		d.Path = oldDapp.Path
-		return err
-	}
-	defer func() {
-		d.Path = oldDapp.Path
-		os.RemoveAll(newPath)
-	}()
-
-	// Read and store new version value.
-	version := util.ParseVersion(d.Version)
-	if util.ParseVersion(oldDapp.Version) >= version {
-		return fmt.Errorf(
-			"dapp current version: %s, update is not required",
-			oldDapp.Version)
-	}
-
-	// Update dapp core.
-	if err := d.Update(&oldDapp); err != nil {
-		return fmt.Errorf("failed to update dapp: %v", err)
-	}
-
-	return nil
-}
-
 func checkInstallation(d *dapp.Dapp) (err error) {
 	err = validatePathAndSetAsRootPathForTorIfValid(d)
 	if err != nil {

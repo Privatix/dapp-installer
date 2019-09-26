@@ -67,6 +67,8 @@ Flags:
 	--verbose		Display log to console log
 	--help			Display help information
 	--sendremote 	Whether to allow sending error reports or not
+	--torhsd        Tor hidden_service directory
+	--torsocks      Tor socks port number
 `
 
 	statusHelp = `
@@ -89,6 +91,7 @@ Flags:
 	--workdir	Dapp install directory
 	--product	Specific product
 	--verbose	Display log to console log
+	--source    Dapp install source
 	--help		Display help information
 `
 

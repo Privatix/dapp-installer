@@ -3,13 +3,9 @@ package flows
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/privatix/dapp-installer/container"
 	"github.com/privatix/dapp-installer/dapp"
-	"github.com/privatix/dapp-installer/product"
-	"github.com/privatix/dapp-installer/util"
 )
 
 func getContainer(d *dapp.Dapp) *container.Container {
@@ -113,51 +109,6 @@ func checkContainer(d *dapp.Dapp) error {
 	}
 
 	return nil
-}
-
-func updateContainer(d *dapp.Dapp) error {
-	if strings.HasSuffix(d.Path, "/") {
-		d.Path = d.Path[:len(d.Path)-1]
-	}
-
-	oldDapp := *d
-
-	// Extract.
-	b, dir := filepath.Split(d.Path)
-	newPath := filepath.Join(b, dir+"_new")
-	d.Path = newPath
-	if err := extractAndUpdateVersion(d); err != nil {
-		d.Path = oldDapp.Path
-		return err
-	}
-	d.Path = oldDapp.Path
-
-	defer os.RemoveAll(newPath)
-
-	// Read and store new version value.
-	version := util.ParseVersion(d.Version)
-	if util.ParseVersion(oldDapp.Version) >= version {
-		return fmt.Errorf(
-			"dapp current version: %s, update is not required",
-			oldDapp.Version)
-	}
-
-	if err := product.Update(d.Role, oldDapp.Path, newPath,
-		d.Product); err != nil {
-		return fmt.Errorf("failed to update products: %v", err)
-	}
-
-	c := getContainer(d)
-	copies := []string{"var/lib/postgresql/10/main",
-		"var/lib/tor", "etc/tor", "etc/systemd/system"}
-
-	merges := []string{d.Controller.Configuration, d.Gui.Configuration}
-	d.BackupPath = filepath.Join(b, dir+"_backup")
-	if err := c.Update(newPath, d.BackupPath, copies, merges); err != nil {
-		return fmt.Errorf("failed to update dapp: %v", err)
-	}
-
-	return configureDapp(d)
 }
 
 func restoreContainer(d *dapp.Dapp) error {

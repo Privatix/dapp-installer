@@ -79,11 +79,9 @@ func main() {
 	ok, err := flow.Execute(logger, arg, map[string]flow.Flow{
 		"install":          flows.Install(),
 		"install-products": flows.InstallProducts(),
-		// "update":           flows.Update(),
-		"update-products": flows.UpdateProducts(),
-		"remove":          flows.Remove(),
-		"remove-products": flows.RemoveProducts(),
-		"status":          flows.Status(),
+		"remove":           flows.Remove(),
+		"remove-products":  flows.RemoveProducts(),
+		"status":           flows.Status(),
 	}, d)
 
 	if err != nil {

@@ -15,24 +15,61 @@ func processedInstallFlags(d *dapp.Dapp) error {
 	return processedCommonFlags(d, installHelp)
 }
 
-func processedUpdateFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, updateHelp)
-}
-
 func processedInstallProductFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, installProductHelp)
-}
-
-func processedUpdateProductFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, updateProductHelp)
+	return processProductFlags(d, installProductHelp)
 }
 
 func processedRemoveProductFlags(d *dapp.Dapp) error {
-	return processedCommonFlags(d, removeProductHelp)
+	return processProductFlags(d, removeProductHelp)
 }
 
 func processedRemoveFlags(d *dapp.Dapp) error {
 	return processedWorkFlags(d, removeHelp)
+}
+
+func processProductFlags(d *dapp.Dapp, help string) error {
+	h := flag.Bool("help", false, "Display dapp-installer help")
+	role := flag.String("role", "", "Dapp user role")
+	path := flag.String("workdir", "", "Dapp install directory")
+	product := flag.String("product", "", "Specific product")
+	src := flag.String("source", "", "Dapp install source")
+
+	v := flag.Bool("verbose", false, "Display log to console output")
+
+	flag.CommandLine.Parse(os.Args[2:])
+
+	if *h {
+		fmt.Println(help)
+		os.Exit(0)
+	}
+
+	d.Verbose = *v
+
+	if len(*role) > 0 {
+		d.Role = *role
+	} else {
+		return errors.New("role is required")
+	}
+
+	if len(*path) > 0 {
+		d.Path = *path
+	} else {
+		return errors.New("workdir is required")
+	}
+
+	if len(*src) > 0 {
+		d.Source = *src
+	} else if os.Args[1] == "install" {
+		return errors.New("source is required")
+	}
+
+	if len(*product) > 0 {
+		d.Product = *product
+	}
+
+	d.DBEngine.Autostart = d.Role == "agent"
+
+	return nil
 }
 
 func processedCommonFlags(d *dapp.Dapp, help string) error {

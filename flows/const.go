@@ -91,6 +91,7 @@ Flags:
 	--workdir	Dapp install directory
 	--product	Specific product
 	--verbose	Display log to console log
+	--source    Dapp install source
 	--help		Display help information
 `
 

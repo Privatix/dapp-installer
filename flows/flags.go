@@ -35,6 +35,7 @@ func processProductFlags(d *dapp.Dapp, help string) error {
 	path := flag.String("workdir", "", "Dapp install directory")
 	product := flag.String("product", "", "Specific product")
 	src := flag.String("source", "", "Dapp install source")
+	uid := flag.String("uid", "", "installation user's UID")
 
 	v := flag.Bool("verbose", false, "Display log to console output")
 
@@ -43,6 +44,10 @@ func processProductFlags(d *dapp.Dapp, help string) error {
 	if *h {
 		fmt.Println(help)
 		os.Exit(0)
+	}
+
+	if err := validateUIDFlag(d, *uid); err != nil {
+		return err
 	}
 
 	d.Verbose = *v

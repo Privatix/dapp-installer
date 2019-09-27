@@ -344,10 +344,10 @@ func readArgs(_ log.Logger, v *updateContext) error {
 	role := flag.String("role", "", "client | agent")
 	workdir := flag.String("workdir", "", "app directory")
 	source := flag.String("source", "", "new application source")
+	uid := flag.String("uid", "", "installation user's UID")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
-	uid := flag.String("uid", "", "installation user's UID")
 	if runtime.GOOS == "darwin" {
 		if *uid == "" {
 			return errors.New("uid argument is required")

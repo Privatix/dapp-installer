@@ -251,10 +251,10 @@
                 </setInstallerVariable>
 
 
-<!--                Update-->
+<!--                Update win-->
                 <setInstallerVariable>
-                    <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
+                    <name>update_program</name>
+                    <value>${installdir}/dapp-installer</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -263,7 +263,18 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip  -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Update mac-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>osascript</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -272,7 +283,27 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid ${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Update linux-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz  -uid ${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -373,7 +404,7 @@
                                     </conditionRuleList>
                                     <elseActionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${update_program}</program>
                                             <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
@@ -413,7 +444,7 @@
                                     </conditionRuleList>
                                     <elseActionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${update_program}</program>
                                             <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>

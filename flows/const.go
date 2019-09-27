@@ -51,7 +51,8 @@ Flags:
 	--help		Display help information
 	--workdir	Dapp install directory
 	--verbose	Display log to console log
-	--role			Dapp user role
+	--role      Dapp user role
+	--uid       Installing users uid
 `
 
 	installHelp = `
@@ -69,6 +70,7 @@ Flags:
 	--sendremote 	Whether to allow sending error reports or not
 	--torhsd        Tor hidden_service directory
 	--torsocks      Tor socks port number
+	--uid           Installing users uid
 `
 
 	statusHelp = `
@@ -92,6 +94,7 @@ Flags:
 	--product	Specific product
 	--verbose	Display log to console log
 	--source    Dapp install source
+	--uid       Installing users uid
 	--help		Display help information
 `
 
@@ -118,5 +121,6 @@ Flags:
 	--product	Specific product
 	--verbose	Display log to console log
 	--help		Display help information
+	--uid       Installing users uid
 `
 )

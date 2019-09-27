@@ -130,9 +130,10 @@
                     </ruleList>
                 </setInstallerVariable>
 
+<!--                Install win core-->
                 <setInstallerVariable>
-                    <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}</value>
+                    <name>install_core_program</name>
+                    <value>${installdir}/dapp-installer</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -144,7 +145,38 @@
                     <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install mac core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
                             <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install linux core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
                         </platformTest>
                     </ruleList>
                 </setInstallerVariable>
@@ -158,6 +190,68 @@
                     </ruleList>
                 </setInstallerVariable>
 
+<!--                Install win products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>install-products -role ${install_type} -workdir ./${install_type}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install mac products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install-products -role ${install_type} -workdir ./${install_type}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install linux products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>install-products -role ${install_type} -workdir ./${install_type}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+
+<!--                Update-->
                 <setInstallerVariable>
                     <name>update_arguments</name>
                     <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
@@ -200,7 +294,7 @@
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${install_core_program}</program>
                                             <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
@@ -240,7 +334,7 @@
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${install_core_program}</program>
                                             <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
@@ -358,8 +452,8 @@ ${program_stderr}</text>
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <program>${install_products_program}</program>
+                                            <programArguments>${install_products_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                             <runAs>root</runAs>
@@ -385,8 +479,8 @@ ${program_stderr}</text>
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
+                                            <program>${install_products_program}</program>
+                                            <programArguments>${install_products_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextProduct)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                             <runAs>root</runAs>

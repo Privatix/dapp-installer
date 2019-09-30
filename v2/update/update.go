@@ -719,7 +719,7 @@ func copyDir(v *updateContext, p string) error {
 	backupPath := currentInstallationBackupPath(v)
 	src := filepath.Join(backupPath, p)
 	dst := filepath.Join(v.Path, p)
-	if runtime.GOOS == "linux" {
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		command := fmt.Sprintf("rm -rf %s && cp -rp %s %s", dst, src, dst)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
 	}

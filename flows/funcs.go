@@ -66,7 +66,7 @@ func extractAndUpdateVersion(d *dapp.Dapp) error {
 	}
 
 	if len(path) > 0 {
-		if err := util.Unzip(path, d.Path); err != nil {
+		if err := util.Unzip(path, d.Path, d.UID); err != nil {
 			return fmt.Errorf("failed to extract dapp: %v", err)
 		}
 	}
@@ -77,7 +77,7 @@ func extractAndUpdateVersion(d *dapp.Dapp) error {
 }
 
 func installDBEngine(d *dapp.Dapp) error {
-	if err := d.DBEngine.Install(d.Path); err != nil {
+	if err := d.DBEngine.Install(d.Path, d.Username, d.UID); err != nil {
 		return fmt.Errorf("failed to install dbengine: %v", err)
 	}
 
@@ -90,7 +90,7 @@ func installDBEngine(d *dapp.Dapp) error {
 }
 
 func removeDBEngine(d *dapp.Dapp) error {
-	if err := d.DBEngine.Remove(d.Path); err != nil {
+	if err := d.DBEngine.Remove(d.Path, d.UID); err != nil {
 		return fmt.Errorf("failed to remove dbengine: %v", err)
 	}
 
@@ -120,6 +120,7 @@ func checkInstallation(d *dapp.Dapp) (err error) {
 	}
 	d.Controller.Service.ID = d.ControllerHash()
 	d.Controller.Service.GUID = filepath.Join(d.Path, "dappctrl", d.Controller.Service.ID)
+	d.Controller.Service.SetUID(d.UID)
 
 	err = startServicesIfClient(d)
 	defer func() {
@@ -142,13 +143,13 @@ func startServices(d *dapp.Dapp) error {
 	d.Controller.Service.ID = d.ControllerHash()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	return d.Start(ctx, "")
+	return d.Start(ctx, d.UID)
 }
 
 func stopServices(d *dapp.Dapp) error {
 	ctx, cancel := context.WithTimeout(context.Background(), util.TimeOutInSec(d.Timeout))
 	defer cancel()
-	return d.Stop(ctx, "")
+	return d.Stop(ctx, d.UID)
 }
 
 func removeServices(d *dapp.Dapp) error {
@@ -167,7 +168,7 @@ func removeServices(d *dapp.Dapp) error {
 		return fmt.Errorf("failed to remove dappctrl service: %v", err)
 	}
 
-	if err := d.DBEngine.Remove(d.Path); err != nil {
+	if err := d.DBEngine.Remove(d.Path, d.UID); err != nil {
 		return fmt.Errorf("failed to remove db engine service: %v", err)
 	}
 	return nil
@@ -179,9 +180,10 @@ func removeDapp(d *dapp.Dapp) error {
 	}
 
 	// Removes unremoved services.
+	d.Controller.Service.SetUID(d.UID)
 	d.Controller.Service.Remove()
-	d.DBEngine.Remove(d.Path)
-	d.Tor.Remove()
+	d.DBEngine.Remove(d.Path, d.UID)
+	d.Tor.Remove(d.UID)
 
 	if err := d.Remove(); err != nil {
 		if err := util.SelfRemove(d.Path); err != nil {

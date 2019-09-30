@@ -115,11 +115,7 @@ func executeCommand(oldProdDir, prodDir, role string, v command) error {
 		err = util.ExecuteCommand("powershell", "-ExecutionPolicy", "Bypass",
 			"-Command", commandStr)
 	} else {
-		if v.Admin && runtime.GOOS == "darwin" {
-			err = util.ExecuteCommandOnDarwinAsAdmin(commandStr)
-		} else {
-			err = util.ExecuteCommand("sh", "-c", commandStr)
-		}
+		err = util.ExecuteCommand("sh", "-c", commandStr)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to execute %s: %v", commandStr, err)

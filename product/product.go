@@ -183,18 +183,7 @@ func (v command) execute(path string) error {
 		}
 	}
 
-	var err error
-	if v.Admin && runtime.GOOS == "darwin" {
-		txt := `with prompt "Privatix wants to make changes"`
-		evelate := "with administrator privileges"
-		command := fmt.Sprintf("%s %s", file, strings.Join(n[1:], " "))
-		script := fmt.Sprintf(`do shell script "sudo %s" %s %s`,
-			command, txt, evelate)
-
-		err = util.ExecuteCommand("osascript", "-e", script)
-	} else {
-		err = util.ExecuteCommand(file, n[1:]...)
-	}
+	err := util.ExecuteCommand(file, n[1:]...)
 
 	if err != nil {
 		return fmt.Errorf("failed to execute %s: %v", v.Command, err)

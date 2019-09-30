@@ -130,9 +130,10 @@
                     </ruleList>
                 </setInstallerVariable>
 
+<!--                Install win core-->
                 <setInstallerVariable>
-                    <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 ${sendremote}</value>
+                    <name>install_core_program</name>
+                    <value>${installdir}/dapp-installer</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -141,7 +142,18 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install mac core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>osascript</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -150,7 +162,27 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 ${sendremote}</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install linux core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid ${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -158,9 +190,71 @@
                     </ruleList>
                 </setInstallerVariable>
 
+<!--                Install win products-->
                 <setInstallerVariable>
-                    <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
+                    <name>install_products_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install mac products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install-products -role ${install_type} -workdir ./${install_type} -uid ${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install linux products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+
+<!--                Update win-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>${installdir}/dapp-installer</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -169,7 +263,18 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip</value>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip  -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Update mac-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>osascript</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -178,13 +283,96 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid ${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Update linux-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>${installdir}/dapp-installer</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
                         </platformTest>
                     </ruleList>
                 </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz  -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+
+<!--                Remove win-->
+                <setInstallerVariable>
+                    <name>remove_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>remove_arguments</name>
+                    <value>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Remove mac-->
+                <setInstallerVariable>
+                    <name>remove_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>remove_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Remove linux-->
+                <setInstallerVariable>
+                    <name>remove_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>remove_arguments</name>
+                    <value>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+
 
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
@@ -200,10 +388,11 @@
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${install_core_program}</program>
                                             <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -215,10 +404,11 @@
                                     </conditionRuleList>
                                     <elseActionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${update_program}</program>
                                             <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                         <registryDelete>
                                             <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
@@ -238,10 +428,11 @@
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${install_core_program}</program>
                                             <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -253,10 +444,11 @@
                                     </conditionRuleList>
                                     <elseActionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
+                                            <program>${update_program}</program>
                                             <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                         <registryDelete>
                                             <key>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${project.fullName} ${installed_version}</key>
@@ -277,10 +469,11 @@ ${program_stderr}</text>
                             <actionList>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                                    <program>${remove_program</program>
+                                    <programArguments>${remove_arguments}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
+                                    <runAs>root</runAs>
                                     <ruleList>
                                         <fileExists>
                                             <path>${installdir}/${install_type}</path>
@@ -318,7 +511,7 @@ ${program_stderr}</text>
                 <startMenuShortcut>
                     <comment>Uninstall ${product_fullname}</comment>
                     <name>Uninstall ${product_fullname}</name>
-                    <runAsAdmin>0</runAsAdmin>
+                    <runAsAdmin>1</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
@@ -328,7 +521,7 @@ ${program_stderr}</text>
                 <startMenuShortcut>
                     <comment></comment>
                     <name>Privatix</name>
-                    <runAsAdmin>0</runAsAdmin>
+                    <runAsAdmin>1</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/${install_type}/dappgui/dapp-gui.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
@@ -353,10 +546,11 @@ ${program_stderr}</text>
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <program>${install_products_program}</program>
+                                            <programArguments>${install_products_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -379,10 +573,11 @@ ${program_stderr}</text>
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
+                                            <program>${install_products_program}</program>
+                                            <programArguments>${install_products_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextProduct)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <runAs>root</runAs>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -406,10 +601,11 @@ ${program_stderr}</text>
                             <actionList>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                                    <program>${remove_program}</program>
+                                    <programArguments>${remove_arguments}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
+                                    <runAs>root</runAs>
                                     <ruleList>
                                         <fileExists>
                                             <path>${installdir}/${install_type}</path>
@@ -552,6 +748,21 @@ ${program_stderr}</text>
             </ruleList>
         </runProgram>
 
+        <setInstallerVariable>
+            <name>user_id</name>
+        </setInstallerVariable>
+        <setInstallerVariableFromScriptOutput>
+            <exec>id</exec>
+            <execArgs>-u</execArgs>
+            <name>user_id</name>
+            <abortOnError>1</abortOnError>
+            <showMessageOnError>1</showMessageOnError>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariableFromScriptOutput>
     </readyToInstallActionList>
     <postInstallationActionList>
         <propertiesFileSet>
@@ -767,10 +978,11 @@ ${program_stderr}</text>
             <title>${msg(Installer.showProgressDialog.Title)}</title>
             <actionList>
                 <runProgram>
-                    <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ${install_type} -role ${install_type}</programArguments>
+                    <program>${remove_program}</program>
+                    <programArguments>${remove_arguments}</programArguments>
                     <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
+                    <runAs>root</runAs>
                 </runProgram>
             </actionList>
         </showProgressDialog>
@@ -858,10 +1070,11 @@ ${program_stderr}</text>
                 <runProgram>
                     <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
-                    <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                    <program>${remove_program}</program>
+                    <programArguments>${remove_arguments}</programArguments>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
+                    <runAs>root</runAs>
                     <ruleList>
                         <fileExists>
                             <path>${installdir}/dapp-installer</path>

@@ -105,7 +105,7 @@ func IsServiceStopped(service, _ string) bool {
 
 // Unzip will decompress a zip archive, moving all files and folders
 // within the zip file (parameter 1) to an output directory (parameter 2).
-func Unzip(src string, dest string) error {
+func Unzip(src, dest, _ string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
 		return err

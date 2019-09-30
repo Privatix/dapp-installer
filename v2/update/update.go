@@ -372,7 +372,7 @@ func readArgs(_ log.Logger, v *updateContext) error {
 	}
 
 	var err error
-	v.Path, err = filepath.Abs(*source)
+	v.Source, err = filepath.Abs(*source)
 	if err != nil {
 		return fmt.Errorf("could not get absolute path for installation: %v", err)
 	}

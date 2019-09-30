@@ -455,7 +455,7 @@ func backupCurrentInstallation(logger log.Logger, v *updateContext) error {
 	switch runtime.GOOS {
 	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
-		return util.ExecuteCommand(command)
+		return util.ExecuteCommand("/bin/bash", "-c", command)
 	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
 		return util.ExecuteCommand("/bin/bash", "-c", command)

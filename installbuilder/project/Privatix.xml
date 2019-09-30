@@ -182,7 +182,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid ${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>

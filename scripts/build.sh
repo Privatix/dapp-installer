@@ -42,14 +42,16 @@ go build -o $GOPATH/bin/dapp-installer \
 -ldflags "-X main.Commit=$GIT_COMMIT -X main.Version=$GIT_RELEASE" -tags=notest || exit 1
 
 echo $GOPATH/bin/dapp-supervisor
-
 cd "${DAPPINST_DIR}/supervisor"
 go build -o $GOPATH/bin/dapp-supervisor || exit 1
 
 echo $GOPATH/bin/update-config
-
-cd "${DAPPINST_DIR}/tool/update-config"
+cd "${DAPPINST_DIR}/tool/update-config" &&
 go build -o $GOPATH/bin/update-config || exit 1
+
+echo $GOPATH/bin/agent-checker
+cd "${DAPPINST_DIR}/tool/agent-checker" &&
+go build -o $GOPATH/bin/agent-checker || exit 1
 
 echo
 echo done

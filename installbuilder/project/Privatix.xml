@@ -142,7 +142,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -162,7 +162,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid ${user_id} ${sendremote}\" with administrator privileges"</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} ${sendremote}\" with administrator privileges"</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -182,7 +182,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid ${user_id} ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid=${user_id} ${sendremote}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -202,7 +202,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_products_arguments</name>
-                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid ${user_id}</value>
+                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid=${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -222,7 +222,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_products_arguments</name>
-                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install-products -role ${install_type} -workdir ./${install_type} -uid ${user_id}\" with administrator privileges"</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install-products -role ${install_type} -workdir ./${install_type} -uid=${user_id}\" with administrator privileges"</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -242,7 +242,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_products_arguments</name>
-                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid ${user_id}</value>
+                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid=${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -263,7 +263,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip  -uid ${user_id}</value>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip  -uid=${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -283,7 +283,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid ${user_id}\" with administrator privileges"</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid=${user_id}\" with administrator privileges"</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -303,7 +303,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>update_arguments</name>
-                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz  -uid ${user_id}</value>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz  -uid=${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -324,7 +324,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>remove_arguments</name>
-                    <value>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</value>
+                    <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -344,7 +344,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>remove_arguments</name>
-                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}\" with administrator privileges"</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}\" with administrator privileges"</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -364,7 +364,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>remove_arguments</name>
-                    <value>remove -workdir ./${install_type} -role ${install_type} -uid ${user_id}</value>
+                    <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>

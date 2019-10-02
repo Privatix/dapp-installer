@@ -120,15 +120,6 @@
                 </folder>
             </folderList>
             <postInstallationActionList>
-                <setInstallerVariable>
-                    <name>sendremote</name>
-                    <value>-sendremote true</value>
-                    <ruleList>
-                        <isTrue>
-                            <value>${bugsnag}</value>
-                        </isTrue>
-                    </ruleList>
-                </setInstallerVariable>
 
 <!--                Install win core-->
                 <setInstallerVariable>
@@ -142,7 +133,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} -sendremote false</value>
                     <ruleList>
                         <platformTest>
                             <type>windows</type>
@@ -162,7 +153,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} ${sendremote}\" with administrator privileges"</value>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} -sendremote false\" with administrator privileges"</value>
                     <ruleList>
                         <platformTest>
                             <type>osx</type>
@@ -182,7 +173,7 @@
                 </setInstallerVariable>
                 <setInstallerVariable>
                     <name>install_core_arguments</name>
-                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid=${user_id} ${sendremote}</value>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid=${user_id} -sendremote false</value>
                     <ruleList>
                         <platformTest>
                             <type>linux</type>
@@ -843,24 +834,6 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </createSymLink>
-        <setInstallerVariable>
-            <name>bugsnag</name>
-            <value>true</value>
-            <ruleList>
-                <isTrue>
-                    <value>${bugsnag}</value>
-                </isTrue>
-            </ruleList>
-        </setInstallerVariable>
-        <setInstallerVariable>
-            <name>bugsnag</name>
-            <value>false</value>
-            <ruleList>
-                <isFalse>
-                    <value>${bugsnag}</value>
-                </isFalse>
-            </ruleList>
-        </setInstallerVariable>
         <readFile>
             <name>dappgui_config</name>
             <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
@@ -888,12 +861,6 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </readFile>
-        <setInstallerVariableFromRegEx>
-            <name>dappgui_config</name>
-            <pattern>{"bugsnag":{"enable":(.*?),</pattern>
-            <substitution>{"bugsnag":{"enable":${bugsnag},</substitution>
-            <text>${dappgui_config}</text>
-        </setInstallerVariableFromRegEx>
         <setInstallerVariableFromRegEx>
             <name>dappgui_config</name>
             <pattern>"role":"(.*?)"</pattern>
@@ -1242,40 +1209,12 @@ ${program_stderr}</text>
             </ruleList>
         </choiceParameter>
 
-        <booleanParameter>
-            <name>bugsnag</name>
-            <title>${msg(Installer.Bugsnag.title)}</title>
-            <description>${msg(Installer.Bugsnag.option)}</description>
-            <explanation>
-</explanation>
-            <value>true</value>
-            <default>true</default>
-            <displayStyle>checkbox-left</displayStyle>
-            <ruleList>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${project.installationType}</value1>
-                    <value2>normal</value2>
-                </compareValues>
-            </ruleList>
-        </booleanParameter>
-
-        <booleanParameter name="forceUpdate" default="0" ask="0">
-            <description></description>
-            <explanation></explanation>
-            <value></value>
-        </booleanParameter>
+        <booleanParameter name="forceUpdate" default="0" ask="0"/>
         <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0">
-            <description></description>
-            <explanation></explanation>
-            <value></value>
             <allowEmptyValue>1</allowEmptyValue>
             <width>30</width>
         </stringParameter>
         <stringParameter name="product_name" default="VPN" ask="0">
-            <description></description>
-            <explanation></explanation>
-            <value></value>
             <allowEmptyValue>1</allowEmptyValue>
             <width>30</width>
         </stringParameter>

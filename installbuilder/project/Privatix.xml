@@ -1046,84 +1046,84 @@ ${program_stderr}</text>
             </ruleList>
         </runProgram>
     </finalPageActionList>
-<!--    <installationAbortedActionList>-->
-<!--        <showProgressDialog>-->
-<!--            <title>Please wait</title>-->
-<!--            <actionList>-->
-<!--                <while>-->
-<!--                    <conditionRuleEvaluationLogic>or</conditionRuleEvaluationLogic>-->
-<!--                    <progressText>Please wait Rollback</progressText>-->
-<!--                    <actionList>-->
-<!--                        <wait ms="1000"/>-->
-<!--                    </actionList>-->
-<!--                    <conditionRuleList>-->
-<!--                        <processTest>-->
-<!--                            <logic>is_running</logic>-->
-<!--                            <name>dapp-installer.exe</name>-->
-<!--                        </processTest>-->
-<!--                        <processTest>-->
-<!--                            <logic>is_running</logic>-->
-<!--                            <name>dapp-installer</name>-->
-<!--                        </processTest>-->
-<!--                    </conditionRuleList>-->
-<!--                </while>-->
-<!--                <runProgram>-->
-<!--                    <abortOnError>0</abortOnError>-->
-<!--                    <explanation>Please wait Rollback</explanation>-->
-<!--                    <program>${remove_program}</program>-->
-<!--                    <programArguments>${remove_arguments}</programArguments>-->
-<!--                    <progressText>Please wait Rollback</progressText>-->
-<!--                    <showMessageOnError>0</showMessageOnError>-->
-<!--                    <runAs>root</runAs>-->
-<!--                    <ruleList>-->
-<!--                        <fileExists>-->
-<!--                            <path>${installdir}/dapp-installer</path>-->
-<!--                        </fileExists>-->
-<!--                    </ruleList>-->
-<!--                </runProgram>-->
-<!--                <deleteFile>-->
-<!--                    <abortOnError>0</abortOnError>-->
-<!--                    <excludeFiles>*.log</excludeFiles>-->
-<!--                    <matchHiddenFiles>1</matchHiddenFiles>-->
-<!--                    <path>${installdir}/*</path>-->
-<!--                    <progressText>Please wait Rollback</progressText>-->
-<!--                    <showMessageOnError>0</showMessageOnError>-->
-<!--                </deleteFile>-->
-<!--            </actionList>-->
-<!--            <ruleEvaluationLogic>and</ruleEvaluationLogic>-->
-<!--            <ruleList>-->
-<!--                <compareValues>-->
-<!--                    <logic>equals</logic>-->
-<!--                    <value1>${project.installationType}</value1>-->
-<!--                    <value2>normal</value2>-->
-<!--                </compareValues>-->
-<!--                <compareText>-->
-<!--                    <logic>does_not_contain</logic>-->
-<!--                    <text>${installed_version}</text>-->
-<!--                    <value>unknown variable</value>-->
-<!--                </compareText>-->
-<!--            </ruleList>-->
-<!--        </showProgressDialog>-->
-<!--&lt;!&ndash;        start supervisor&ndash;&gt;-->
-<!--        <runProgram>-->
-<!--            <program>net</program>-->
-<!--            <programArguments>start Privatix_Dapp_Supervisor</programArguments>-->
-<!--            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>-->
-<!--            <abortOnError>0</abortOnError>-->
-<!--            <showMessageOnError>0</showMessageOnError>-->
-<!--            <ruleList>-->
-<!--                <platformTest>-->
-<!--                    <type>windows</type>-->
-<!--                </platformTest>-->
-<!--                <compareValues>-->
-<!--                    <logic>equals</logic>-->
-<!--                    <value1>${project.installationType}</value1>-->
-<!--                    <value2>upgrade</value2>-->
-<!--                </compareValues>-->
-<!--                <compareText text="${install_type}" value="client" logic="equals" />-->
-<!--            </ruleList>-->
-<!--        </runProgram>-->
-<!--    </installationAbortedActionList>-->
+    <installationAbortedActionList>
+        <showProgressDialog>
+            <title>Please wait</title>
+            <actionList>
+                <while>
+                    <conditionRuleEvaluationLogic>or</conditionRuleEvaluationLogic>
+                    <progressText>Please wait Rollback</progressText>
+                    <actionList>
+                        <wait ms="1000"/>
+                    </actionList>
+                    <conditionRuleList>
+                        <processTest>
+                            <logic>is_running</logic>
+                            <name>dapp-installer.exe</name>
+                        </processTest>
+                        <processTest>
+                            <logic>is_running</logic>
+                            <name>dapp-installer</name>
+                        </processTest>
+                    </conditionRuleList>
+                </while>
+                <runProgram>
+                    <abortOnError>0</abortOnError>
+                    <explanation>Please wait Rollback</explanation>
+                    <program>${remove_program}</program>
+                    <programArguments>${remove_arguments}</programArguments>
+                    <progressText>Please wait Rollback</progressText>
+                    <showMessageOnError>0</showMessageOnError>
+                    <runAs>root</runAs>
+                    <ruleList>
+                        <fileExists>
+                            <path>${installdir}/dapp-installer</path>
+                        </fileExists>
+                    </ruleList>
+                </runProgram>
+                <deleteFile>
+                    <abortOnError>0</abortOnError>
+                    <excludeFiles>*.log</excludeFiles>
+                    <matchHiddenFiles>1</matchHiddenFiles>
+                    <path>${installdir}/*</path>
+                    <progressText>Please wait Rollback</progressText>
+                    <showMessageOnError>0</showMessageOnError>
+                </deleteFile>
+            </actionList>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
+            <ruleList>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>normal</value2>
+                </compareValues>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${installed_version}</text>
+                    <value>unknown variable</value>
+                </compareText>
+            </ruleList>
+        </showProgressDialog>
+<!--        start supervisor-->
+        <runProgram>
+            <program>net</program>
+            <programArguments>start Privatix_Dapp_Supervisor</programArguments>
+            <progressText>${msg(Installer.Supervisor.Starting)}</progressText>
+            <abortOnError>0</abortOnError>
+            <showMessageOnError>0</showMessageOnError>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+                <compareValues>
+                    <logic>equals</logic>
+                    <value1>${project.installationType}</value1>
+                    <value2>upgrade</value2>
+                </compareValues>
+                <compareText text="${install_type}" value="client" logic="equals" />
+            </ruleList>
+        </runProgram>
+    </installationAbortedActionList>
     <parameterList>
         <directoryParameter>
             <name>installdir</name>

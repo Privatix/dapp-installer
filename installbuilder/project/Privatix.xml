@@ -120,7 +120,22 @@
                 </folder>
             </folderList>
             <postInstallationActionList>
-
+<!--get user id-->
+                <setInstallerVariable>
+                    <name>user_id</name>
+                </setInstallerVariable>
+                <setInstallerVariableFromScriptOutput>
+                    <exec>id</exec>
+                    <execArgs>-u</execArgs>
+                    <name>user_id</name>
+                    <abortOnError>1</abortOnError>
+                    <showMessageOnError>1</showMessageOnError>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariableFromScriptOutput>
 <!--                Install win core-->
                 <setInstallerVariable>
                     <name>install_core_program</name>
@@ -362,7 +377,6 @@
                         </platformTest>
                     </ruleList>
                 </setInstallerVariable>
-
 
 
                 <propertiesFileSet>
@@ -750,22 +764,6 @@ ${program_stderr}</text>
                 <compareValues value1="${install_type}" value2="client" logic="equals"/>
             </ruleList>
         </runProgram>
-
-        <setInstallerVariable>
-            <name>user_id</name>
-        </setInstallerVariable>
-        <setInstallerVariableFromScriptOutput>
-            <exec>id</exec>
-            <execArgs>-u</execArgs>
-            <name>user_id</name>
-            <abortOnError>1</abortOnError>
-            <showMessageOnError>1</showMessageOnError>
-            <ruleList>
-                <platformTest>
-                    <type>osx</type>
-                </platformTest>
-            </ruleList>
-        </setInstallerVariableFromScriptOutput>
     </readyToInstallActionList>
     <postInstallationActionList>
         <propertiesFileSet>
@@ -949,6 +947,83 @@ ${program_stderr}</text>
         </runProgram>
     </postInstallationActionList>
     <preUninstallationActionList>
+<!--        set variables-->
+        <setInstallerVariable>
+            <name>user_id</name>
+        </setInstallerVariable>
+        <setInstallerVariableFromScriptOutput>
+            <exec>id</exec>
+            <execArgs>-u</execArgs>
+            <name>user_id</name>
+            <abortOnError>1</abortOnError>
+            <showMessageOnError>1</showMessageOnError>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariableFromScriptOutput>
+        <!--                Remove win-->
+        <setInstallerVariable>
+            <name>remove_program</name>
+            <value>${installdir}/dapp-installer</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>remove_arguments</name>
+            <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+
+        <!--                Remove mac-->
+        <setInstallerVariable>
+            <name>remove_program</name>
+            <value>osascript</value>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>remove_arguments</name>
+            <value>-e "do shell script \"sudo ${installdir}/dapp-installer remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}\" with administrator privileges"</value>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+
+        <!--                Remove linux-->
+        <setInstallerVariable>
+            <name>remove_program</name>
+            <value>${installdir}/dapp-installer</value>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>remove_arguments</name>
+            <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+
+        <showWarning text="remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}"/>
         <readFile>
             <name>install_type</name>
             <path>${installdir}/version</path>

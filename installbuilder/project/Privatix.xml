@@ -1023,7 +1023,7 @@ ${program_stderr}</text>
             </ruleList>
         </setInstallerVariable>
 
-        <showWarning text="remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}"/>
+<!--        <showWarning text="remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}"/>-->
         <readFile>
             <name>install_type</name>
             <path>${installdir}/version</path>

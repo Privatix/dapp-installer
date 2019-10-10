@@ -229,7 +229,7 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	if err := clearGuiStorage(); err != nil {
+	if err := clearGuiStorage(d); err != nil {
 		return err
 	}
 

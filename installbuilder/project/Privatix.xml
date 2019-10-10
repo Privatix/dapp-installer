@@ -378,6 +378,23 @@
                     </ruleList>
                 </setInstallerVariable>
 
+                <setInstallerVariable>
+                    <name>shouldAddHttps</name>
+                    <value>1</value>
+                    <ruleEvaluationLogic>and</ruleEvaluationLogic>
+                    <ruleList>
+                        <compareText>
+                            <logic>contains</logic>
+                            <text>${geth_endpoint}</text>
+                            <value>infura.io</value>
+                        </compareText>
+                        <compareText>
+                            <logic>does_not_contain</logic>
+                            <text>${geth_endpoint}</text>
+                            <value>http</value>
+                        </compareText>
+                    </ruleList>
+                </setInstallerVariable>
 
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
@@ -779,13 +796,44 @@ ${program_stderr}</text>
         </deleteFile>
         <readFile>
             <name>dappctrl_config</name>
-            <path>${installdir}/agent/dappctrl/dappctrl.config.json</path>
+            <path>${installdir}/${install_type}/dappctrl/dappctrl.config.json</path>
+        </readFile>
+        <readFile>
+            <name>agent_product_config</name>
+            <path>${installdir}/agent/product/${product_id}/config/ports.txt</path>
             <ruleList>
                 <compareValues>
                     <logic>equals</logic>
                     <value1>${install_type}</value1>
                     <value2>agent</value2>
                 </compareValues>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
             </ruleList>
         </readFile>
         <setInstallerVariableFromRegEx>
@@ -801,6 +849,7 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </setInstallerVariableFromRegEx>
+
         <readFile>
             <name>agent_product_config</name>
             <path>${installdir}/agent/product/${product_id}/config/ports.txt</path>
@@ -812,6 +861,34 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </readFile>
+        <setInstallerVariable>
+            <name>geth_endpoint</name>
+            <value>https://${geth_endpoint}</value>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
+            <ruleList>
+                <stringTest>
+                    <text>${geth_endpoint}</text>
+                    <type>not_empty</type>
+                </stringTest>
+                <isTrue>
+                    <value>${shouldAddHttps}</value>
+                </isTrue>
+            </ruleList>
+        </setInstallerVariable>
+
+        <setInstallerVariableFromRegEx>
+            <name>dappctrl_config</name>
+            <pattern>GethURL"[^"]+"https://[^"]+</pattern>
+            <substitution>GethURL": "${geth_endpoint}</substitution>
+            <text>${dappctrl_config}</text>
+            <ruleList>
+                <stringTest>
+                    <text>${geth_endpoint}</text>
+                    <type>not_empty</type>
+                </stringTest>
+            </ruleList>
+        </setInstallerVariableFromRegEx>
+
         <setInstallerVariableFromRegEx>
             <name>product_port</name>
             <pattern>(.+)</pattern>
@@ -844,39 +921,18 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </createSymLink>
-        <readFile>
-            <name>dappgui_config</name>
-            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
-            <ruleList>
-                <platformTest>
-                    <type>osx</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
-        <readFile>
-            <name>dappgui_config</name>
-            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
-            <ruleList>
-                <platformTest>
-                    <type>linux</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
-        <readFile>
-            <name>dappgui_config</name>
-            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
-            <ruleList>
-                <platformTest>
-                    <type>windows</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
+
         <setInstallerVariableFromRegEx>
             <name>dappgui_config</name>
             <pattern>"role":"(.*?)"</pattern>
             <substitution>"role":"${install_type}"</substitution>
             <text>${dappgui_config}</text>
         </setInstallerVariableFromRegEx>
+
+        <writeFile>
+            <path>${installdir}/${install_type}/dappctrl/dappctrl.config.json</path>
+            <text>${dappctrl_config}</text>
+        </writeFile>
 
         <writeFile>
             <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
@@ -1293,7 +1349,27 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </choiceParameter>
+        <linkParameter>
+            <name>get_infura_endpoint</name>
+            <title>${msg(Installer.Infura.GetEndpoint.Title)}</title>
+            <description>${msg(Installer.Infura.GetEndpoint.Description)}</description>
+            <explanation>${msg(Installer.Infura.GetEndpoint.Explanation)}</explanation>
+            <clickedActionList>
+                <launchBrowser>
+                    <url>https://docs.privatix.network/support/install/how-to-get-infura-enpoint</url>
+                </launchBrowser>
+            </clickedActionList>
+        </linkParameter>
 
+        <stringParameter>
+            <name>geth_endpoint</name>
+            <title>${msg(Installer.Infura.Endpoint.Title)}</title>
+            <description>${msg(Installer.Infura.Endpoint.Description)}</description>
+            <explanation>${msg(Installer.Infura.Endpoint.Explanation)}</explanation>
+            <ask>1</ask>
+            <width>60</width>
+            <insertAfter>get_infura_endpoint</insertAfter>
+        </stringParameter>
         <booleanParameter name="forceUpdate" default="0" ask="0"/>
         <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0">
             <allowEmptyValue>1</allowEmptyValue>

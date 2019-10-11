@@ -45,6 +45,7 @@ func (d *Dapp) Configure() error {
 	ctrl.Service.Command = filepath.Join(d.Path, ctrl.EntryPoint)
 	ctrl.Service.Args = []string{
 		"-config", filepath.Join(d.Path, ctrl.Configuration)}
+	ctrl.Service.UID = d.UID
 
 	if err := ctrl.Service.Install(); err != nil {
 		return fmt.Errorf("failed to install daemon: %v", err)
@@ -62,14 +63,14 @@ func (d *Dapp) Configure() error {
 func copyServiceWrapper(d, s *Dapp) {
 }
 
-func clearGuiStorage() error {
-	u, err := user.Current()
-	if err != nil {
-		return err
-	}
-	path := u.HomeDir
+func clearGuiStorage(d *Dapp) error {
+	var path string
 	if runtime.GOOS == "darwin" {
-		path = filepath.Join(path, "Library", "Application Support",
+		u, _:= user.Current()
+		if d.UID != "" {
+			u, _ = user.LookupId(d.UID)
+		}
+		path = filepath.Join(u.HomeDir, "Library", "Application Support",
 			"dappctrlgui")
 	} else {
 		path = filepath.Join(os.Getenv("HOME"), ".config", "dappctrlgui")

@@ -3,6 +3,8 @@ module github.com/privatix/dapp-installer
 require (
 	github.com/akavel/rsrc v0.8.0 // indirect
 	github.com/allegro/bigcache v1.2.0 // indirect
+	github.com/antchfx/htmlquery v1.0.0
+	github.com/antchfx/xpath v1.0.0 // indirect
 	github.com/aristanetworks/goarista v0.0.0-20190325233358-a123909ec740 // indirect
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/ethereum/go-ethereum v1.8.23

@@ -11,7 +11,7 @@ func (t Tor) ServiceName() string {
 	return "Privatix Tor " + util.Hash(t.RootPath)
 }
 
-func installService(service, path, description string, autostart bool) error {
+func installService(service, path, description, _ string, autostart bool) error {
 	torExe := filepath.Join(path, "tor", "tor")
 	torConf := filepath.Join(path, "tor", "settings", "torrc")
 
@@ -27,6 +27,6 @@ func stopService(service, _ string) error {
 	return util.ExecuteCommand("sc", "stop", service)
 }
 
-func removeService(service string) error {
+func removeService(service, _ string) error {
 	return util.RemoveService(service)
 }

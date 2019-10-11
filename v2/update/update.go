@@ -3,6 +3,7 @@ package update
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -30,6 +31,7 @@ type updateContext struct {
 	Source        string
 	installed     *metadata.Installation
 	updateVersion string
+	uid           string
 	path          appPath
 }
 
@@ -172,7 +174,7 @@ func Run(logger log.Logger) error {
 		updateFlow.Steps = []flow.Step{
 			&step{
 				name: "read config file",
-				do:   readConfigFileAndArgs,
+				do:   readArgs,
 			},
 			&step{
 				name: "stop container",
@@ -236,7 +238,7 @@ func Run(logger log.Logger) error {
 		updateFlow.Steps = []flow.Step{
 			&step{
 				name: "read config file",
-				do:   readConfigFileAndArgs,
+				do:   readArgs,
 			},
 			&step{
 				name: "read installed details",
@@ -338,27 +340,39 @@ func Run(logger log.Logger) error {
 	return updateFlow.Run(logger, v)
 }
 
-func readConfigFileAndArgs(_ log.Logger, v *updateContext) error {
-	conffile := flag.String("config", "dapp-installer.config.json", "dapp-installer configuration file")
+func readArgs(_ log.Logger, v *updateContext) error {
 	role := flag.String("role", "", "client | agent")
 	workdir := flag.String("workdir", "", "app directory")
+	source := flag.String("source", "", "new application source")
+	uid := flag.String("uid", "", "installation user's UID")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
-	err := util.ReadJSON(*conffile, v)
-	if err != nil {
-		return fmt.Errorf("could not read configuration file: %v", err)
+	if runtime.GOOS == "darwin" {
+		if *uid == "" {
+			return errors.New("uid argument is required")
+		}
+		v.uid = *uid
 	}
 
 	if *role != "" {
 		v.Role = *role
+	} else {
+		return errors.New("role is required")
 	}
 
 	if *workdir != "" {
 		v.Path = *workdir
+	} else {
+		return errors.New("workdir is required")
 	}
 
-	v.Path, err = filepath.Abs(v.Path)
+	if *source == "" {
+		return errors.New("source is required")
+	}
+
+	var err error
+	v.Source, err = filepath.Abs(*source)
 	if err != nil {
 		return fmt.Errorf("could not get absolute path for installation: %v", err)
 	}
@@ -375,52 +389,58 @@ func readInstallationDetails(logger log.Logger, v *updateContext) error {
 }
 
 func stopTor(logger log.Logger, v *updateContext) error {
-	return stopService(logger, v.installed.Tor.Service)
+	return stopService(logger, v.installed.Tor.Service, v.uid)
 }
 
 func startTor(logger log.Logger, v *updateContext) error {
-	return startService(logger, v.installed.Tor.Service)
+	return startService(logger, v.installed.Tor.Service, v.uid)
 }
 
 func stopDappCtrl(logger log.Logger, v *updateContext) error {
-	return stopService(logger, v.installed.Dapp.Service)
+	return stopService(logger, v.installed.Dapp.Service, v.uid)
 }
 
 func startDappCtrl(logger log.Logger, v *updateContext) error {
-	return startService(logger, v.installed.Dapp.Service)
+	return startService(logger, v.installed.Dapp.Service, v.uid)
 }
 
 func stopDatabase(logger log.Logger, v *updateContext) error {
-	return stopService(logger, v.installed.DB.Service)
+	return stopService(logger, v.installed.DB.Service, v.uid)
 }
 
 func startDatabase(logger log.Logger, v *updateContext) error {
-	return startService(logger, v.installed.DB.Service)
+	return startService(logger, v.installed.DB.Service, v.uid)
 }
 
-func stopService(logger log.Logger, svc string) error {
-	currentUser, err := user.Current()
-	if err != nil {
-		return err
+func stopService(logger log.Logger, svc, installUID string) error {
+	if installUID == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return err
+		}
+		installUID = currentUser.Uid
 	}
-	logger = logger.Add("Uid", currentUser.Uid)
+	logger = logger.Add("Uid", installUID)
 	ctx, cancel := context.WithTimeout(context.Background(), stepTimeout)
 	defer cancel()
-	if err := service.Stop(ctx, logger, svc, currentUser.Uid); err != nil {
+	if err := service.Stop(ctx, logger, svc, installUID); err != nil {
 		return fmt.Errorf("could not stop a service: %v", err)
 	}
 	return nil
 }
 
-func startService(logger log.Logger, svc string) error {
-	currentUser, err := user.Current()
-	if err != nil {
-		return err
+func startService(logger log.Logger, svc, installUID string) error {
+	if installUID == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return err
+		}
+		installUID = currentUser.Uid
 	}
-	logger = logger.Add("Uid", currentUser.Uid)
+	logger = logger.Add("Uid", installUID)
 	ctx, cancel := context.WithTimeout(context.Background(), stepTimeout)
 	defer cancel()
-	if err := service.Start(ctx, logger, svc, currentUser.Uid); err != nil {
+	if err := service.Start(ctx, logger, svc, installUID); err != nil {
 		return fmt.Errorf("could not start a service: %v", err)
 	}
 	return nil
@@ -435,7 +455,7 @@ func backupCurrentInstallation(logger log.Logger, v *updateContext) error {
 	switch runtime.GOOS {
 	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
-		return util.ExecuteCommandOnDarwinAsAdmin(command)
+		return util.ExecuteCommand("/bin/bash", "-c", command)
 	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", backupPath, v.Path, backupPath)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
@@ -456,7 +476,7 @@ func restoreInstallationBackup(_ log.Logger, v *updateContext) error {
 	switch runtime.GOOS {
 	case "darwin":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", v.Path, backupPath, v.Path)
-		return util.ExecuteCommandOnDarwinAsAdmin(command)
+		return util.ExecuteCommand(command)
 	case "linux":
 		command := fmt.Sprintf("rm -rf %s && mv %s %s", v.Path, backupPath, v.Path)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
@@ -491,7 +511,7 @@ func extractAppFilesForUpdate(_ log.Logger, v *updateContext) error {
 		os.MkdirAll(v.Path, util.FullPermission)
 	}
 
-	if err := util.Unzip(v.Source, v.Path); err != nil {
+	if err := util.Unzip(v.Source, v.Path, v.uid); err != nil {
 		return fmt.Errorf("could not to unzip source `%s`: %v", v.Source, err)
 	}
 	return nil
@@ -699,7 +719,7 @@ func copyDir(v *updateContext, p string) error {
 	backupPath := currentInstallationBackupPath(v)
 	src := filepath.Join(backupPath, p)
 	dst := filepath.Join(v.Path, p)
-	if runtime.GOOS == "linux" {
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		command := fmt.Sprintf("rm -rf %s && cp -rp %s %s", dst, src, dst)
 		return util.ExecuteCommand("/bin/bash", "-c", command)
 	}

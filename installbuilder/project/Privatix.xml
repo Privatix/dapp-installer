@@ -80,9 +80,6 @@
                             <origin>../linux-dapp-installer/dapp-installer</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../linux-dapp-installer/dapp-installer.config.json</origin>
-                        </distributionFile>
-                        <distributionFile>
                             <origin>../linux-dapp-installer/dapp-supervisor</origin>
                         </distributionFile>
                     </distributionFileList>
@@ -95,9 +92,6 @@
                     <distributionFileList>
                         <distributionFile>
                             <origin>../win-dapp-installer/app.zip</origin>
-                        </distributionFile>
-                        <distributionFile>
-                            <origin>../win-dapp-installer/dapp-installer.config.json</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>../win-dapp-installer/dapp-installer.exe</origin>
@@ -120,24 +114,288 @@
                             <origin>../mac-dapp-installer/dapp-installer</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>../mac-dapp-installer/dapp-installer.config.json</origin>
-                        </distributionFile>
-                        <distributionFile>
                             <origin>../mac-dapp-installer/dapp-supervisor</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
             </folderList>
             <postInstallationActionList>
+<!--get user id-->
                 <setInstallerVariable>
-                    <name>sendremote</name>
-                    <value>-sendremote true</value>
+                    <name>user_id</name>
+                </setInstallerVariable>
+                <setInstallerVariableFromScriptOutput>
+                    <exec>id</exec>
+                    <execArgs>-u</execArgs>
+                    <name>user_id</name>
+                    <abortOnError>1</abortOnError>
+                    <showMessageOnError>1</showMessageOnError>
                     <ruleList>
-                        <isTrue>
-                            <value>${bugsnag}</value>
-                        </isTrue>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariableFromScriptOutput>
+<!--                Install win core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
                     </ruleList>
                 </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} -sendremote false</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install mac core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install -core -role ${install_type} -workdir ./${install_type} -source ./app.zip -torhsd tor/hidden_service -torsocks 9999 -uid=${user_id} -sendremote false\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install linux core-->
+                <setInstallerVariable>
+                    <name>install_core_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_core_arguments</name>
+                    <value>install -core -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz -torhsd var/lib/tor/hidden_service -torsocks 9099 -uid=${user_id} -sendremote false</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install win products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid=${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install mac products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer install-products -role ${install_type} -workdir ./${install_type} -uid=${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Install linux products-->
+                <setInstallerVariable>
+                    <name>install_products_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>install_products_arguments</name>
+                    <value>install-products -role ${install_type} -workdir ./${install_type} -uid=${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+
+<!--                Update win-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.zip  -uid=${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Update mac-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer update -role ${install_type} -workdir ./${install_type} -source ./app.zip -uid=${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Update linux-->
+                <setInstallerVariable>
+                    <name>update_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>update_arguments</name>
+                    <value>update -role ${install_type} -workdir ./${install_type} -source ./app.tar.xz  -uid=${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+
+<!--                Remove win-->
+                <setInstallerVariable>
+                    <name>remove_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>remove_arguments</name>
+                    <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>windows</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Remove mac-->
+                <setInstallerVariable>
+                    <name>remove_program</name>
+                    <value>osascript</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>remove_arguments</name>
+                    <value>-e "do shell script \"sudo ${installdir}/dapp-installer remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}\" with administrator privileges"</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>osx</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+<!--                Remove linux-->
+                <setInstallerVariable>
+                    <name>remove_program</name>
+                    <value>${installdir}/dapp-installer</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+                <setInstallerVariable>
+                    <name>remove_arguments</name>
+                    <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
+                    <ruleList>
+                        <platformTest>
+                            <type>linux</type>
+                        </platformTest>
+                    </ruleList>
+                </setInstallerVariable>
+
+                <setInstallerVariable>
+                    <name>shouldAddHttps</name>
+                    <value>1</value>
+                    <ruleEvaluationLogic>and</ruleEvaluationLogic>
+                    <ruleList>
+                        <compareText>
+                            <logic>contains</logic>
+                            <text>${geth_endpoint}</text>
+                            <value>infura.io</value>
+                        </compareText>
+                        <compareText>
+                            <logic>does_not_contain</logic>
+                            <text>${geth_endpoint}</text>
+                            <value>http</value>
+                        </compareText>
+                    </ruleList>
+                </setInstallerVariable>
+
                 <propertiesFileSet>
                     <file>${installdir}/version</file>
                     <key>version</key>
@@ -152,8 +410,8 @@
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
+                                            <program>${install_core_program}</program>
+                                            <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -167,8 +425,8 @@
                                     </conditionRuleList>
                                     <elseActionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <program>${update_program}</program>
+                                            <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -190,8 +448,8 @@
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install -config dapp-installer.config.json -core -role ${install_type} -workdir ./${install_type} ${sendremote}</programArguments>
+                                            <program>${install_core_program}</program>
+                                            <programArguments>${install_core_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -205,8 +463,8 @@
                                     </conditionRuleList>
                                     <elseActionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>update -config dapp-installer.config.json -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <program>${update_program}</program>
+                                            <programArguments>${update_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextCore)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
                                         </runProgram>
@@ -229,8 +487,8 @@ ${program_stderr}</text>
                             <actionList>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                                    <program>${remove_program</program>
+                                    <programArguments>${remove_arguments}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -305,10 +563,20 @@ ${program_stderr}</text>
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type}</programArguments>
+                                            <program>${install_products_program}</program>
+                                            <programArguments>${install_products_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <abortOnError>0</abortOnError>
+<!--                                            retry-->
+                                            <onErrorActionList>
+                                                <runProgram>
+                                                    <program>${install_products_program}</program>
+                                                    <programArguments>${install_products_arguments}</programArguments>
+                                                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                                                    <workingDirectory>${installdir}</workingDirectory>
+                                                </runProgram>
+                                            </onErrorActionList>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -331,10 +599,20 @@ ${program_stderr}</text>
                                 <if>
                                     <actionList>
                                         <runProgram>
-                                            <program>${installdir}/dapp-installer</program>
-                                            <programArguments>install-products -role ${install_type} -workdir ./${install_type} -product ${product_id}</programArguments>
+                                            <program>${install_products_program}</program>
+                                            <programArguments>${install_products_arguments}</programArguments>
                                             <progressText>${msg(Installer.showProgressDialog.TextProduct)}</progressText>
                                             <workingDirectory>${installdir}</workingDirectory>
+                                            <abortOnError>0</abortOnError>
+<!--                                            retry-->
+                                            <onErrorActionList>
+                                                <runProgram>
+                                                    <program>${install_products_program}</program>
+                                                    <programArguments>${install_products_arguments}</programArguments>
+                                                    <progressText>${msg(Installer.showProgressDialog.Description)}</progressText>
+                                                    <workingDirectory>${installdir}</workingDirectory>
+                                                </runProgram>
+                                            </onErrorActionList>
                                         </runProgram>
                                     </actionList>
                                     <conditionRuleList>
@@ -358,8 +636,8 @@ ${program_stderr}</text>
                             <actionList>
                                 <runProgram>
                                     <explanation>Please wait Rollback</explanation>
-                                    <program>${installdir}/dapp-installer</program>
-                                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                                    <program>${remove_program}</program>
+                                    <programArguments>${remove_arguments}</programArguments>
                                     <progressText>Please wait Rollback</progressText>
                                     <workingDirectory>${installdir}</workingDirectory>
                                     <ruleList>
@@ -503,7 +781,6 @@ ${program_stderr}</text>
                 <compareValues value1="${install_type}" value2="client" logic="equals"/>
             </ruleList>
         </runProgram>
-
     </readyToInstallActionList>
     <postInstallationActionList>
         <propertiesFileSet>
@@ -519,13 +796,44 @@ ${program_stderr}</text>
         </deleteFile>
         <readFile>
             <name>dappctrl_config</name>
-            <path>${installdir}/agent/dappctrl/dappctrl.config.json</path>
+            <path>${installdir}/${install_type}/dappctrl/dappctrl.config.json</path>
+        </readFile>
+        <readFile>
+            <name>agent_product_config</name>
+            <path>${installdir}/agent/product/${product_id}/config/ports.txt</path>
             <ruleList>
                 <compareValues>
                     <logic>equals</logic>
                     <value1>${install_type}</value1>
                     <value2>agent</value2>
                 </compareValues>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </readFile>
+        <readFile>
+            <name>dappgui_config</name>
+            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
             </ruleList>
         </readFile>
         <setInstallerVariableFromRegEx>
@@ -541,6 +849,7 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </setInstallerVariableFromRegEx>
+
         <readFile>
             <name>agent_product_config</name>
             <path>${installdir}/agent/product/${product_id}/config/ports.txt</path>
@@ -552,6 +861,34 @@ ${program_stderr}</text>
                 </compareValues>
             </ruleList>
         </readFile>
+        <setInstallerVariable>
+            <name>geth_endpoint</name>
+            <value>https://${geth_endpoint}</value>
+            <ruleEvaluationLogic>and</ruleEvaluationLogic>
+            <ruleList>
+                <stringTest>
+                    <text>${geth_endpoint}</text>
+                    <type>not_empty</type>
+                </stringTest>
+                <isTrue>
+                    <value>${shouldAddHttps}</value>
+                </isTrue>
+            </ruleList>
+        </setInstallerVariable>
+
+        <setInstallerVariableFromRegEx>
+            <name>dappctrl_config</name>
+            <pattern>GethURL"[^"]+"https://[^"]+</pattern>
+            <substitution>GethURL": "${geth_endpoint}</substitution>
+            <text>${dappctrl_config}</text>
+            <ruleList>
+                <stringTest>
+                    <text>${geth_endpoint}</text>
+                    <type>not_empty</type>
+                </stringTest>
+            </ruleList>
+        </setInstallerVariableFromRegEx>
+
         <setInstallerVariableFromRegEx>
             <name>product_port</name>
             <pattern>(.+)</pattern>
@@ -584,63 +921,18 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </createSymLink>
-        <setInstallerVariable>
-            <name>bugsnag</name>
-            <value>true</value>
-            <ruleList>
-                <isTrue>
-                    <value>${bugsnag}</value>
-                </isTrue>
-            </ruleList>
-        </setInstallerVariable>
-        <setInstallerVariable>
-            <name>bugsnag</name>
-            <value>false</value>
-            <ruleList>
-                <isFalse>
-                    <value>${bugsnag}</value>
-                </isFalse>
-            </ruleList>
-        </setInstallerVariable>
-        <readFile>
-            <name>dappgui_config</name>
-            <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
-            <ruleList>
-                <platformTest>
-                    <type>osx</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
-        <readFile>
-            <name>dappgui_config</name>
-            <path>${installdir}/${install_type}/dappgui/resources/app/settings.json</path>
-            <ruleList>
-                <platformTest>
-                    <type>linux</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
-        <readFile>
-            <name>dappgui_config</name>
-            <path>${installdir}\${install_type}\dappgui\resources\app\settings.json</path>
-            <ruleList>
-                <platformTest>
-                    <type>windows</type>
-                </platformTest>
-            </ruleList>
-        </readFile>
-        <setInstallerVariableFromRegEx>
-            <name>dappgui_config</name>
-            <pattern>{"bugsnag":{"enable":(.*?),</pattern>
-            <substitution>{"bugsnag":{"enable":${bugsnag},</substitution>
-            <text>${dappgui_config}</text>
-        </setInstallerVariableFromRegEx>
+
         <setInstallerVariableFromRegEx>
             <name>dappgui_config</name>
             <pattern>"role":"(.*?)"</pattern>
             <substitution>"role":"${install_type}"</substitution>
             <text>${dappgui_config}</text>
         </setInstallerVariableFromRegEx>
+
+        <writeFile>
+            <path>${installdir}/${install_type}/dappctrl/dappctrl.config.json</path>
+            <text>${dappctrl_config}</text>
+        </writeFile>
 
         <writeFile>
             <path>${installdir}/${install_type}/dappgui/dapp-gui.app/Contents/Resources/app/settings.json</path>
@@ -711,6 +1003,83 @@ ${program_stderr}</text>
         </runProgram>
     </postInstallationActionList>
     <preUninstallationActionList>
+<!--        set variables-->
+        <setInstallerVariable>
+            <name>user_id</name>
+        </setInstallerVariable>
+        <setInstallerVariableFromScriptOutput>
+            <exec>id</exec>
+            <execArgs>-u</execArgs>
+            <name>user_id</name>
+            <abortOnError>1</abortOnError>
+            <showMessageOnError>1</showMessageOnError>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariableFromScriptOutput>
+        <!--                Remove win-->
+        <setInstallerVariable>
+            <name>remove_program</name>
+            <value>${installdir}/dapp-installer</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>remove_arguments</name>
+            <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
+            <ruleList>
+                <platformTest>
+                    <type>windows</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+
+        <!--                Remove mac-->
+        <setInstallerVariable>
+            <name>remove_program</name>
+            <value>osascript</value>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>remove_arguments</name>
+            <value>-e "do shell script \"sudo ${installdir}/dapp-installer remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}\" with administrator privileges"</value>
+            <ruleList>
+                <platformTest>
+                    <type>osx</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+
+        <!--                Remove linux-->
+        <setInstallerVariable>
+            <name>remove_program</name>
+            <value>${installdir}/dapp-installer</value>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>remove_arguments</name>
+            <value>remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}</value>
+            <ruleList>
+                <platformTest>
+                    <type>linux</type>
+                </platformTest>
+            </ruleList>
+        </setInstallerVariable>
+
+<!--        <showWarning text="remove -workdir ./${install_type} -role ${install_type} -uid=${user_id}"/>-->
         <readFile>
             <name>install_type</name>
             <path>${installdir}/version</path>
@@ -719,8 +1088,8 @@ ${program_stderr}</text>
             <title>${msg(Installer.showProgressDialog.Title)}</title>
             <actionList>
                 <runProgram>
-                    <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ${install_type} -role ${install_type}</programArguments>
+                    <program>${remove_program}</program>
+                    <programArguments>${remove_arguments}</programArguments>
                     <progressText>${msg(Installer.Uninstallation.showProgressDialog.Description)}</progressText>
                     <workingDirectory>${installdir}</workingDirectory>
                 </runProgram>
@@ -810,8 +1179,8 @@ ${program_stderr}</text>
                 <runProgram>
                     <abortOnError>0</abortOnError>
                     <explanation>Please wait Rollback</explanation>
-                    <program>${installdir}/dapp-installer</program>
-                    <programArguments>remove -workdir ./${install_type} -role ${install_type}</programArguments>
+                    <program>${remove_program}</program>
+                    <programArguments>${remove_arguments}</programArguments>
                     <progressText>Please wait Rollback</progressText>
                     <showMessageOnError>0</showMessageOnError>
                     <ruleList>
@@ -980,41 +1349,33 @@ ${program_stderr}</text>
                 </platformTest>
             </ruleList>
         </choiceParameter>
+        <linkParameter>
+            <name>get_infura_endpoint</name>
+            <title>${msg(Installer.Infura.GetEndpoint.Title)}</title>
+            <description>${msg(Installer.Infura.GetEndpoint.Description)}</description>
+            <explanation>${msg(Installer.Infura.GetEndpoint.Explanation)}</explanation>
+            <clickedActionList>
+                <launchBrowser>
+                    <url>https://docs.privatix.network/support/install/how-to-get-infura-enpoint</url>
+                </launchBrowser>
+            </clickedActionList>
+        </linkParameter>
 
-        <booleanParameter>
-            <name>bugsnag</name>
-            <title>${msg(Installer.Bugsnag.title)}</title>
-            <description>${msg(Installer.Bugsnag.option)}</description>
-            <explanation>
-</explanation>
-            <value>true</value>
-            <default>true</default>
-            <displayStyle>checkbox-left</displayStyle>
-            <ruleList>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${project.installationType}</value1>
-                    <value2>normal</value2>
-                </compareValues>
-            </ruleList>
-        </booleanParameter>
-
-        <booleanParameter name="forceUpdate" default="0" ask="0">
-            <description></description>
-            <explanation></explanation>
-            <value></value>
-        </booleanParameter>
+        <stringParameter>
+            <name>geth_endpoint</name>
+            <title>${msg(Installer.Infura.Endpoint.Title)}</title>
+            <description>${msg(Installer.Infura.Endpoint.Description)}</description>
+            <explanation>${msg(Installer.Infura.Endpoint.Explanation)}</explanation>
+            <ask>1</ask>
+            <width>60</width>
+            <insertAfter>get_infura_endpoint</insertAfter>
+        </stringParameter>
+        <booleanParameter name="forceUpdate" default="0" ask="0"/>
         <stringParameter name="product_id" default="73e17130-2a1d-4f7d-97a8-93a9aaa6f10d" ask="0">
-            <description></description>
-            <explanation></explanation>
-            <value></value>
             <allowEmptyValue>1</allowEmptyValue>
             <width>30</width>
         </stringParameter>
         <stringParameter name="product_name" default="VPN" ask="0">
-            <description></description>
-            <explanation></explanation>
-            <value></value>
             <allowEmptyValue>1</allowEmptyValue>
             <width>30</width>
         </stringParameter>

@@ -34,28 +34,6 @@ func Install() flow.Flow {
 	}
 }
 
-// Update is core update flow.
-func Update() flow.Flow {
-	if runtime.GOOS == "linux" {
-		return UpdateLinux()
-	}
-	return flow.Flow{
-		Name: "Update",
-		Steps: []flow.Step{
-			newStep("process flags", processedUpdateFlags, nil),
-			newStep("validate", checkInstallation, nil),
-			newStep("init temp", initTemp, removeTemp),
-			newStep("stop tor", stopTor, startTor),
-			newStep("stop services", stopServices, startServices),
-			newStep("stop product services", stopProducts, nil),
-			newStep("update", update, startProducts),
-			newStep("write env", writeEnvironmentVariable, nil),
-			newStep("start tor", startTor, nil),
-			newStep("remove temp", removeTemp, nil),
-		},
-	}
-}
-
 // Remove is remove flow.
 func Remove() flow.Flow {
 	if runtime.GOOS == "linux" {
@@ -105,22 +83,6 @@ func InstallProducts() flow.Flow {
 	}
 }
 
-// UpdateProducts is products update flow.
-func UpdateProducts() flow.Flow {
-	if runtime.GOOS == "linux" {
-		return UpdateLinuxProducts()
-	}
-	return flow.Flow{
-		Name: "Products update",
-		Steps: []flow.Step{
-			newStep("process flags", processedUpdateProductFlags, nil),
-			newStep("validate", checkInstallation, nil),
-			newStep("update products", updateProducts, nil),
-			newStep("start products", startProducts, nil),
-		},
-	}
-}
-
 // RemoveProducts is products remove flow.
 func RemoveProducts() flow.Flow {
 	if runtime.GOOS == "linux" {
@@ -161,35 +123,12 @@ func InstallLinux() flow.Flow {
 	}
 }
 
-// UpdateLinux is core update flow for linux.
-func UpdateLinux() flow.Flow {
-	return flow.Flow{
-		Name: "Update linux",
-		Steps: []flow.Step{
-			newStep("process flags", processedUpdateFlags, nil),
-			newStep("validate", checkContainer, nil),
-			newStep("init temp", initTemp, removeTemp),
-			newStep("stop", disableAndStopContainer, enableAndStartContainer),
-			newStep("update", updateContainer, restoreContainer),
-			newStep("disable daemons", disableDaemons, nil),
-			newStep("start", enableAndStartContainer, disableAndStopContainer),
-			newStep("update database", updateDatabase, nil),
-			newStep("enable daemons", enableDaemons, nil),
-			newStep("finalize", finalize, nil),
-			newStep("remove temp", removeTemp, nil),
-			newStep("remove backup", removeBackup, nil),
-		},
-	}
-}
-
 // RemoveLinux is remove flow for linux.
 func RemoveLinux() flow.Flow {
 	return flow.Flow{
 		Name: "removeLinux",
 		Steps: []flow.Step{
 			newStep("process flags", processedRemoveFlags, nil),
-			newStep("start container if client", startContainerIfClient, stopContainerIfClient),
-			newStep("validate", checkContainer, nil),
 			newStep("stop", stopContainer, nil),
 			newStep("remove supervisor", removeSupervisorIfClient, installSupervisorIfClient),
 			newStep("remove", removeContainer, nil),
@@ -209,20 +148,6 @@ func InstallLinuxProducts() flow.Flow {
 			newStep("install products", installProducts, removeProducts),
 			newStep("finalize", finalize, nil),
 			newStep("stop if client", stopContainerIfClient, startContainerIfClient),
-		},
-	}
-}
-
-// UpdateLinuxProducts is products update flow for linux.
-func UpdateLinuxProducts() flow.Flow {
-	return flow.Flow{
-		Name: "Products update (linux)",
-		Steps: []flow.Step{
-			newStep("process flags", processedUpdateProductFlags, nil),
-			newStep("validate", checkContainer, nil),
-			newStep("update products", updateProducts, nil),
-			newStep("start products", startProducts, nil),
-			newStep("finalize", finalize, nil),
 		},
 	}
 }

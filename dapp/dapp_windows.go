@@ -129,7 +129,7 @@ func copyServiceWrapper(d, s *Dapp) {
 		filepath.Join(d.Path, scvConfig))
 }
 
-func clearGuiStorage() error {
+func clearGuiStorage(d *Dapp) error {
 	output, err := util.ExecuteCommandOutput("wmic", "useraccount",
 		"where", "Status='OK'", "get", "Name", "/value")
 

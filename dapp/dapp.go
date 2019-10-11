@@ -34,6 +34,8 @@ type Dapp struct {
 	Version    string
 	Tor        *tor.Tor
 	UserID     string
+	UID        string
+	Username   string
 	Timeout    uint64 // in seconds
 	OnlyCore   bool
 	Product    string
@@ -211,6 +213,7 @@ func (d *Dapp) modifyDappConfig() error {
 	addr := jsonMap["UI"].(map[string]interface{})["Addr"].(string)
 	d.Gui.Settings["wsEndpoint"] = fmt.Sprintf("ws://%s/ws", addr)
 	d.Gui.Settings["bugsnag.userid"] = d.UserID
+	d.Gui.Settings["role"] = d.Role
 	if err := d.setUIConfig(); err != nil {
 		return err
 	}
@@ -226,7 +229,7 @@ func (d *Dapp) modifyDappConfig() error {
 
 // Remove removes installed dapp core.
 func (d *Dapp) Remove() error {
-	if err := clearGuiStorage(); err != nil {
+	if err := clearGuiStorage(d); err != nil {
 		return err
 	}
 

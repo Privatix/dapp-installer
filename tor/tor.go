@@ -49,8 +49,8 @@ func NewTor() *Tor {
 	}
 }
 
-func (t *Tor) configure() error {
-	if err := t.generateKey(); err != nil {
+func (t *Tor) configure(installUID string) error {
+	if err := t.generateKey(installUID); err != nil {
 		return err
 	}
 
@@ -59,7 +59,7 @@ func (t *Tor) configure() error {
 
 // The private key and hostname are generated according to the instruction
 // https://trac.torproject.org/projects/tor/wiki/doc/HiddenServiceNames
-func (t *Tor) generateKey() error {
+func (t *Tor) generateKey(installUID string) error {
 	priv, err := rsa.GenerateKey(rand.Reader, 1024)
 
 	if err != nil {
@@ -82,18 +82,35 @@ func (t *Tor) generateKey() error {
 
 	path := filepath.Join(t.RootPath, t.HiddenServiceDir)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(path, 0700)
+		if err := os.MkdirAll(path, 0700); err != nil {
+			return err
+		}
+		if installUID != "" {
+			if err := util.ChownToUID(path, installUID); err != nil {
+				return err
+			}
+		}
 	}
 
-	keyOut, err := os.OpenFile(filepath.Join(path, "private_key"),
+	pkeyFilePath := filepath.Join(path, "private_key")
+	keyOut, err := os.OpenFile(pkeyFilePath,
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
 	defer keyOut.Close()
 
-	return pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY",
+	err = pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(priv)})
+	if err != nil {
+		return err
+	}
+
+	if installUID == "" {
+		return nil
+	}
+
+	return util.ChownToUID(pkeyFilePath, installUID)
 }
 
 func (t *Tor) createSettings() error {
@@ -136,14 +153,14 @@ func (t *Tor) createSettings() error {
 }
 
 // Install installs tor process.
-func (t *Tor) Install(role string, autostart bool) error {
-	if err := t.configure(); err != nil {
+func (t *Tor) Install(role string, autostart bool, installUID string) error {
+	if err := t.configure(installUID); err != nil {
 		return err
 	}
 
 	descr := fmt.Sprintf("Privatix %s Tor transport %s", role,
 		util.Hash(t.RootPath))
-	return installService(t.ServiceName(), t.RootPath, descr, autostart)
+	return installService(t.ServiceName(), t.RootPath, descr, installUID, autostart)
 }
 
 // Start starts tor process.
@@ -185,6 +202,6 @@ func (t *Tor) Stop(ctx context.Context, installUID string) (err error) {
 }
 
 // Remove removes tor process.
-func (t *Tor) Remove() error {
-	return removeService(t.ServiceName())
+func (t *Tor) Remove(installUID string) error {
+	return removeService(t.ServiceName(), installUID)
 }

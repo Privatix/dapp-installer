@@ -141,7 +141,7 @@ func checkInstallation(d *dapp.Dapp) (err error) {
 
 func startServices(d *dapp.Dapp) error {
 	d.Controller.Service.ID = d.ControllerHash()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 	return d.Start(ctx, d.UID)
 }

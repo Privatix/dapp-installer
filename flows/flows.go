@@ -129,8 +129,6 @@ func RemoveLinux() flow.Flow {
 		Name: "removeLinux",
 		Steps: []flow.Step{
 			newStep("process flags", processedRemoveFlags, nil),
-			newStep("start container if client", startContainerIfClient, stopContainerIfClient),
-			newStep("validate", checkContainer, nil),
 			newStep("stop", stopContainer, nil),
 			newStep("remove supervisor", removeSupervisorIfClient, installSupervisorIfClient),
 			newStep("remove", removeContainer, nil),
